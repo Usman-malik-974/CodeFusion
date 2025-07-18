@@ -1,10 +1,16 @@
 import { useState } from 'react'
+import { BrowserRouter as Router, Routes, Route, BrowserRouter } from 'react-router-dom'
+import Home from './screen/Home'
 
 function App() {
 
   return (
     <>
-      <h1 className='text-green-700 text-4xl'>Hello World</h1>
+      <BrowserRouter>
+        <Routes>
+          <Route path='/' element={<Home />} />
+        </Routes>
+      </BrowserRouter>
     </>
   )
 }
