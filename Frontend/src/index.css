@@ -1,1 +1,14 @@
 @import "tailwindcss";
+.monaco-editor .scrollbar,
+.monaco-editor .scrollbar > .slider {
+  background: transparent !important;
+  box-shadow: none !important;
+  opacity: 0.3 !important;  /* Optional: Adjust opacity as needed */
+  transition: none !important;
+}
+
+.monaco-editor .scrollbar > .slider:hover {
+  background: transparent !important;
+  box-shadow: none !important;
+  opacity: 0.3 !important;
+}

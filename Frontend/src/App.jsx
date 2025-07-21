@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { BrowserRouter as Router, Routes, Route, BrowserRouter } from 'react-router-dom'
 import Home from './screen/Home'
+import Playground from './screen/Playground'
 
 function App() {
 
@@ -9,6 +10,7 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path='/' element={<Home />} />
+          <Route path='playground' element={<Playground/>} />
         </Routes>
       </BrowserRouter>
     </>
