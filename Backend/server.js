@@ -1,0 +1,28 @@
+require('dotenv').config();
+const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
+const cors=require('cors');
+
+const app = express();
+app.use(express.json());
+app.use(cors());
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+});
+const codeRunnerRouter = require('./routes/codeRunner')(io);
+io.on('connection', (socket) => {
+    console.log(`📡 Client connected: ${socket.id}`);
+    socket.on('disconnect', () => {
+        console.log(`❌ Client disconnected: ${socket.id}`);
+    });
+});
+app.use('/api', codeRunnerRouter);
+server.listen(process.env.PORT, () => {
+    console.log(`Server running at http://localhost:${process.env.PORT}`);
+});

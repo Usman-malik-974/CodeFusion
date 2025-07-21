@@ -3,7 +3,7 @@
 .monaco-editor .scrollbar > .slider {
   background: transparent !important;
   box-shadow: none !important;
-  opacity: 0.3 !important;  /* Optional: Adjust opacity as needed */
+  opacity: 0.3 !important;  
   transition: none !important;
 }
 

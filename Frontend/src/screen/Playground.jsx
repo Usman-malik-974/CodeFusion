@@ -2,19 +2,24 @@ import Editor from '@monaco-editor/react';
 import { useState } from 'react';
 import { MdDarkMode, MdOutlineDarkMode } from "react-icons/md";
 import { VscRunAll } from "react-icons/vsc";
+import {runCode} from '../shared/networking/api/runCode';
 
 const Playground = () => {
     const [code, setCode] = useState("");
     const [language, setLanguage] = useState("c");
     const [theme, setTheme] = useState("light");
     const [stdin, setStdin] = useState("");
+    const [output,setOutput]=useState("")
 
     const isDark = theme === 'dark';
 
-    const handleRun = () => {
-        const args = stdin.trim().split(/\s+/);
-
-        console.log(args);
+    const handleRun = async() => {
+        const res=await runCode(code.trim(),language,stdin.trim());
+        console.log(res);
+        if(res.error){
+            setOutput(res.error);
+        }
+        else setOutput(res.output);
     }
 
     return (
@@ -87,7 +92,7 @@ const Playground = () => {
                 <div className="flex-1 overflow-auto p-2">
                     <p className="font-semibold mb-2">Output:</p>
                     <div className={`p-2 rounded ${isDark ? 'bg-neutral-800' : 'bg-white'} shadow-inner`}>
-                        Hello world
+                        <pre>{output}</pre>
                     </div>
                 </div>
 
