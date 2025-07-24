@@ -1,6 +1,6 @@
 const runCode=async(code,language,input)=>{
     try{
-        const response=await fetch(`${import.meta.env.VITE_SERVER_URL}/api/run`,{
+        const response=await fetch(`${import.meta.env.VITE_SERVER_URL}/api/code/run`,{
             method:"POST",
             headers:{
                 "Content-Type":"application/json",
