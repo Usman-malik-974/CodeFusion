@@ -9,7 +9,7 @@ const Home = () => {
                 <h2 className="font-bold text-xl md:text-2xl lg:text-3xl xl:text-4xl">CodeFusion</h2>
                 <div className="flex items-center gap-1 md:gap-2 lg:gap-3 xl:gap-4">
                     <span className="font-semibold text-sm md:text-sm lg:text-lg xl:text-xl hover:text-black cursor-pointer" onClick={()=>navigate("/playground")}>Playground</span>
-                    <button className="bg-blue-500 text-white px-2 py-1 my-1 text-sm md:text-sm lg:py-1 lg:text-lg xl:py-1.5 xl:px-3 xl:text-xl rounded-md text font-bold hover:cursor-pointer">Login</button>
+                    <button onClick={()=>navigate("/login")} className="bg-blue-500 text-white px-2 py-1 my-1 text-sm md:text-sm lg:py-1 lg:text-lg xl:py-1.5 xl:px-3 xl:text-xl rounded-md text font-bold hover:cursor-pointer">Login</button>
                 </div>
             </header>
             <div className="bg-[url('/Home-bg.jpg')] bg-cover bg-center h-screen w-full relative">
