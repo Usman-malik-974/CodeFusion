@@ -1,8 +1,13 @@
+import AdminNavbar from "../components/AdminNavbar";
+import { Outlet } from "react-router-dom";
 const AdminDashboard = () => {
     return (
-        <div className="flex justify-center items-center">
-           <h1>Hello world</h1>
-        </div>
+        <>
+            <AdminNavbar />
+            {/* <div className="flex justify-center items-center"> */}
+                <Outlet />
+            {/* </div> */}
+        </>
     )
 }
 
