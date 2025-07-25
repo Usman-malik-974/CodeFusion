@@ -4,16 +4,20 @@ const jwt = require('jsonwebtoken');
 const sendWelcomeMail = require('../utils/sendMail');
 
 const loginUser = async (req, res) => {
+  console.log(req.body);
   const { email, password } = req.body;
 
   try {
+    if(!email || !password){
+      return res.status(401).json({ message: 'Please provide all details' });
+    }
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Invalid email or password' });
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
     const token = jwt.sign(
       { id: user._id, email: user.email },
@@ -26,13 +30,14 @@ const loginUser = async (req, res) => {
       user: {
         id: user._id,
         email: user.email,
-        name: user.name, 
+        name: user.fullname, 
+        role:user.role
       },
     });
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ error: 'Server error' });
   }
 };
 
@@ -47,10 +52,9 @@ const generatePassword = () => {
 
 const signupUser = async (req, res) => {
   try {
-    console.log(req.body);
     const { fullname, email, role } = req.body;
     if (!fullname || !email || !role) {
-      return res.status(400).json({ message: 'All fields are required.' });
+      return res.status(400).json({ error: 'All fields are required.' });
     }
     const plainPassword = generatePassword();
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
@@ -70,15 +74,15 @@ const signupUser = async (req, res) => {
     return res.status(201).json({ message: 'User created and welcome email sent.' });
   } catch (err) {
     if (err.code === 11000 && err.keyPattern?.email) {
-      return res.status(409).json({ message: 'Email already registered.' });
+      return res.status(409).json({ error: 'Email already registered.' });
     }
     if (err.name === 'ValidationError') {
       const field = Object.keys(err.errors)[0];
       const errorMessage = err.errors[field].message;
-      return res.status(400).json({ message: errorMessage });
+      return res.status(400).json({ error: errorMessage });
     }
     console.error('Signup Error:', err);
-    return res.status(500).json({ message: 'Internal Server Error' });
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 };
 
