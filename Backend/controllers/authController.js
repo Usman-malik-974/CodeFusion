@@ -4,9 +4,13 @@ const jwt = require('jsonwebtoken');
 const sendWelcomeMail = require('../utils/sendMail');
 
 const loginUser = async (req, res) => {
+  console.log(req.body);
   const { email, password } = req.body;
 
   try {
+    if(!email || !password){
+      return res.status(401).json({ message: 'Please provide all details' });
+    }
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
@@ -26,7 +30,8 @@ const loginUser = async (req, res) => {
       user: {
         id: user._id,
         email: user.email,
-        name: user.name, 
+        name: user.fullname, 
+        role:user.role
       },
     });
 
@@ -47,10 +52,9 @@ const generatePassword = () => {
 
 const signupUser = async (req, res) => {
   try {
-    console.log(req.body);
     const { fullname, email, role } = req.body;
     if (!fullname || !email || !role) {
-      return res.status(400).json({ message: 'All fields are required.' });
+      return res.status(400).json({ error: 'All fields are required.' });
     }
     const plainPassword = generatePassword();
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
