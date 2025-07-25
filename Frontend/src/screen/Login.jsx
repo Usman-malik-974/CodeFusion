@@ -3,6 +3,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Link, useNavigate } from 'react-router-dom';
 import { BeatLoader } from 'react-spinners';
+import { loginUser } from '../shared/networking/api/loginUser';
 
 const Login = () => {
     const [loader, setLoader] = useState(false);
@@ -18,10 +19,12 @@ const Login = () => {
             password: ''
         },
         validationSchema,
-        onSubmit: (values) => {
+        onSubmit: async(values) => {
             setLoader(true);
             console.log(values);
             // Api calling will take place here
+            const res=await loginUser(values.email.trim(),values.password.trim());
+            console.log(res);
             setTimeout(() => {
                 const role = 'admin';
                 if (role == 'admin') {
