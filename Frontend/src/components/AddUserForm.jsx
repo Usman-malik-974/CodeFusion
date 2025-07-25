@@ -3,8 +3,11 @@ import { X } from "lucide-react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { signupUser } from "../shared/networking/api/signupUser";
+import { toast } from "react-toastify";
 
 const AddUserForm = ({ onClose }) => {
+    const [loading, setLoading] = React.useState(false);
+
     const formik = useFormik({
         initialValues: {
             name: "",
@@ -16,13 +19,29 @@ const AddUserForm = ({ onClose }) => {
             email: Yup.string().email("Invalid email").required("Email is required"),
             role: Yup.string().required("Role is required"),
         }),
-        onSubmit: async(values) => {
-            console.log("User Data:", values);
-            const res=await signupUser(values.name,values.email,values.role);
-            console.log(res);
-            onClose(); 
+        onSubmit: async (values) => {
+            setLoading(true);
+            try {
+                const res = await signupUser(values.name, values.email, values.role);
+                console.log(res);
+
+                if (res.error) {
+                    toast.error(res.error);
+                } else if (res.message) {
+                    toast.success(res.message);
+                } else {
+                    toast.success("User created successfully!");
+                }
+            } catch (err) {
+                toast.error("Network error");
+            } finally {
+                setLoading(false);
+                onClose();
+            }
         },
-        validateOnChange:false
+
+
+        validateOnChange: false
     });
 
     return (
@@ -90,10 +109,15 @@ const AddUserForm = ({ onClose }) => {
 
                     <button
                         type="submit"
-                        className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded transition"
+                        disabled={loading}
+                        className={`w-full py-2 rounded transition text-white ${loading
+                            ? "bg-blue-300 cursor-not-allowed"
+                            : "bg-blue-500 hover:bg-blue-600"
+                            }`}
                     >
-                        Add User
+                        {loading ? "Adding..." : "Add User"}
                     </button>
+
                 </form>
             </div>
         </div>
