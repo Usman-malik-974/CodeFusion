@@ -2,6 +2,7 @@ import React from "react";
 import { X } from "lucide-react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { signupUser } from "../shared/networking/api/signupUser";
 
 const AddUserForm = ({ onClose }) => {
     const formik = useFormik({
@@ -15,8 +16,10 @@ const AddUserForm = ({ onClose }) => {
             email: Yup.string().email("Invalid email").required("Email is required"),
             role: Yup.string().required("Role is required"),
         }),
-        onSubmit: (values) => {
+        onSubmit: async(values) => {
             console.log("User Data:", values);
+            const res=await signupUser(values.name,values.email,values.role);
+            console.log(res);
             onClose(); 
         },
         validateOnChange:false
@@ -77,8 +80,8 @@ const AddUserForm = ({ onClose }) => {
                             onBlur={formik.handleBlur}
                         >
                             <option value="">Select Role</option>
-                            <option value="Admin">Admin</option>
-                            <option value="User">User</option>
+                            <option value="admin">Admin</option>
+                            <option value="user">User</option>
                         </select>
                         {formik.touched.role && formik.errors.role && (
                             <p className="text-red-500 text-sm mt-1">{formik.errors.role}</p>
