@@ -17,3 +17,12 @@
 .bg-vs-dark {
   background-color: #1E1E1E;
 }
+
+.Toastify__toast-container--centered {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  position: fixed !important;
+  width: fit-content;
+  z-index: 9999;
+}

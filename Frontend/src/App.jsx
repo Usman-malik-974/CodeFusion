@@ -8,23 +8,34 @@ import QuestionBank from './components/QuestionBank'
 import UserManagement from './components/UserManagement'
 import Batches from './components/Batches'
 import Contests from './components/Contests'
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
 
   return (
     <>
       <BrowserRouter>
-        <Routes>
-          <Route path='/' element={<Home />} />
-          <Route path='/login' element={<Login />} />
-          <Route path='/playground' element={<Playground />} />
-          <Route path='/admin' element={<AdminDashboard />} >
-             <Route index element={<QuestionBank/>}/>
-             <Route path='users' element={<UserManagement/>}/>
-             <Route path='batches' element={<Batches/>}/>
-             <Route path='contests' element={<Contests/>}/>
-          </Route>
-        </Routes>
+        <div className="min-h-screen bg-gray-100">
+          <ToastContainer
+            autoClose={3000}
+            closeOnClick
+            pauseOnHover
+            draggable
+            className="Toastify__toast-container--centered"
+          />
+          <Routes>
+            <Route path='/' element={<Home />} />
+            <Route path='/login' element={<Login />} />
+            <Route path='/playground' element={<Playground />} />
+            <Route path='/admin' element={<AdminDashboard />} >
+              <Route index element={<QuestionBank />} />
+              <Route path='users' element={<UserManagement />} />
+              <Route path='batches' element={<Batches />} />
+              <Route path='contests' element={<Contests />} />
+            </Route>
+          </Routes>
+        </div>
       </BrowserRouter>
     </>
   )

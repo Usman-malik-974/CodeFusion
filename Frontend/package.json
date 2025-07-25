@@ -19,6 +19,7 @@
     "react-icons": "^5.5.0",
     "react-router-dom": "^6.30.1",
     "react-spinners": "^0.17.0",
+    "react-toastify": "^11.0.5",
     "tailwind-scrollbar-hide": "^4.0.0",
     "tailwindcss": "^4.1.11",
     "yup": "^1.6.1"
