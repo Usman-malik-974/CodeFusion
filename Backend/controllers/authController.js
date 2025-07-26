@@ -9,7 +9,7 @@ const loginUser = async (req, res) => {
 
   try {
     if(!email || !password){
-      return res.status(401).json({ message: 'Please provide all details' });
+      return res.status(401).json({ error: 'Please provide all details' });
     }
     const user = await User.findOne({ email });
     if (!user) {

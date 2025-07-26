@@ -3,7 +3,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Link, useNavigate } from 'react-router-dom';
 import { BeatLoader } from 'react-spinners';
-import { loginUser } from '../shared/networking/api/loginUser';
+import { loginUser } from '../shared/networking/api/userApi.js/loginUser';
 
 const Login = () => {
     const [loader, setLoader] = useState(false);

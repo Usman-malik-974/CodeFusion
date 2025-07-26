@@ -1,16 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import AddUserForm from './AddUserForm';
 import { toast } from 'react-toastify';
+import { getAllUsers } from '../shared/networking/api/userApi.js/getAllUsers';
+import { updateUser } from '../shared/networking/api/userApi.js/updateUser';
+import { deleteUser } from '../shared/networking/api/userApi.js/deleteUser';
 
 const UserManagement = () => {
-    const [users, setUsers] = useState([
-        { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Admin' },
-        { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'Moderator' },
-        { id: 3, name: 'Alice Johnson', email: 'alice@example.com', role: 'User' }
-    ]);
+    const [users, setUsers] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [editIndex, setEditIndex] = useState(null);
     const [editedUser, setEditedUser] = useState({});
+
+    useEffect(() => {
+        const fetchUsers = async () => {
+          try {
+            const res = await getAllUsers();
+            if(res.error){
+                toast.error(res.error);
+            }
+            else{
+                setUsers(res.users);
+            }
+          } catch (err) {
+            toast.error("Something went wrong");
+          }
+        };
+        fetchUsers();
+      }, []);
+      
 
     const addUser = (newUser) => {
         setUsers([...users, { ...newUser, id: users.length + 1 }]);
@@ -22,18 +39,35 @@ const UserManagement = () => {
         setEditedUser({ ...users[index] });
     };
 
-    const handleSaveClick = () => {
+    const handleSaveClick = async () => {
+        const { id, ...updateData } = editedUser;
+      
+        const result = await updateUser(id,{...updateData,fullname:updateData.name});
+      
+        if (result.error) {
+          toast.error(result.error);
+          return;
+        }
+      
         const updatedUsers = [...users];
-        updatedUsers[editIndex] = editedUser;
+        updatedUsers[editIndex] = result.updatedUser || editedUser;
         setUsers(updatedUsers);
+      
         setEditIndex(null);
         setEditedUser({});
-    };
+        toast.success(result.message);
+      };
 
-    const handleDelete = (index) => {
+      const handleDelete = async (index, id) => {
+        const result = await deleteUser(id);
+        if (result.error) {
+          toast.error(result.error);
+          return;
+        }
         const updatedUsers = users.filter((_, i) => i !== index);
         setUsers(updatedUsers);
-    };
+        toast.success(result.message);
+      };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -74,7 +108,7 @@ const UserManagement = () => {
                         </thead>
                         <tbody className="text-sm text-gray-700">
                             {users.map((user, index) => (
-                                <tr key={user.id} className="even:bg-gray-50 hover:bg-blue-50 transition">
+                                <tr key={index} className="even:bg-gray-50 hover:bg-blue-50 transition">
                                     <td className="px-4 py-3 border-b border-gray-200">{index + 1}</td>
 
                                     <td className="px-4 py-3 border-b border-gray-200">
@@ -100,8 +134,8 @@ const UserManagement = () => {
                                                 onChange={handleInputChange}
                                                 className="border px-2 py-1 rounded w-full"
                                             >
-                                                <option value="User">User</option>
-                                                <option value="Admin">Admin</option>
+                                                <option value="user">User</option>
+                                                <option value="admin">Admin</option>
                                             </select>
                                         ) : (
                                             user.role
@@ -127,7 +161,7 @@ const UserManagement = () => {
                                                 </button>
                                             )}
                                             <button
-                                                onClick={() => handleDelete(index)}
+                                                onClick={() => handleDelete(index,user.id)}
                                                 className="bg-red-100 text-red-600 px-3 py-1 rounded-md text-xs hover:bg-red-200 transition border border-red-200"
                                             >
                                                 Delete

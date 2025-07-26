@@ -2,7 +2,7 @@ import Editor from '@monaco-editor/react';
 import { useEffect, useState } from 'react';
 import { MdDarkMode, MdOutlineDarkMode } from "react-icons/md";
 import { VscRunAll } from "react-icons/vsc";
-import { runCode } from '../shared/networking/api/runCode';
+import { runCode } from '../shared/networking/api/codeApi.js/runCode';
 import { ClipLoader } from "react-spinners";
 
 const Playground = () => {

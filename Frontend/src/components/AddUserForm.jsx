@@ -2,7 +2,7 @@ import React from "react";
 import { X } from "lucide-react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { signupUser } from "../shared/networking/api/signupUser";
+import { signupUser } from "../shared/networking/api/userApi.js/signupUser";
 import { toast } from "react-toastify";
 
 const AddUserForm = ({ onClose }) => {

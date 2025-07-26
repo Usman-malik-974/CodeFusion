@@ -3,18 +3,22 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
   fullname: {
     type: String,
-    required: true,
-    trim: true
+    required: [true, 'Name is required'],
+    trim: true,
+    match: [
+      /^[A-Za-z ]{2,50}$/,
+      'Name must be 2–50 characters and contain only letters and spaces'
+    ]
   },
 
   email: {
     type: String,
-    required: true,
+    required: [true,"Email is Required"],
     unique: true,
     lowercase: true,
   trim: true,
   match: [
-    /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
     'Please fill a valid email address'
   ]
   },
@@ -27,7 +31,7 @@ const userSchema = new mongoose.Schema({
   role: {
     type: String,
     enum: ['user', 'admin'],
-    required: true
+    required: [true,"Role is Required"]
   },
 
   batches: [{
