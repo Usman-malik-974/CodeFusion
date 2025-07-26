@@ -18,6 +18,7 @@ const io = new Server(server, {
 });
 const codeRouter = require('./routes/codeRoutes')(io);
 const authRouter=require('./routes/authRoutes');
+const userRouter=require('./routes/userRoutes');
 io.on('connection', (socket) => {
     console.log(`📡 Client connected: ${socket.id}`);
     socket.on('disconnect', () => {
@@ -26,6 +27,7 @@ io.on('connection', (socket) => {
 });
 app.use('/api/code', codeRouter);
 app.use('/api/auth',authRouter);
+app.use('/api/users',userRouter);
 server.listen(process.env.PORT, () => {
     console.log(`Server running at http://localhost:${process.env.PORT}`);
     try{
