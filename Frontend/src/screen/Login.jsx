@@ -4,11 +4,11 @@ import * as Yup from 'yup';
 import { Link, useNavigate } from 'react-router-dom';
 import { BeatLoader } from 'react-spinners';
 import { loginUser } from '../shared/networking/api/userApi.js/loginUser';
-import { BiSolidShow, BiSolidHide  } from "react-icons/bi";
+import { BiSolidShow, BiSolidHide } from "react-icons/bi";
 
 const Login = () => {
     const [loader, setLoader] = useState(false);
-    // const [showPassword, setShowPassword] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
     const validationSchema = Yup.object({
         email: Yup.string().email('Invalid email').required('Email is Required'),
@@ -21,11 +21,11 @@ const Login = () => {
             password: ''
         },
         validationSchema,
-        onSubmit: async(values) => {
+        onSubmit: async (values) => {
             setLoader(true);
             console.log(values);
             // Api calling will take place here
-            const res=await loginUser(values.email.trim(),values.password.trim());
+            const res = await loginUser(values.email.trim(), values.password.trim());
             console.log(res);
             // setTimeout(() => {
             //     const role = 'admin';
@@ -66,15 +66,27 @@ const Login = () => {
 
                     <div className="mb-4">
                         <label className="text-blue-500 block mb-1 font-semibold">Password</label>
-                        <input
-                            type="password"
-                            name="password"
-                            placeholder="Enter your password"
-                            value={formik.values.password}
-                            onChange={formik.handleChange}
-                            onBlur={formik.handleBlur}
-                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 bg-neutral-100"
-                        />
+
+                        <div className="relative">
+                            <input
+                                type={showPassword ? "text" : "password"}
+                                name="password"
+                                placeholder="Enter your password"
+                                value={formik.values.password}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                                className="w-full p-2 pr-10 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 bg-neutral-100"
+                            />
+
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword((prev) => !prev)}
+                                className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-600"
+                            >
+                                {showPassword ? <BiSolidHide size={20} /> : <BiSolidShow size={20} />}
+                            </button>
+                        </div>
+
                         {formik.touched.password && formik.errors.password && (
                             <p className="text-red-400 text-sm mt-1">{formik.errors.password}</p>
                         )}
