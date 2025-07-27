@@ -64,14 +64,16 @@ const signupUser = async (req, res) => {
       password: hashedPassword,
       role
     });
-    await newUser.save();
+    console.log("in response");
+    let signupres=await newUser.save();
+    // console.log(a);
     await sendWelcomeMail({
       to: email,
       fullname,
       email,
       password: plainPassword
     });
-    return res.status(201).json({ message: 'User created and welcome email sent.' });
+    return res.status(201).json({ id:signupres._id,message: 'User created and welcome email sent.' });
   } catch (err) {
     if (err.code === 11000 && err.keyPattern?.email) {
       return res.status(409).json({ error: 'Email already registered.' });

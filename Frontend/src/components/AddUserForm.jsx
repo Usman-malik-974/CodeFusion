@@ -5,7 +5,7 @@ import * as Yup from "yup";
 import { signupUser } from "../shared/networking/api/userApi.js/signupUser";
 import { toast } from "react-toastify";
 
-const AddUserForm = ({ onClose }) => {
+const AddUserForm = ({ onClose,onAdd }) => {
     const [loading, setLoading] = React.useState(false);
 
     const formik = useFormik({
@@ -28,8 +28,17 @@ const AddUserForm = ({ onClose }) => {
                 if (res.error) {
                     toast.error(res.error);
                 } else if (res.message) {
+                    if (res.id) {
+                        onAdd({
+                            id:res.id,
+                            name:values.name,
+                            email:values.email,
+                            role:values.role
+                        })
+                    }
                     toast.success(res.message);
                 } else {
+
                     toast.success("User created successfully!");
                 }
             } catch (err) {

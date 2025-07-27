@@ -19,6 +19,7 @@ const UserManagement = () => {
                 toast.error(res.error);
             }
             else{
+                console.log(res.users);
                 setUsers(res.users);
             }
           } catch (err) {
@@ -30,7 +31,7 @@ const UserManagement = () => {
       
 
     const addUser = (newUser) => {
-        setUsers([...users, { ...newUser, id: users.length + 1 }]);
+        setUsers([...users, { ...newUser}]);
         setShowForm(false);
     };
 

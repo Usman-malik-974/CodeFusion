@@ -4,9 +4,11 @@ import * as Yup from 'yup';
 import { Link, useNavigate } from 'react-router-dom';
 import { BeatLoader } from 'react-spinners';
 import { loginUser } from '../shared/networking/api/userApi.js/loginUser';
+import { BiSolidShow, BiSolidHide  } from "react-icons/bi";
 
 const Login = () => {
     const [loader, setLoader] = useState(false);
+    // const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
     const validationSchema = Yup.object({
         email: Yup.string().email('Invalid email').required('Email is Required'),
@@ -25,13 +27,13 @@ const Login = () => {
             // Api calling will take place here
             const res=await loginUser(values.email.trim(),values.password.trim());
             console.log(res);
-            setTimeout(() => {
-                const role = 'admin';
-                if (role == 'admin') {
-                    navigate("/admin");
-                }
-                setLoader(false)
-            }, 3000)
+            // setTimeout(() => {
+            //     const role = 'admin';
+            //     if (role == 'admin') {
+            //         navigate("/admin");
+            //     }
+            //     setLoader(false)
+            // }, 3000)
         },
         validateOnChange: false
     });
