@@ -3,13 +3,14 @@ import { BrowserRouter as Router, Routes, Route, BrowserRouter } from 'react-rou
 import Home from './screen/Home'
 import Playground from './screen/Playground'
 import Login from './screen/Login'
-import AdminDashboard from './screen/AdminDashborad'
+import AdminDashboard from './screen/AdminDashboard'
 import QuestionBank from './components/QuestionBank'
 import UserManagement from './components/UserManagement'
 import Batches from './components/Batches'
 import Contests from './components/Contests'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Dashboard from './screen/Dashboard'
 
 function App() {
 
@@ -27,7 +28,8 @@ function App() {
           <Routes>
             <Route path='/' element={<Home />} />
             <Route path='/login' element={<Login />} />
-            <Route path='/playground' element={<Playground />} />
+            <Route path='/playground' element={<Playground />} /> 
+            <Route path='/dashboard' element={<Dashboard/>} /> 
             <Route path='/admin' element={<AdminDashboard />} >
               <Route index element={<QuestionBank />} />
               <Route path='users' element={<UserManagement />} />
