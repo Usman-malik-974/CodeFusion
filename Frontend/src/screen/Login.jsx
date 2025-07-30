@@ -5,6 +5,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { BeatLoader } from 'react-spinners';
 import { loginUser } from '../shared/networking/api/userApi.js/loginUser';
 import { BiSolidShow, BiSolidHide } from "react-icons/bi";
+import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 
 const Login = () => {
     const [loader, setLoader] = useState(false);
@@ -23,17 +25,33 @@ const Login = () => {
         validationSchema,
         onSubmit: async (values) => {
             setLoader(true);
-            console.log(values);
-            // Api calling will take place here
-            const res = await loginUser(values.email.trim(), values.password.trim());
-            console.log(res);
-            // setTimeout(() => {
-            //     const role = 'admin';
-            //     if (role == 'admin') {
-            //         navigate("/admin");
-            //     }
-            //     setLoader(false)
-            // }, 3000)
+            // dispatch(loginStart());
+            try {
+                const res = await loginUser(values.email.trim(), values.password.trim());
+                console.log(res);
+                if (res.user) {
+                    const userDetails = res.user;
+                    const token = res.token; // assuming API returns token
+                    localStorage.setItem("token",token);
+                    // dispatch(loginSuccess({ user: userDetails, token }));
+                    if (userDetails.role === 'admin') {
+                        navigate("/admin");
+                    }
+                    else {
+                        navigate("/dashboard");
+                    }
+                }
+                else {
+                    throw new Error(res.error);
+                }
+            } catch (error) {
+                console.error("Login failed", error);
+                toast.error("Login failed" + " " + error);
+                // dispatch(loginFailure());
+                // Optionally show error message (toast or UI)
+            } finally {
+                setLoader(false);
+            }
         },
         validateOnChange: false
     });

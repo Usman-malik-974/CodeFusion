@@ -1,4 +1,5 @@
 const updateUser = async (id, updateData) => {
+  // conosle.log("her");
     try {
       const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/users/${id}`, {
         method: 'PUT',
@@ -13,7 +14,7 @@ const updateUser = async (id, updateData) => {
       if (!response.ok) {
         return { error: data.error || 'Failed to update user' };
       }
-  
+      console.log(data)
       return data;
     } catch (error) {
       console.error('Error:', error);
