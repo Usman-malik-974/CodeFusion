@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect,useCallback } from 'react';
 import AddUserForm from './AddUserForm';
 import { toast } from 'react-toastify';
 import { getAllUsers } from '../shared/networking/api/userApi.js/getAllUsers';
@@ -7,7 +7,9 @@ import { deleteUser } from '../shared/networking/api/userApi.js/deleteUser';
 import { X } from 'lucide-react';
 import { useSelector, useDispatch } from "react-redux";
 import { setUsersList } from "../app/slices/usersSlice";
+import { debounce } from 'lodash';
 import HashLoader from 'react-spinners/HashLoader';
+import { searchUser } from '../shared/networking/api/userApi.js/searchUser';
 
 const UserManagement = () => {
     const [users, setUsers] = useState([]);
@@ -20,6 +22,20 @@ const UserManagement = () => {
     const [searchInput, setSearchInput] = useState("");
     const usersList = useSelector((state) => state.users.usersList);
     const dispatch = useDispatch();
+
+    const handleSearchChange = useCallback(
+        debounce(async(query) => {
+            if (query.trim() !== '') {
+                const res=await searchUser(query.trim());
+                setUsers(res.users);
+            }
+            else{
+                setUsers(usersList);
+            }
+        }, 600),
+        [usersList] 
+    );
+
     useEffect(() => {
         const fetchUsers = async () => {
             setIsLoading(true); // move inside
@@ -80,13 +96,14 @@ const UserManagement = () => {
             toast.error("Name can only contain letters, numbers, and spaces.");
             return;
         }
+        console.log(id);
         const result = await updateUser(id, { ...updateData, name: trimmedName, fullname: trimmedName });
 
         if (result.error) {
             toast.error(result.error);
             return;
         }
-        console.log(result.updatedUser);
+        // console.log(result.updatedUser);
         const updatedUsers = [...users];
         updatedUsers[editIndex] = result.updatedUser || { ...editedUser, name: trimmedName };
         setUsers(updatedUsers);
@@ -139,11 +156,11 @@ const UserManagement = () => {
                     <HashLoader color="#3B82F6" size={60} />
                 </div>
             )}
-            {users.length > 0 && (
                 <div className="flex items-center justify-between mb-4">
                     <input
                         type="text"
                         placeholder="Search user"
+                        onChange={(e)=>{handleSearchChange(e.target.value)}}
                         className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-100 w-1/3"
                         value={searchInput}
                         onChange={handleSearch}
@@ -155,7 +172,6 @@ const UserManagement = () => {
                         Add User +
                     </button>
                 </div>
-            )}
 
             {isLoading ? null :
                 users.length > 0 ? (
