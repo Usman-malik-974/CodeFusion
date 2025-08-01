@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
     trim: true,
     match: [
       /^[A-Za-z ]{2,50}$/,
-      'Name must be 2–50 characters and contain only letters and spaces'
+      'Name must be 2-50 characters and contain only letters and spaces'
     ]
   },
 
