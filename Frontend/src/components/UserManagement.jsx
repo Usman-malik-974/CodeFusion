@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import AddUserForm from './AddUserForm';
 import { toast } from 'react-toastify';
 import { getAllUsers } from '../shared/networking/api/userApi.js/getAllUsers';
@@ -24,16 +24,16 @@ const UserManagement = () => {
     const dispatch = useDispatch();
 
     const handleSearchChange = useCallback(
-        debounce(async(query) => {
+        debounce(async (query) => {
             if (query.trim() !== '') {
-                const res=await searchUser(query.trim());
+                const res = await searchUser(query.trim());
                 setUsers(res.users);
             }
-            else{
+            else {
                 setUsers(usersList);
             }
         }, 600),
-        [usersList] 
+        [usersList]
     );
 
     useEffect(() => {
@@ -132,21 +132,21 @@ const UserManagement = () => {
         setEditedUser((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleSearch = (e) => {
-        const value = e.target.value;
-        setSearchInput(value); // update input state
+    // const handleSearch = (e) => {
+    //     const value = e.target.value;
+    //     setSearchInput(value); // update input state
 
-        if (value.trim() === "") {
-            // If search is cleared, reset to full users list from Redux
-            setUsers(usersList);
-        } else {
-            // Filter based on lowercase match
-            const filtered = usersList.filter((user) =>
-                user.name.toLowerCase().includes(value.toLowerCase())
-            );
-            setUsers(filtered);
-        }
-    };
+    //     if (value.trim() === "") {
+    //         // If search is cleared, reset to full users list from Redux
+    //         setUsers(usersList);
+    //     } else {
+    //         // Filter based on lowercase match
+    //         const filtered = usersList.filter((user) =>
+    //             user.name.toLowerCase().includes(value.toLowerCase())
+    //         );
+    //         setUsers(filtered);
+    //     }
+    // };
 
     return (
         <div className="p-4 relative">
@@ -156,14 +156,15 @@ const UserManagement = () => {
                     <HashLoader color="#3B82F6" size={60} />
                 </div>
             )}
+            {!isLoading && (
                 <div className="flex items-center justify-between mb-4">
                     <input
                         type="text"
                         placeholder="Search user"
-                        onChange={(e)=>{handleSearchChange(e.target.value)}}
+                        onChange={(e) => { let value = e.target.value; setSearchInput(value); handleSearchChange(value) }}
                         className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-100 w-1/3"
                         value={searchInput}
-                        onChange={handleSearch}
+
                     />
                     <button
                         className="bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-blue-600 transition"
@@ -172,6 +173,8 @@ const UserManagement = () => {
                         Add User +
                     </button>
                 </div>
+            )}
+
 
             {isLoading ? null :
                 users.length > 0 ? (

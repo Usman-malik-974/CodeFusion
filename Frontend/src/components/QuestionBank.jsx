@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import AddQuestionForm from './AddQuestionForm';
+import { X } from 'lucide-react';
 
 const QuestionBank = () => {
    const initialQuestions = [
@@ -24,6 +26,8 @@ const QuestionBank = () => {
 
    const [questions, setQuestions] = useState(initialQuestions);
    const [searchInput, setSearchInput] = useState('');
+   const [showAddForm, setShowAddForm] = useState(false);
+
 
    const handleSearch = (e) => {
       setSearchInput(e.target.value.toLowerCase());
@@ -52,7 +56,27 @@ const QuestionBank = () => {
    );
 
    return (
+
       <div className="p-4 relative">
+         {showAddForm && (
+            <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+               <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto relative">
+                  <button
+                     className="absolute top-2 right-0 text-gray-500 hover:text-red-500"
+                     onClick={() => setShowAddForm(false)}
+                  >
+                    <X size={24}/>
+                  </button>
+                  <AddQuestionForm
+                     onClose={() => setShowAddForm(false)}
+                     onSubmit={(newQuestion) => {
+                        setQuestions((prev) => [...prev, { ...newQuestion, id: prev.length + 1 }]);
+                        setShowAddForm(false);
+                     }}
+                  />
+               </div>
+            </div>
+         )}
          <h3 className="text-3xl text-blue-500 font-semibold text-center mb-6">Question Bank</h3>
 
          {/* Top Controls */}
@@ -66,7 +90,7 @@ const QuestionBank = () => {
             />
             <button
                className="bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-blue-600 transition"
-               onClick={() => alert('Open Add Question Modal')} // Replace with modal later
+               onClick={() => setShowAddForm(true)}
             >
                Add Question +
             </button>
