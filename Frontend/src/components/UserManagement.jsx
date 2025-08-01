@@ -17,6 +17,7 @@ const UserManagement = () => {
     const [showPopUp, setShowPopUp] = useState(false);
     const [selectedUser, setSelectedUser] = useState({ index: null, id: null });
     const [isLoading, setIsLoading] = useState(false);
+    const [searchInput, setSearchInput] = useState("");
     const usersList = useSelector((state) => state.users.usersList);
     const dispatch = useDispatch();
     useEffect(() => {
@@ -48,6 +49,7 @@ const UserManagement = () => {
 
     const addUser = (newUser) => {
         setUsers([...users, { ...newUser }]);
+        dispatch(setUsersList([...users, newUser]));
         setShowForm(false);
     };
 
@@ -88,6 +90,7 @@ const UserManagement = () => {
         const updatedUsers = [...users];
         updatedUsers[editIndex] = result.updatedUser || { ...editedUser, name: trimmedName };
         setUsers(updatedUsers);
+        dispatch(setUsersList(updatedUsers));
 
         setEditIndex(null);
         setEditedUser({});
@@ -103,12 +106,29 @@ const UserManagement = () => {
         }
         const updatedUsers = users.filter((_, i) => i !== index);
         setUsers(updatedUsers);
+        dispatch(setUsersList(updatedUsers));
         toast.success(result.message);
     };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setEditedUser((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleSearch = (e) => {
+        const value = e.target.value;
+        setSearchInput(value); // update input state
+
+        if (value.trim() === "") {
+            // If search is cleared, reset to full users list from Redux
+            setUsers(usersList);
+        } else {
+            // Filter based on lowercase match
+            const filtered = usersList.filter((user) =>
+                user.name.toLowerCase().includes(value.toLowerCase())
+            );
+            setUsers(filtered);
+        }
     };
 
     return (
@@ -125,6 +145,8 @@ const UserManagement = () => {
                         type="text"
                         placeholder="Search user"
                         className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-100 w-1/3"
+                        value={searchInput}
+                        onChange={handleSearch}
                     />
                     <button
                         className="bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-blue-600 transition"
