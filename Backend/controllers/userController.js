@@ -65,4 +65,40 @@ const updateUser = async (req, res) => {
     }
   };
 
-module.exports = { getAllUsers,updateUser,deleteUser };
+  const searchUsers=async (req, res) => {
+    try {
+      const { query } = req.query;
+  
+      let users;
+  
+      if (query) {
+        const searchRegex = new RegExp(query, 'i');
+  
+        users = await User.find(
+          {
+            $or: [
+              { fullname: { $regex: searchRegex } },
+              { email: { $regex: searchRegex } },
+            ],
+          },
+          '_id fullname email role'
+        );
+      } else {
+        users = await User.find({}, '_id fullname email role');
+      }
+  
+      res.status(200).json({
+        users: users.map(user => ({
+          id: user._id,
+          name: user.fullname,
+          email: user.email,
+          role: user.role
+        }))
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Server error' });
+    }
+  };
+
+module.exports = { getAllUsers,updateUser,deleteUser,searchUsers };

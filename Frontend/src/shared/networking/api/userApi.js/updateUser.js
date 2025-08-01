@@ -1,9 +1,10 @@
 const updateUser = async (id, updateData) => {
-  // conosle.log("her");
+  console.log(updateData,id);
     try {
       const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/users/${id}`, {
         method: 'PUT',
         headers: {
+          'Content-type':'application/json'
           // token will be passed here 
         },
         body: JSON.stringify(updateData),
@@ -14,7 +15,7 @@ const updateUser = async (id, updateData) => {
       if (!response.ok) {
         return { error: data.error || 'Failed to update user' };
       }
-      console.log(data)
+      console.log(data);
       return data;
     } catch (error) {
       console.error('Error:', error);
