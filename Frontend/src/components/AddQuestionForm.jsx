@@ -48,10 +48,10 @@ const AddQuestionForm = ({ onSubmit,onClose }) => {
                     .filter(tag => tag.length > 0)
             };
             if (onSubmit) {
+                console.log('Question submitted:', formatted);
                 onSubmit(formatted);
             } else {
-                console.log('Question submitted:', formatted);
-                toast.success('Question added successfully!');
+                toast.error('Internal Server Error!');
                 onClose();
             }
             resetForm();
