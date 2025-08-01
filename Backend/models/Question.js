@@ -3,39 +3,38 @@ const mongoose = require('mongoose');
 const questionSchema = new mongoose.Schema({
   title: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
-
   statement: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
-
   inputFormat: String,
   outputFormat: String,
   sampleInput: String,
   sampleOutput: String,
 
+  tags: [String],
+  difficulty: {
+    type: String,
+    enum: ['Easy', 'Medium', 'Hard'],
+    default: 'Easy'
+  },
+
   testCases: [{
-    input: String,
-    output: String,
+    input: { type: String, required: true },
+    output: { type: String, required: true },
     hidden: { type: Boolean, default: true }
   }],
 
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User' 
-  },
-
-  assignedTo: [{
-    studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    // batchId: { type: mongoose.Schema.Types.ObjectId, ref: 'Batch' }
-  }],
-
-  createdAt: {
-    type: Date,
-    default: Date.now
+    ref: 'User'
   }
+}, {
+  timestamps: true
 });
 
 module.exports = mongoose.model('Question', questionSchema);
