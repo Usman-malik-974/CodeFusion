@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import AddUserForm from './AddUserForm';
 import { toast } from 'react-toastify';
-import { getAllUsers } from '../shared/networking/api/userApi.js/getAllUsers';
-import { updateUser } from '../shared/networking/api/userApi.js/updateUser';
-import { deleteUser } from '../shared/networking/api/userApi.js/deleteUser';
+import { getAllUsers } from '../shared/networking/api/userApi/getAllUsers';
+import { updateUser } from '../shared/networking/api/userApi/updateUser';
+import { deleteUser } from '../shared/networking/api/userApi/deleteUser';
 import { X } from 'lucide-react';
 import { useSelector, useDispatch } from "react-redux";
 import { setUsersList } from "../app/slices/usersSlice";
 import { debounce } from 'lodash';
 import HashLoader from 'react-spinners/HashLoader';
-import { searchUser } from '../shared/networking/api/userApi.js/searchUser';
+import { searchUser } from '../shared/networking/api/userApi/searchUser';
 
 const UserManagement = () => {
     const [users, setUsers] = useState([]);

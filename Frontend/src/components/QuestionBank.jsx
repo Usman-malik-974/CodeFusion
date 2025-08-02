@@ -1,33 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import AddQuestionForm from './AddQuestionForm';
 import { X } from 'lucide-react';
+import { addQuestion } from '../shared/networking/api/questionApi/addQuestion';
+import { toast } from 'react-toastify';
+import { getAllQuestions } from '../shared/networking/api/questionApi/getAllQuestions';
 
 const QuestionBank = () => {
-   const initialQuestions = [
-      {
-         id: 1,
-         title: 'Two Sum Problem',
-         tags: ['Array', 'HashMap'],
-         difficulty: 'Easy',
-      },
-      {
-         id: 2,
-         title: 'Longest Substring Without Repeating Characters',
-         tags: ['String', 'Sliding Window'],
-         difficulty: 'Medium',
-      },
-      {
-         id: 3,
-         title: 'Median of Two Sorted Arrays',
-         tags: ['Array', 'Divide and Conquer'],
-         difficulty: 'Hard',
-      },
-   ];
-
-   const [questions, setQuestions] = useState(initialQuestions);
+   const [questions, setQuestions] = useState([]);
    const [searchInput, setSearchInput] = useState('');
    const [showAddForm, setShowAddForm] = useState(false);
 
+   useEffect(() => {
+      const fetchQuestions = async () => {
+          try {
+              const res = await getAllQuestions();
+              if (res.error) {
+                  toast.error(res.error);
+              } else {
+                  setQuestions(res.questions);
+              }
+          } catch (err) {
+              toast.error("Something went wrong");
+          } 
+      };
+          fetchQuestions();
+  }, []);
 
    const handleSearch = (e) => {
       setSearchInput(e.target.value.toLowerCase());
@@ -69,9 +66,21 @@ const QuestionBank = () => {
                   </button>
                   <AddQuestionForm
                      onClose={() => setShowAddForm(false)}
-                     onSubmit={(newQuestion) => {
-                        setQuestions((prev) => [...prev, { ...newQuestion, id: prev.length + 1 }]);
-                        setShowAddForm(false);
+                     onSubmit={async(newQuestion) => {
+                        try{
+                        const res=await addQuestion(newQuestion);
+                        console.log(res);
+                        if (res.error) {
+                           toast.error(result.error);
+                           return;
+                       }
+                       setShowAddForm(false);
+                        setQuestions((prev) => [...prev, res.question]);
+                        toast.success(res.message);
+                     }
+                     catch(e){
+                        toast.error('Some Internal Error occured');
+                     }
                      }}
                   />
                </div>

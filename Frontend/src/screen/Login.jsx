@@ -3,7 +3,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Link, useNavigate } from 'react-router-dom';
 import { BeatLoader } from 'react-spinners';
-import { loginUser } from '../shared/networking/api/userApi.js/loginUser';
+import { loginUser } from '../shared/networking/api/userApi/loginUser';
 import { BiSolidShow, BiSolidHide } from "react-icons/bi";
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';

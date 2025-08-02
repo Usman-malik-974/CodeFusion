@@ -1,0 +1,80 @@
+const {Question}=require('../models/index');
+
+const getAllQuestions = async (req, res) => {
+  try {
+    const questions = await Question.find({}, '-createdBy'); 
+
+    res.status(200).json({
+      questions: questions.map(q => ({
+        id: q._id,
+        title: q.title,
+        statement: q.statement,
+        inputFormat: q.inputFormat,
+        outputFormat: q.outputFormat,
+        sampleInput: q.sampleInput,
+        sampleOutput: q.sampleOutput,
+        tags: q.tags,
+        difficulty: q.difficulty,
+        testCases: q.testCases,
+        createdAt: q.createdAt,
+        updatedAt: q.updatedAt
+      }))
+    });
+
+  } catch (err) {
+    console.error('Get All Questions Error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+const addQuestion = async (req, res) => {
+    try {
+      const {
+        title,
+        statement,
+        inputFormat,
+        outputFormat,
+        sampleInput,
+        sampleOutput,
+        tags,
+        difficulty,
+        testCases
+      } = req.body;
+  
+      if (!title || !statement || !testCases || testCases.length === 0) {
+        return res.status(400).json({ error: 'Title, statement, and at least one test case are required.' });
+      }
+  
+      const newQuestion = new Question({
+        title,
+        statement,
+        inputFormat,
+        outputFormat,
+        sampleInput,
+        sampleOutput,
+        tags,
+        difficulty,
+        testCases,
+        createdBy: req.user.id
+      });
+      const savedQuestion = await newQuestion.save();
+      const questionObj = savedQuestion.toObject();
+      delete questionObj.createdBy;
+      return res.status(201).json({
+        message: 'Question created successfully.',
+        question: questionObj
+      });
+  
+    } catch (err) {
+      console.error('Add Question Error:', err);
+      if (err.name === 'ValidationError') {
+        const field = Object.keys(err.errors)[0];
+        const errorMessage = err.errors[field].message;
+        return res.status(400).json({ error: errorMessage });
+      }
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  };
+  
+
+  module.exports={addQuestion,getAllQuestions};
