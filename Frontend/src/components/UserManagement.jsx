@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import AddUserForm from './AddUserForm';
 import { toast } from 'react-toastify';
 import { getAllUsers } from '../shared/networking/api/userApi/getAllUsers';
 import { updateUser } from '../shared/networking/api/userApi/updateUser';
 import { deleteUser } from '../shared/networking/api/userApi/deleteUser';
-import { X } from 'lucide-react';
+import { X, Upload, UserPlus } from 'lucide-react';
 import { useSelector, useDispatch } from "react-redux";
 import { setUsersList } from "../app/slices/usersSlice";
 import { debounce } from 'lodash';
@@ -22,6 +22,7 @@ const UserManagement = () => {
     const [searchInput, setSearchInput] = useState("");
     const usersList = useSelector((state) => state.users.usersList);
     const dispatch = useDispatch();
+    const inputref = useRef(null);
 
     const handleSearchChange = useCallback(
         debounce(async (query) => {
@@ -71,7 +72,13 @@ const UserManagement = () => {
 
     const handleEditClick = (index) => {
         setEditIndex(index);
-        setEditedUser({ ...users[index] });
+        setEditedUser({
+            ...users[index],
+            rollno: users[index].rollno || "",
+            course: users[index].course || "",
+            session: users[index].session || "",
+            role: users[index].role || "user",
+        });
     };
 
     const handleSaveClick = async () => {
@@ -96,8 +103,16 @@ const UserManagement = () => {
             toast.error("Name can only contain letters, numbers, and spaces.");
             return;
         }
+
+        const sessionRegex = /^\d{4}-\d{4}$/;
+        if (editedUser.role === "user" && !sessionRegex.test(editedUser.session || "")) {
+            toast.error("Session must be in the format YYYY-YYYY.");
+            return;
+        }
+
         console.log(id);
         const result = await updateUser(id, { ...updateData, name: trimmedName, fullname: trimmedName });
+
 
         if (result.error) {
             toast.error(result.error);
@@ -132,6 +147,31 @@ const UserManagement = () => {
         setEditedUser((prev) => ({ ...prev, [name]: value }));
     };
 
+
+    const handleExcelUpload = (e) => {
+        const file = e.target.files[0];
+
+        if (!file) {
+            toast.error("No file selected.");
+            return;
+        }
+
+        const allowedTypes = [
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+            "application/vnd.ms-excel" // .xls
+        ];
+
+        if (!allowedTypes.includes(file.type)) {
+            toast.error("Only Excel files (.xlsx or .xls) are allowed.");
+            e.target.value = null; // Reset file input
+            return;
+        }
+
+        toast.success(`Uploaded: ${file.name}`);
+
+        ///implemet api logic from here
+        // Your Excel parsing or uploading logic can go here
+    };
     // const handleSearch = (e) => {
     //     const value = e.target.value;
     //     setSearchInput(value); // update input state
@@ -166,12 +206,24 @@ const UserManagement = () => {
                         value={searchInput}
 
                     />
-                    <button
-                        className="bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-blue-600 transition"
-                        onClick={() => setShowForm(true)}
-                    >
-                        Add User +
-                    </button>
+                    <div className='flex gap-2 items-center'>
+                        <button
+                            className="flex items-center gap-2 bg-green-600 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-green-700 transition"
+                            onClick={() => inputref.current && inputref.current.click()}
+                        >
+                            <Upload size={16} />
+                            Upload Excel
+                        </button>
+
+                        <button
+                            className="flex items-center gap-2 bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-blue-600 transition"
+                            onClick={() => setShowForm(true)}
+                        >
+                            <UserPlus size={16} />
+                            Add User
+                        </button>
+
+                    </div>
                 </div>
             )}
 
@@ -183,8 +235,11 @@ const UserManagement = () => {
                             <thead className="bg-blue-100 text-left text-sm font-semibold text-blue-600">
                                 <tr>
                                     <th className="px-4 py-3 border-b border-blue-200">#</th>
+                                    <th className="px-4 py-3 border-b border-blue-200">Roll Number</th>
                                     <th className="px-4 py-3 border-b border-blue-200">Name</th>
                                     <th className="px-4 py-3 border-b border-blue-200">Email</th>
+                                    <th className="px-4 py-3 border-b border-blue-200">Course</th>
+                                    <th className="px-4 py-3 border-b border-blue-200">Session</th>
                                     <th className="px-4 py-3 border-b border-blue-200">Role</th>
                                     <th className="px-4 py-3 border-b border-blue-200">Actions</th>
                                 </tr>
@@ -193,6 +248,25 @@ const UserManagement = () => {
                                 {users.map((user, index) => (
                                     <tr key={index} className="even:bg-gray-50 hover:bg-blue-50 transition">
                                         <td className="px-4 py-3 border-b border-gray-200">{index + 1}</td>
+
+                                        <td className="px-4 py-3 border-b border-gray-200">
+                                            {editIndex === index ? (
+                                                editedUser.role === "admin" ? (
+                                                    user.rollno || "NA"
+                                                ) : (
+                                                    <input
+                                                        type="number"
+                                                        name="rollno"
+                                                        value={editedUser.rollno || ""}
+                                                        onChange={handleInputChange}
+                                                        className="border px-2 py-1 rounded w-full"
+                                                    />
+                                                )
+                                            ) : (
+                                                user.rollno || "NA"
+                                            )}
+                                        </td>
+
 
                                         <td className="px-4 py-3 border-b border-gray-200">
                                             {editIndex === index ? (
@@ -208,6 +282,52 @@ const UserManagement = () => {
                                         </td>
 
                                         <td className="px-4 py-3 border-b border-gray-200">{user.email}</td>
+
+                                        <td className="px-4 py-3 border-b border-gray-200 capitalize">
+                                            {user.course ? (
+                                                editIndex === index ? (
+                                                    editedUser.role === "admin" ? (
+                                                        user.course
+                                                    ) : (
+                                                        <select
+                                                            name="course"
+                                                            value={editedUser.course}
+                                                            onChange={handleInputChange}
+                                                            className="border px-2 py-1 rounded w-full"
+                                                        >
+                                                            <option value="BCA">BCA</option>
+                                                            <option value="MCA">MCA</option>
+                                                        </select>
+                                                    )
+                                                ) : (
+                                                    user.course
+                                                )
+                                            ) : (
+                                                "NA"
+                                            )}
+                                        </td>
+
+
+                                        <td className="px-4 py-3 border-b border-gray-200">
+                                            {editIndex === index ? (
+                                                editedUser.role === "admin" ? (
+                                                    user.session || "NA"
+                                                ) : (
+                                                    <input
+                                                        type="text"
+                                                        name="session"
+                                                        placeholder="2021-2024"
+                                                        value={editedUser.session || ""}
+                                                        onChange={handleInputChange}
+                                                        className="border px-2 py-1 rounded w-full"
+                                                    />
+                                                )
+                                            ) : (
+                                                user.session || "NA"
+                                            )}
+                                        </td>
+
+
 
                                         <td className="px-4 py-3 border-b border-gray-200 capitalize">
                                             {editIndex === index ? (
@@ -226,13 +346,14 @@ const UserManagement = () => {
                                         </td>
 
 
+
                                         <td className="px-2 py-3 border-b border-gray-200">
                                             <div className="flex gap-2 min-w-[110px]">
                                                 {editIndex === index ? (
                                                     <>
                                                         <button
                                                             onClick={handleSaveClick}
-                                                            className="bg-green-500 text-white px-3 py-1 rounded-md text-xs hover:bg-green-600 transition"
+                                                            className="bg-green-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-green-600 transition"
                                                         >
                                                             Save
                                                         </button>
@@ -241,7 +362,8 @@ const UserManagement = () => {
                                                                 setEditIndex(null);
                                                                 setEditedUser({});
                                                             }}
-                                                            className="bg-red-100 text-red-600 px-3 py-1 rounded-md text-xs hover:bg-red-200 transition border border-red-200"
+
+                                                            className="bg-red-100 text-red-600 px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-200 transition border border-red-200"
                                                         >
                                                             Cancel
                                                         </button>
@@ -250,7 +372,7 @@ const UserManagement = () => {
                                                     <>
                                                         <button
                                                             onClick={() => handleEditClick(index)}
-                                                            className="bg-blue-500 text-white px-3 py-1 rounded-md text-xs hover:bg-blue-600 transition"
+                                                            className="bg-blue-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-blue-600 transition"
                                                         >
                                                             Edit
                                                         </button>
@@ -259,7 +381,7 @@ const UserManagement = () => {
                                                                 setShowPopUp(true);
                                                                 setSelectedUser({ index, id: user.id });
                                                             }}
-                                                            className="bg-red-200 text-red-600 px-3 py-1 rounded-md text-xs hover:bg-red-200 transition border border-red-200"
+                                                            className="bg-red-200 text-red-600 px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-300 transition border border-red-200"
                                                         >
                                                             Delete
                                                         </button>
@@ -314,6 +436,7 @@ const UserManagement = () => {
                     </div>
                 )
             }
+            <input type="file" hidden ref={inputref} onChange={handleExcelUpload} />
         </div >
     );
 };
