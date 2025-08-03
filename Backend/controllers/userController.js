@@ -25,8 +25,8 @@ const updateUser = async (req, res) => {
         new: true,
         runValidators: true
       }).select('_id fullname email role');;
-  
       if (!updatedUser) {
+
         return res.status(404).json({ error: 'User not found' });
       }
       const user={

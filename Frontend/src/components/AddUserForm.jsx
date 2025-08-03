@@ -5,23 +5,54 @@ import * as Yup from "yup";
 import { signupUser } from "../shared/networking/api/userApi/signupUser";
 import { toast } from "react-toastify";
 
-const AddUserForm = ({ onClose,onAdd }) => {
+const AddUserForm = ({ onClose, onAdd }) => {
     const [loading, setLoading] = React.useState(false);
 
     const formik = useFormik({
         initialValues: {
+            rollno: "",
             name: "",
             email: "",
+            course: "",
+            // section: "",
+            session: "",
             role: "",
         },
         validationSchema: Yup.object({
+            rollno: Yup.number()
+                .typeError("Roll no must be a number")
+                .when("role", {
+                    is: "user",
+                    then: (schema) => schema.required("Roll no is required"),
+                    otherwise: (schema) => schema.notRequired(),
+                }),
             name: Yup.string().required("Name is required"),
             email: Yup.string().email("Invalid email").required("Email is required"),
+            course: Yup.string().when("role", {
+                is: "user",
+                then: (schema) => schema.required("Course is required"),
+                otherwise: (schema) => schema.notRequired(),
+            }),
+            session: Yup.string()
+                .when("role", {
+                    is: "user",
+                    then: (schema) =>
+                        schema
+                            .required("Session is required")
+                            .matches(
+                                /^\d{4}-\d{4}$/,
+                                "Session must be in the format YYYY-YYYY"
+                            ),
+                    otherwise: (schema) => schema.notRequired(),
+                }),
             role: Yup.string().required("Role is required"),
         }),
         onSubmit: async (values) => {
+            console.log("Submitted values:", values);
             setLoading(true);
             try {
+
+                //change this acc to role
                 const res = await signupUser(values.name, values.email, values.role);
                 console.log(res);
 
@@ -30,10 +61,10 @@ const AddUserForm = ({ onClose,onAdd }) => {
                 } else if (res.message) {
                     if (res.id) {
                         onAdd({
-                            id:res.id,
-                            name:values.name,
-                            email:values.email,
-                            role:values.role
+                            id: res.id,
+                            name: values.name,
+                            email: values.email,
+                            role: values.role
                         })
                     }
                     toast.success(res.message);
@@ -115,6 +146,62 @@ const AddUserForm = ({ onClose,onAdd }) => {
                             <p className="text-red-500 text-sm mt-1">{formik.errors.role}</p>
                         )}
                     </div>
+
+                    {formik.values.role === 'user' && (
+
+                        <div>
+                            <input
+                                type="number"
+                                name="rollno"
+                                placeholder="Roll Number"
+                                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                value={formik.values.rollno}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                            />
+                            {formik.touched.rollno && formik.errors.rollno && (
+                                <p className="text-red-500 text-sm mt-1">{formik.errors.rollno}</p>
+                            )}
+                        </div>
+                    )}
+
+                    {formik.values.role === 'user' && (
+
+                        <div>
+                            <select
+                                name="course"
+                                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                value={formik.values.course}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                            >
+                                <option value="">Select Course</option>
+                                <option value="BCA">BCA</option>
+                                <option value="MCA">MCA</option>
+                            </select>
+                            {formik.touched.course && formik.errors.course && (
+                                <p className="text-red-500 text-sm mt-1">{formik.errors.course}</p>
+                            )}
+                        </div>
+                    )}
+
+                    {formik.values.role === 'user' && (
+
+                        <div>
+                            <input
+                                type="text"
+                                name="session"
+                                placeholder="Session(e.g. 20XX-20XX)"
+                                className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                value={formik.values.session}
+                                onChange={formik.handleChange}
+                                onBlur={formik.handleBlur}
+                            />
+                            {formik.touched.session && formik.errors.session && (
+                                <p className="text-red-500 text-sm mt-1">{formik.errors.session}</p>
+                            )}
+                        </div>
+                    )}
 
                     <button
                         type="submit"
