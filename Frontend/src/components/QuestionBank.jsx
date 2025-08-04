@@ -1,38 +1,69 @@
-import React, { useState,useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import AddQuestionForm from './AddQuestionForm';
 import { X } from 'lucide-react';
 import { addQuestion } from '../shared/networking/api/questionApi/addQuestion';
 import { toast } from 'react-toastify';
 import { getAllQuestions } from '../shared/networking/api/questionApi/getAllQuestions';
+import { HashLoader } from 'react-spinners';
+import { useSelector, useDispatch } from "react-redux";
+import { setQuestionsList } from '../app/slices/questionsSlice';
 
 const QuestionBank = () => {
    const [questions, setQuestions] = useState([]);
    const [searchInput, setSearchInput] = useState('');
    const [showAddForm, setShowAddForm] = useState(false);
+   const [isLoading, setIsLoading] = useState(false);
+   const [showPopUp, setShowPopUp] = useState(false);
+   const [selectedQuestion, setSelectedQuestion] = useState({ index: null, id: null });
+   const dispatch = useDispatch();
+   const questionsList = useSelector((state) => state.questions.questionsList);
 
    useEffect(() => {
       const fetchQuestions = async () => {
-          try {
-              const res = await getAllQuestions();
-              if (res.error) {
-                  toast.error(res.error);
-              } else {
-                  setQuestions(res.questions);
-              }
-          } catch (err) {
-              toast.error("Something went wrong");
-          } 
+         setIsLoading(true);
+         try {
+            const res = await getAllQuestions();
+            if (res.error) {
+               toast.error(res.error);
+            } else {
+               setQuestions(res.questions);
+               dispatch(setQuestionsList(res.questions));
+            }
+         } catch (err) {
+            toast.error("Something went wrong");
+         } finally {
+            setIsLoading(false);
+         }
       };
-          fetchQuestions();
-  }, []);
+      if (questionsList.length === 0) {
+         fetchQuestions();
+      } else {
+         setQuestions(questionsList);
+      }
+
+   }, []);
 
    const handleSearch = (e) => {
       setSearchInput(e.target.value.toLowerCase());
    };
 
-   const handleView = (id) => {
+   const handleViewClick = (id) => {
       console.log('View question with ID:', id);
    };
+
+   const handleDelete = async (index, id) => {
+      // const result = await deleteUser(id);
+      // if (result.error) {
+      //    toast.error(result.error);
+      //    return;
+      // }
+      const updatedQuestions = questions.filter((_, i) => i !== index);
+      setQuestions(updatedQuestions);
+      dispatch(setQuestionsList(updatedQuestions));
+      toast.success("Deleted succesfully");
+      // toast.success(result.message);
+   };
+
 
    const getDifficultyBadgeColor = (level) => {
       switch (level) {
@@ -62,52 +93,59 @@ const QuestionBank = () => {
                      className="absolute top-2 right-0 text-gray-500 hover:text-red-500"
                      onClick={() => setShowAddForm(false)}
                   >
-                    <X size={24}/>
+                     <X size={24} />
                   </button>
                   <AddQuestionForm
                      onClose={() => setShowAddForm(false)}
-                     onSubmit={async(newQuestion) => {
-                        try{
-                        const res=await addQuestion(newQuestion);
-                        console.log(res);
-                        if (res.error) {
-                           toast.error(result.error);
-                           return;
-                       }
-                       setShowAddForm(false);
-                        setQuestions((prev) => [...prev, res.question]);
-                        toast.success(res.message);
-                     }
-                     catch(e){
-                        toast.error('Some Internal Error occured');
-                     }
+                     onSubmit={async (newQuestion) => {
+                        try {
+                           const res = await addQuestion(newQuestion);
+                           console.log(res);
+                           if (res.error) {
+                              toast.error(result.error);
+                              return;
+                           }
+                           setShowAddForm(false);
+                           setQuestions((prev) => [...prev, res.question]);
+                           toast.success(res.message);
+                        }
+                        catch (e) {
+                           toast.error('Some Internal Error occured');
+                        }
                      }}
                   />
                </div>
             </div>
          )}
          <h3 className="text-3xl text-blue-500 font-semibold text-center mb-6">Question Bank</h3>
-
+         {isLoading && (
+            <div className="flex items-center justify-center h-64">
+               <HashLoader color="#3B82F6" size={60} />
+            </div>
+         )}
          {/* Top Controls */}
-         <div className="flex items-center justify-between mb-4">
-            <input
-               type="text"
-               placeholder="Search questions"
-               className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-100 w-1/3"
-               value={searchInput}
-               onChange={handleSearch}
-            />
-            <button
-               className="bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-blue-600 transition"
-               onClick={() => setShowAddForm(true)}
-            >
-               Add Question +
-            </button>
-         </div>
+         {!isLoading && (
+            <div className="flex items-center justify-between mb-4">
+               <input
+                  type="text"
+                  placeholder="Search questions"
+                  className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-100 w-1/3"
+                  value={searchInput}
+                  onChange={handleSearch}
+               />
+               <button
+                  className="bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-blue-600 transition"
+                  onClick={() => setShowAddForm(true)}
+               >
+                  Add Question +
+               </button>
+            </div>
+         )}
 
          {/* Table */}
-         <div className="overflow-x-auto">
-            {filteredQuestions.length > 0 ? (
+         {isLoading ? null : questions.length > 0 ? (
+            < div className="overflow-x-auto">
+               {/* {filteredQuestions.length > 0 ? ( */}
                <table className="min-w-full border-collapse rounded-xl overflow-hidden shadow-md">
                   <thead className="bg-blue-100 text-left text-sm font-semibold text-blue-600">
                      <tr>
@@ -141,22 +179,63 @@ const QuestionBank = () => {
                               </span>
                            </td>
                            <td className="px-4 py-3 border-b border-gray-200">
-                              <button
-                                 onClick={() => handleView(question.id)}
-                                 className="bg-blue-500 text-white px-3 py-1 rounded-md text-xs hover:bg-blue-600 transition"
-                              >
-                                 View
-                              </button>
+                              <div className="flex gap-2 min-w-[110px]">
+
+                                 <button
+                                    onClick={() => handleViewClick(question.id)}
+                                    className="bg-blue-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-blue-600 transition"
+                                 >
+                                    View
+                                 </button>
+                                 <button
+                                    onClick={() => {
+                                       setShowPopUp(true);
+                                       setSelectedQuestion({ index, id: question.id });
+                                    }}
+                                    className="bg-red-200 text-red-600 px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-300 transition border border-red-200"
+                                 >
+                                    Delete
+                                 </button>
+                              </div>
                            </td>
                         </tr>
                      ))}
                   </tbody>
                </table>
-            ) : (
-               <h3 className="text-center text-xl text-gray-400 mt-6">No questions found</h3>
-            )}
-         </div>
-      </div>
+            </div>
+         ) : (
+            <h3 className="text-center text-xl text-gray-400 mt-6">No questions found</h3>
+         )}
+
+         {
+            showPopUp && (
+               <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-40 z-50">
+                  <div className="bg-white p-6 rounded-md shadow-lg w-full max-w-md">
+                     <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md relative">
+                        <button
+                           onClick={() => { setShowPopUp(false) }}
+                           className="absolute top-3 right-3 text-gray-500 hover:text-red-500 transition"
+                           aria-label="Close"
+                        >
+                           <X className="w-5 h-5" />
+                        </button>
+                        <h2 className="text-xl font-semibold text-red-400 mb-4 text-center">
+                           Are you Sure?
+                        </h2>
+                        <div className='flex gap-2 justify-center'>
+                           <button className='bg-red-400 text-white px-3 py-1 rounded-md' onClick={() => setShowPopUp(false)}>No</button>
+                           <button className='bg-blue-500 text-white px-3 py-1 rounded-md' onClick={() => {
+                              handleDelete(selectedQuestion.index, selectedQuestion.id);
+                              setShowPopUp(false);
+                           }}>Yes</button>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            )
+         }
+
+      </div >
    );
 };
 

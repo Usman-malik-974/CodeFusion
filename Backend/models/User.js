@@ -18,7 +18,7 @@ const userSchema = new mongoose.Schema({
 
   course:{
     type:String,
-    enum: ['BCA', 'MCA'],
+    enum: ['','BCA', 'MCA'],
   },
 
   session:{
