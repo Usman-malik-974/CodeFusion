@@ -20,48 +20,54 @@ const UserManagement = () => {
     const [selectedUser, setSelectedUser] = useState({ index: null, id: null });
     const [isLoading, setIsLoading] = useState(false);
     const [searchInput, setSearchInput] = useState("");
-    const usersList = useSelector((state) => state.users.usersList);
-    const dispatch = useDispatch();
     const inputref = useRef(null);
+    const dispatch = useDispatch();
+    const usersList = useSelector((state) => state.users.usersList);
 
     const handleSearchChange = useCallback(
         debounce(async (query) => {
             if (query.trim() !== '') {
-                const res = await searchUser(query.trim());
-                if(res.error){
-                    toast.error(res.error);
-                    return;
+                try {
+                    const res = await searchUser(query.trim()); // Backend API call
+                    if (res.error) {
+                        toast.error(res.error);
+                    } else {
+                        setUsers(res.users); // Replace displayed users with search results
+                    }
+                } catch (error) {
+                    toast.error("Search failed.");
                 }
-                setUsers(res.users);
-            }
-            else {
-                setUsers(usersList);
+            } else {
+                setUsers(usersList); // Restore full list from Redux
             }
         }, 600),
         [usersList]
     );
 
+
+
     useEffect(() => {
         const fetchUsers = async () => {
-            setIsLoading(true); // move inside
+            setIsLoading(true);
             try {
                 const res = await getAllUsers();
                 if (res.error) {
                     toast.error(res.error);
                 } else {
-                    setUsers(res.users);
                     dispatch(setUsersList(res.users));
+                    setUsers(res.users); // filtered view
                 }
             } catch (err) {
                 toast.error("Something went wrong");
             } finally {
-                setIsLoading(false); // stop loader only after fetch completes
+                setIsLoading(false);
             }
         };
+
         if (usersList.length === 0) {
             fetchUsers();
         } else {
-            setUsers(usersList);
+            setUsers(usersList); // initialize filtered view
         }
     }, []);
 
@@ -86,12 +92,12 @@ const UserManagement = () => {
         });
     };
 
+
     const handleSaveClick = async () => {
         const { id, name, ...updateData } = editedUser;
         const trimmedName = name?.trim();
 
-        const nameRegex = /^[A-Za-z0-9 ]+$/;
-
+        // validations
         if (!trimmedName) {
             toast.error("Name cannot be empty.");
             return;
@@ -104,35 +110,54 @@ const UserManagement = () => {
             toast.error("Name cannot exceed 50 characters.");
             return;
         }
-        if (!nameRegex.test(trimmedName)) {
+        if (!/^[A-Za-z0-9 ]+$/.test(trimmedName)) {
             toast.error("Name can only contain letters, numbers, and spaces.");
             return;
         }
 
-        const sessionRegex = /^\d{4}-\d{4}$/;
-        if (editedUser.role === "user" && !sessionRegex.test(editedUser.session || "")) {
-            toast.error("Session must be in the format YYYY-YYYY.");
-            return;
+        if (editedUser.role === "user") {
+            if (!editedUser.rollno) {
+                toast.error("Roll number is required.");
+                return;
+            }
+            if (!editedUser.course?.trim()) {
+                toast.error("Course is required.");
+                return;
+            }
+            if (!/^\d{4}-\d{4}$/.test(editedUser.session || "")) {
+                toast.error("Session must be in the format YYYY-YYYY.");
+                return;
+            }
         }
 
-        console.log(id);
         const result = await updateUser(id, { ...updateData, name: trimmedName, fullname: trimmedName });
-
-
         if (result.error) {
             toast.error(result.error);
             return;
         }
-        // console.log(result.updatedUser);
-        const updatedUsers = [...users];
-        updatedUsers[editIndex] = result.updatedUser || { ...editedUser, name: trimmedName };
-        setUsers(updatedUsers);
-        dispatch(setUsersList(updatedUsers));
 
+        // update master redux list
+        const updatedMasterList = usersList.map((u) =>
+            u.id === id ? result.updatedUser : u
+        );
+        dispatch(setUsersList(updatedMasterList));
+
+        // re-filter local view based on current search
+        if (searchInput.trim() !== "") {
+            const filtered = updatedMasterList.filter((u) =>
+                u.name.toLowerCase().includes(searchInput.trim().toLowerCase()) ||
+                u.email.toLowerCase().includes(searchInput.trim().toLowerCase())
+            );
+            setUsers(filtered);
+        } else {
+            setUsers(updatedMasterList);
+        }
+
+        toast.success(result.message || "User updated successfully.");
         setEditIndex(null);
         setEditedUser({});
-        toast.success(result.message || "User updated successfully.");
     };
+
 
 
     const handleDelete = async (index, id) => {
@@ -141,11 +166,24 @@ const UserManagement = () => {
             toast.error(result.error);
             return;
         }
-        const updatedUsers = users.filter((_, i) => i !== index);
-        setUsers(updatedUsers);
-        dispatch(setUsersList(updatedUsers));
+
+        const updatedMasterList = usersList.filter((u) => u.id !== id);
+        dispatch(setUsersList(updatedMasterList));
+
+        // re-filter
+        if (searchInput.trim() !== "") {
+            const filtered = updatedMasterList.filter((u) =>
+                u.name.toLowerCase().includes(searchInput.trim().toLowerCase()) ||
+                u.email.toLowerCase().includes(searchInput.trim().toLowerCase())
+            );
+            setUsers(filtered);
+        } else {
+            setUsers(updatedMasterList);
+        }
+
         toast.success(result.message);
     };
+
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
@@ -289,28 +327,26 @@ const UserManagement = () => {
                                         <td className="px-4 py-3 border-b border-gray-200">{user.email}</td>
 
                                         <td className="px-4 py-3 border-b border-gray-200 capitalize">
-                                            {user.course ? (
-                                                editIndex === index ? (
-                                                    editedUser.role === "admin" ? (
-                                                        user.course
-                                                    ) : (
-                                                        <select
-                                                            name="course"
-                                                            value={editedUser.course}
-                                                            onChange={handleInputChange}
-                                                            className="border px-2 py-1 rounded w-full"
-                                                        >
-                                                            <option value="BCA">BCA</option>
-                                                            <option value="MCA">MCA</option>
-                                                        </select>
-                                                    )
+                                            {editIndex === index ? (
+                                                editedUser.role === "admin" ? (
+                                                    user.course || "NA"
                                                 ) : (
-                                                    user.course
+                                                    <select
+                                                        name="course"
+                                                        value={editedUser.course || ""}
+                                                        onChange={handleInputChange}
+                                                        className="border px-2 py-1 rounded w-full"
+                                                    >
+                                                        <option value="" disabled>Select course</option>
+                                                        <option value="BCA">BCA</option>
+                                                        <option value="MCA">MCA</option>
+                                                    </select>
                                                 )
                                             ) : (
-                                                "NA"
+                                                user.course || "NA"
                                             )}
                                         </td>
+
 
 
                                         <td className="px-4 py-3 border-b border-gray-200">
