@@ -11,6 +11,20 @@ const userSchema = new mongoose.Schema({
     ]
   },
 
+  rollno:{
+    type:Number
+  },
+
+
+  course:{
+    type:String,
+    enum: ['BCA', 'MCA'],
+  },
+
+  session:{
+    type:String
+  },
+
   email: {
     type: String,
     required: [true,"Email is Required"],
@@ -54,6 +68,21 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   }
+});
+
+userSchema.pre('validate', function (next) {
+  if (this.role === 'user') {
+    if (!this.course) {
+      this.invalidate('course', 'Course is required for user role.');
+    }
+    if (!this.session) {
+      this.invalidate('session', 'Session is required for user role.');
+    }
+    if (!this.rollno) {
+      this.invalidate('rollno', 'Roll number is required for user role.');
+    }
+  }
+  next();
 });
 
 module.exports = mongoose.model('User', userSchema);

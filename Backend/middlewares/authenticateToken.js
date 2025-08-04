@@ -7,11 +7,11 @@ function authenticateToken(req, res, next) {
         : null;
 
     if (!token) {
-        return res.status(401).json({ message: 'Access token missing' });
+        return res.status(401).json({ error: 'Access token missing' });
     }
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
         if (err) {
-            return res.status(403).json({ message: 'Invalid or expired token' });
+            return res.status(403).json({ error: 'Invalid or expired token' });
         }
         req.user = decoded;
         next();

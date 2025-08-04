@@ -1,9 +1,10 @@
 const getAllUsers = async () => {
     try {
+      const token=localStorage.getItem('token');
       const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/users`,{
         headers: {
-          // token will be passed here 
-        },
+          'Authorization': `Bearer ${token}`,
+      },
       });
       const data = await response.json();
       // console.log(data)

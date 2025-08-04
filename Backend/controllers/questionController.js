@@ -1,9 +1,9 @@
 const {Question}=require('../models/index');
+const isAdmin = require('../utils/isAdmin');
 
 const getAllQuestions = async (req, res) => {
   try {
     const questions = await Question.find({}, '-createdBy'); 
-
     res.status(200).json({
       questions: questions.map(q => ({
         id: q._id,
@@ -28,6 +28,9 @@ const getAllQuestions = async (req, res) => {
 };
 
 const addQuestion = async (req, res) => {
+  if(!(await isAdmin(req.user.id))){
+    return res.status(403).json({ error: 'Unauthorized Access.' });
+  }
     try {
       const {
         title,
