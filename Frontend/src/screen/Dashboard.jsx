@@ -3,14 +3,13 @@ import { useSelector } from "react-redux";
 import { useEffect } from "react";
 
 const Dashboard = () => {
-    const user = useSelector(state => state.auth.user); // ✅ call at top level
     const navigate = useNavigate();
 
-    useEffect(() => {
-        if (!user) {
-            navigate('/login'); // redirect to login if not logged in
-        }
-    }, [user, navigate]);
+    // useEffect(() => {
+    //     if (!user) {
+    //         navigate('/login'); // redirect to login if not logged in
+    //     }
+    // }, [user, navigate]);
 
     return (
         <div>

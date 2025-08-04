@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Link, useNavigate } from 'react-router-dom';
@@ -12,6 +12,12 @@ const Login = () => {
     const [loader, setLoader] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const navigate = useNavigate();
+
+    useEffect(()=>{
+       const token=localStorage.getItem("token");
+       //api logic to verify if its valid token then redirect acc to role without cred
+    //    navigate("/dashboard") or  navigate("/admin")
+    },[])
     const validationSchema = Yup.object({
         email: Yup.string().email('Invalid email').required('Email is Required'),
         password: Yup.string().required('Password Required'),
@@ -25,7 +31,6 @@ const Login = () => {
         validationSchema,
         onSubmit: async (values) => {
             setLoader(true);
-            // dispatch(loginStart());
             try {
                 const res = await loginUser(values.email.trim(), values.password.trim());
                 console.log(res);
@@ -33,7 +38,6 @@ const Login = () => {
                     const userDetails = res.user;
                     const token = res.token; // assuming API returns token
                     localStorage.setItem("token",token);
-                    // dispatch(loginSuccess({ user: userDetails, token }));
                     if (userDetails.role === 'admin') {
                         navigate("/admin");
                     }
