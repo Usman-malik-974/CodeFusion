@@ -51,9 +51,8 @@ const AddUserForm = ({ onClose, onAdd }) => {
             console.log("Submitted values:", values);
             setLoading(true);
             try {
-
                 //change this acc to role
-                const res = await signupUser(values.name, values.email, values.role);
+                const res = await signupUser({...values,fullname:values.name});
                 console.log(res);
 
                 if (res.error) {
@@ -64,7 +63,10 @@ const AddUserForm = ({ onClose, onAdd }) => {
                             id: res.id,
                             name: values.name,
                             email: values.email,
-                            role: values.role
+                            role: values.role,
+                            rollno:values.rollno,
+                            course:values.course,
+                            session:values.session
                         })
                     }
                     toast.success(res.message);

@@ -1,14 +1,21 @@
 const {User} = require('../models/index');
-
+const isAdmin = require('../utils/isAdmin');
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.find({}, '_id fullname email role');
+    if(!(await isAdmin(req.user.id))){
+      return res.status(403).json({ error: 'Unauthorized Access.' });
+    }
+    console.log(isAdmin(req.user.id),"  yugh");
+    const users = await User.find({}, '_id fullname email role rollno course session');
     res.status(200).json({
       users: users.map(user => ({
         id: user._id,
         name: user.fullname,
         email: user.email,
-        role: user.role
+        role: user.role,
+        rollno:user.rollno,
+        course:user.course,
+        session:user.session
       }))
     });
 
@@ -20,20 +27,25 @@ const getAllUsers = async (req, res) => {
 
 const updateUser = async (req, res) => {
     try {
+      if(!(await isAdmin(req.user.id))){
+        return res.status(403).json({ error: 'Unauthorized Access.' });
+      }
       const { id } = req.params;
       const updatedUser = await User.findByIdAndUpdate(id, req.body, {
         new: true,
         runValidators: true
-      }).select('_id fullname email role');;
+      }).select('_id fullname email role course rollno session');;
       if (!updatedUser) {
-
         return res.status(404).json({ error: 'User not found' });
       }
       const user={
         id:updatedUser._id,
         name:updatedUser.fullname,
         email:updatedUser.email,
-        role:updatedUser.role
+        role:updatedUser.role,
+        course:updatedUser.course,
+        rollno:updatedUser.rollno,
+        session:updatedUser.session
       }
       res.status(200).json({ message: 'User updated successfully', updatedUser:user });
     } catch (err) {
@@ -50,6 +62,9 @@ const updateUser = async (req, res) => {
 
   const deleteUser = async (req, res) => {
     try {
+      if(!(await isAdmin(req.user.id))){
+        return res.status(403).json({ error: 'Unauthorized Access.' });
+      }
       const { id } = req.params;
   
       const deletedUser = await User.findByIdAndDelete(id);
@@ -67,6 +82,9 @@ const updateUser = async (req, res) => {
 
   const searchUsers=async (req, res) => {
     try {
+      if(!(await isAdmin(req.user.id))){
+        return res.status(403).json({ error: 'Unauthorized Access.' });
+      }
       const { query } = req.query;
   
       let users;
@@ -81,10 +99,10 @@ const updateUser = async (req, res) => {
               { email: { $regex: searchRegex } },
             ],
           },
-          '_id fullname email role'
+          '_id fullname email role course session rollno'
         );
       } else {
-        users = await User.find({}, '_id fullname email role');
+        users = await User.find({}, '_id fullname email role course rollno session');
       }
   
       res.status(200).json({
@@ -92,7 +110,10 @@ const updateUser = async (req, res) => {
           id: user._id,
           name: user.fullname,
           email: user.email,
-          role: user.role
+          role: user.role,
+          course: user.course,
+          rollno:user.rollno,
+          session:user.session
         }))
       });
     } catch (err) {

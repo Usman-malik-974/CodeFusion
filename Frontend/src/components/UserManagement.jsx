@@ -28,6 +28,10 @@ const UserManagement = () => {
         debounce(async (query) => {
             if (query.trim() !== '') {
                 const res = await searchUser(query.trim());
+                if(res.error){
+                    toast.error(res.error);
+                    return;
+                }
                 setUsers(res.users);
             }
             else {
@@ -65,6 +69,7 @@ const UserManagement = () => {
 
 
     const addUser = (newUser) => {
+        console.log(newUser);
         setUsers([...users, { ...newUser }]);
         dispatch(setUsersList([...users, newUser]));
         setShowForm(false);

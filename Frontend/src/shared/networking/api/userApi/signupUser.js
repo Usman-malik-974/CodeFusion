@@ -1,11 +1,13 @@
-const signupUser = async (fullname, email, role) => {
+const signupUser = async (obj) => {
     try {
+      const token=localStorage.getItem('token');
       const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/auth/signup`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ fullname, email, role }),
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+      },
+        body: JSON.stringify(obj),
       });
   
       const data = await response.json();

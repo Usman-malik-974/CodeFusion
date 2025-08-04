@@ -1,12 +1,13 @@
 const updateUser = async (id, updateData) => {
   console.log(updateData,id);
     try {
+      const token=localStorage.getItem('token');
       const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/users/${id}`, {
         method: 'PUT',
         headers: {
-          'Content-type':'application/json'
-          // token will be passed here 
-        },
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+      },
         body: JSON.stringify(updateData),
       });
   

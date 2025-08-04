@@ -2,6 +2,7 @@ const {User} = require('../models/index');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const sendWelcomeMail = require('../utils/sendMail');
+const isAdmin = require('../utils/isAdmin');
 
 const loginUser = async (req, res) => {
   console.log(req.body);
@@ -52,9 +53,18 @@ const generatePassword = () => {
 
 const signupUser = async (req, res) => {
   try {
-    const { fullname, email, role } = req.body;
+    if(!(await isAdmin(req.user.id))){
+      return res.status(403).json({ error: 'Unauthorized Access.' });
+    }
+    const { fullname, email, role, course, session, rollno } = req.body;
+    console.log(req.body);
     if (!fullname || !email || !role) {
       return res.status(400).json({ error: 'All fields are required.' });
+    }
+    if (role === 'user') {
+      if (!course || !session || !rollno) {
+        return res.status(400).json({ error: 'Please provide all details.' });
+      }
     }
     const plainPassword = generatePassword();
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
@@ -64,6 +74,11 @@ const signupUser = async (req, res) => {
       password: hashedPassword,
       role
     });
+    if (role === 'user') {
+      newUser.course = course;
+      newUser.session = session;
+      newUser.rollno = rollno;
+    }
     console.log("in response");
     let signupres=await newUser.save();
     // console.log(a);
