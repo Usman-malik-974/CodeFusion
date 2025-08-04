@@ -10,6 +10,7 @@ import { setUsersList } from "../app/slices/usersSlice";
 import { debounce } from 'lodash';
 import HashLoader from 'react-spinners/HashLoader';
 import { searchUser } from '../shared/networking/api/userApi/searchUser';
+import { useNavigate } from 'react-router-dom';
 
 const UserManagement = () => {
     const [users, setUsers] = useState([]);
@@ -23,6 +24,7 @@ const UserManagement = () => {
     const inputref = useRef(null);
     const dispatch = useDispatch();
     const usersList = useSelector((state) => state.users.usersList);
+    const navigate=useNavigate();
 
     const handleSearchChange = useCallback(
         debounce(async (query) => {
@@ -51,8 +53,17 @@ const UserManagement = () => {
             setIsLoading(true);
             try {
                 const res = await getAllUsers();
+                console.log(res);
+                if(res.status && res.status===403){
+                    toast.error("Unauthorized Access");
+                    // localStorage.removeItem("token");
+                    navigate("/login");
+                    return;
+                }
                 if (res.error) {
+                    // console.log("Here");
                     toast.error(res.error);
+                    // if (res.error=="Unau")
                 } else {
                     dispatch(setUsersList(res.users));
                     setUsers(res.users); // filtered view

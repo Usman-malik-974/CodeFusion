@@ -23,6 +23,11 @@ const QuestionBank = () => {
          setIsLoading(true);
          try {
             const res = await getAllQuestions();
+            if (res.status && res.status === 403) {
+               toast.error("Unauthorized Access");
+               navigate("/login");
+               return;
+            }
             if (res.error) {
                toast.error(res.error);
             } else {
