@@ -26,3 +26,6 @@
   width: fit-content;
   z-index: 9999;
 }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
