@@ -7,6 +7,7 @@ import { getAllQuestions } from '../shared/networking/api/questionApi/getAllQues
 import { HashLoader } from 'react-spinners';
 import { useSelector, useDispatch } from "react-redux";
 import { setQuestionsList } from '../app/slices/questionsSlice';
+import { deleteQuestion } from '../shared/networking/api/questionApi/deleteQuestion';
 
 const QuestionBank = () => {
    const [questions, setQuestions] = useState([]);
@@ -57,16 +58,15 @@ const QuestionBank = () => {
    };
 
    const handleDelete = async (index, id) => {
-      // const result = await deleteUser(id);
-      // if (result.error) {
-      //    toast.error(result.error);
-      //    return;
-      // }
+      const result = await deleteQuestion(id);
+      if (result.error) {
+         toast.error(result.error);
+         return;
+      }
       const updatedQuestions = questions.filter((_, i) => i !== index);
       setQuestions(updatedQuestions);
       dispatch(setQuestionsList(updatedQuestions));
-      toast.success("Deleted succesfully");
-      // toast.success(result.message);
+      toast.success(result.message);
    };
 
 

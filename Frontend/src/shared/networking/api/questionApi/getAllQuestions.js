@@ -1,9 +1,10 @@
 const getAllQuestions = async () => {
   try {
+    const token=localStorage.getItem('token');
     const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/questions`, {
       headers: {
-        // token will be passed here 
-      },
+        'Authorization': `Bearer ${token}`
+    },
     });
     if (response.status === 403) {
       return { status: 403 };
