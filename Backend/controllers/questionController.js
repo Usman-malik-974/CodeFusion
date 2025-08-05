@@ -3,6 +3,9 @@ const isAdmin = require('../utils/isAdmin');
 
 const getAllQuestions = async (req, res) => {
   try {
+    if(!(await isAdmin(req.user.id))){
+      return res.status(403).json({ error: 'Unauthorized Access.' });
+    }
     const questions = await Question.find({}, '-createdBy'); 
     res.status(200).json({
       questions: questions.map(q => ({
@@ -78,6 +81,27 @@ const addQuestion = async (req, res) => {
       return res.status(500).json({ error: 'Internal Server Error' });
     }
   };
+
+  const deleteQuestion = async (req, res) => {
+    try {
+      if(!(await isAdmin(req.user.id))){
+        return res.status(403).json({ error: 'Unauthorized Access.' });
+      }
+      const { id } = req.params;
+  
+      const deletedQuestion = await Question.findByIdAndDelete(id);
+  
+      if (!deletedQuestion) {
+        return res.status(404).json({ error: 'Question not found' });
+      }
+  
+      return res.status(200).json({ message: 'Question deleted successfully' });
+    } catch (error) {
+      console.error('Delete error:', error);
+      return res.status(500).json({ error: 'Server error while deleting user' });
+    }
+  };
+
   
 
-  module.exports={addQuestion,getAllQuestions};
+  module.exports={addQuestion,getAllQuestions,deleteQuestion};
