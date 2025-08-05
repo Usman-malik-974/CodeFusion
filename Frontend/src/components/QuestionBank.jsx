@@ -7,6 +7,7 @@ import { getAllQuestions } from '../shared/networking/api/questionApi/getAllQues
 import { HashLoader } from 'react-spinners';
 import { useSelector, useDispatch } from "react-redux";
 import { setQuestionsList } from '../app/slices/questionsSlice';
+import { useNavigate } from 'react-router-dom';
 
 const QuestionBank = () => {
    const [questions, setQuestions] = useState([]);
@@ -16,6 +17,7 @@ const QuestionBank = () => {
    const [showPopUp, setShowPopUp] = useState(false);
    const [selectedQuestion, setSelectedQuestion] = useState({ index: null, id: null });
    const dispatch = useDispatch();
+   const navigate = useNavigate();
    const questionsList = useSelector((state) => state.questions.questionsList);
 
    useEffect(() => {
@@ -54,6 +56,11 @@ const QuestionBank = () => {
 
    const handleViewClick = (id) => {
       console.log('View question with ID:', id);
+      navigate(`/question/${id}`, {
+         state: {
+            questionData: questions.find((question) => question.id == id)
+         }
+      });
    };
 
    const handleDelete = async (index, id) => {

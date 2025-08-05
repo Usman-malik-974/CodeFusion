@@ -11,6 +11,7 @@ import Contests from './components/Contests'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Dashboard from './screen/Dashboard'
+import AdminQuestionView from './screen/AdminQuestionView'
 
 function App() {
 
@@ -36,6 +37,7 @@ function App() {
               <Route path='batches' element={<Batches />} />
               <Route path='contests' element={<Contests />} />
             </Route>
+            <Route path='/question/:id' element={<AdminQuestionView/>} /> 
           </Routes>
         </div>
       </BrowserRouter>
