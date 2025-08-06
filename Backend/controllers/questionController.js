@@ -18,9 +18,7 @@ const getAllQuestions = async (req, res) => {
         sampleOutput: q.sampleOutput,
         tags: q.tags,
         difficulty: q.difficulty,
-        testCases: q.testCases,
-        createdAt: q.createdAt,
-        updatedAt: q.updatedAt
+        testCases: q.testCases
       }))
     });
 
@@ -205,4 +203,34 @@ const addQuestion = async (req, res) => {
     }
   };
 
-  module.exports={addQuestion,getAllQuestions,deleteQuestion,getAssignedUsers,getUnassignedUsers,assignQuestion,unassignQuestion};
+  const getUserQuestions = async (req, res) => {
+    try {
+      const userId = req.user.id;
+      if (await isAdmin(req.user.id)) {
+        return res.status(403).json({ error: 'Unauthorized Access.' });
+      }
+      const user = await User.findById(userId).populate('assignedQuestions');
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      res.status(200).json({ questions: user.assignedQuestions.map(q => ({
+        id: q._id,
+        title: q.title,
+        statement: q.statement,
+        inputFormat: q.inputFormat,
+        outputFormat: q.outputFormat,
+        sampleInput: q.sampleInput,
+        sampleOutput: q.sampleOutput,
+        tags: q.tags,
+        difficulty: q.difficulty,
+        testCases: q.testCases,
+      }))
+     });
+    } catch (error) {
+      console.error('Error fetching user questions:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+  
+
+  module.exports={addQuestion,getAllQuestions,deleteQuestion,getAssignedUsers,getUnassignedUsers,assignQuestion,unassignQuestion,getUserQuestions};
