@@ -109,7 +109,14 @@ const addQuestion = async (req, res) => {
       }
       const { id } = req.params;
       const users = await User.find({ assignedQuestions: id ,role:'user'}, '_id fullname email rollno course session');
-      res.status(200).json({ users });
+      res.status(200).json({  users: users.map(user => ({
+        id: user._id,
+        name: user.fullname,
+        email: user.email,
+        rollno:user.rollno,
+        course:user.course,
+        session:user.session
+      })) });
     } catch (error) {
       console.error('Error:', error);
       return res.status(500).json({ error: 'Server error' });
@@ -123,11 +130,79 @@ const addQuestion = async (req, res) => {
       }
       const { id } = req.params;
       const users = await User.find({ role:'user',assignedQuestions:{ $ne: id } }, '_id fullname email rollno course session');
-      res.status(200).json({ users });
+      res.status(200).json({  users: users.map(user => ({
+        id: user._id,
+        name: user.fullname,
+        email: user.email,
+        rollno:user.rollno,
+        course:user.course,
+        session:user.session
+      })) });
     } catch (error) {
       console.error('Error:', error);
       return res.status(500).json({ error: 'Server error' });
     }
   }
 
-  module.exports={addQuestion,getAllQuestions,deleteQuestion,getAssignedUsers,getUnassignedUsers};
+  const assignQuestion = async (req, res) => {
+    try {
+      if(!(await isAdmin(req.user.id))){
+        return res.status(403).json({ error: 'Unauthorized Access.' });
+      }
+      const { questionId, userId } = req.body;
+      if(!questionId || !userId){
+        return res.status(400).json({ error: 'Please provide all details.' });
+      }
+      const question = await Question.findById(questionId);
+      if (!question) {
+        return res.status(404).json({ error: 'Question not found' });
+      }
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      if (user.assignedQuestions.includes(questionId)) {
+        return res.status(400).json({ error: 'Question already assigned to this user' });
+      }
+      user.assignedQuestions.push(questionId);
+      await user.save();
+  
+      res.status(200).json({ message: 'Question assigned successfully' });
+    } catch (error) {
+      console.error('Error assigning question:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  const unassignQuestion = async (req, res) => {
+    try {
+      if (!(await isAdmin(req.user.id))) {
+        return res.status(403).json({ error: 'Unauthorized Access.' });
+      }
+      const { questionId, userId } = req.body;
+      if (!questionId || !userId) {
+        return res.status(400).json({ error: 'Please provide all details.' });
+      }
+      const question = await Question.findById(questionId);
+      if (!question) {
+        return res.status(404).json({ error: 'Question not found' });
+      }
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      if (!user.assignedQuestions.includes(questionId)) {
+        return res.status(400).json({ error: 'Question is not assigned to this user' });
+      }
+      user.assignedQuestions = user.assignedQuestions.filter(
+        (qId) => qId.toString() !== questionId
+      );
+      await user.save();
+      res.status(200).json({ message: 'Question unassigned successfully'});
+    } catch (error) {
+      console.error('Error unassigning question:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  module.exports={addQuestion,getAllQuestions,deleteQuestion,getAssignedUsers,getUnassignedUsers,assignQuestion,unassignQuestion};
