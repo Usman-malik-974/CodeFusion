@@ -10,11 +10,11 @@ const getAllUsers = async (req, res) => {
     if (!(await isAdmin(req.user.id))) {
       return res.status(403).json({ error: "Unauthorized Access." });
     }
+
     console.log(isAdmin(req.user.id), "  yugh");
-    const users = await User.find(
-      {},
-      "_id fullname email role rollno course session"
-    );
+
+    const users = await User.find({}, '_id fullname email role rollno course session');
+
     res.status(200).json({
       users: users.map((user) => ({
         id: user._id,
