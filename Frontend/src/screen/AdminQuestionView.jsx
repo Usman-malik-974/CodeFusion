@@ -103,8 +103,8 @@ int main() {
         >
             {/* Left Question Panel */}
             <div
-                className={`w-full lg:w-1/2 shadow-lg rounded-xl p-6 border transition-colors duration-300 
-        ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-blue-200 no-scrollbar"}`}
+                className={`w-full lg:w-1/2 shadow-lg rounded-xl p-6 border transition-colors duration-300 no-scrollbar
+        ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-blue-200 "}`}
                 style={{ overflowY: "auto" }} // scroll only this if content overflows
             >
                 <div className="flex items-center gap-3 mb-3">
