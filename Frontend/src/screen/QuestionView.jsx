@@ -1,5 +1,5 @@
 import { useParams, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Editor } from "@monaco-editor/react";
 import { MdDarkMode, MdOutlineDarkMode } from "react-icons/md";
 import { VscRunAll } from "react-icons/vsc";
@@ -22,8 +22,34 @@ int main() {
     printf("Hello, World!");
     return 0;
 }`);
+
     const [theme, setTheme] = useState("light");
     const [loader, showLoader] = useState(false);
+    const [testResults, setTestResults] = useState(null);
+    const [errorMessage, setErrorMessage] = useState(null);
+    const [customInput, setCustomInput] = useState("");
+    const [customOutput, setCustomOutput] = useState("");
+    const [useCustomInput, setUseCustomInput] = useState(false);
+    const [testCaseRunSuccess, setTestCaseRunSuccess] = useState(false);
+
+
+    useEffect(() => {
+        const savedLang = localStorage.getItem("language");
+        if (savedLang) setLanguage(savedLang);
+
+        const prevData = JSON.parse(localStorage.getItem(question.id));
+        if (prevData && prevData.code) {
+            setCode(prevData.code);
+            if (prevData.language) setLanguage(prevData.language);
+        }
+    }, []);
+
+    useEffect(() => {
+        let prevCode = JSON.parse(localStorage.getItem(question.id));
+        if (prevCode && prevCode.language && prevCode.language === language && prevCode.code != "") {
+            setCode(prevCode.code);
+        }
+    }, [language])
 
     const isDark = theme === "dark";
 
@@ -42,39 +68,79 @@ int main() {
 
     const handleRun = async () => {
         showLoader(true);
-        const res = await runTestCases(code,language,question.testCases);
-        console.log(res);
-        console.log(code,language,question.testCases);
+
+        // Reset states before running
+        setErrorMessage(null);
+        setTestResults(null);
+        setCustomOutput(null);
+        
+        if (useCustomInput) {
+            // Run with custom input
+            const res = await runCode(code.trim(), language, customInput.trim());
+            
+            if (res.error) {
+                setErrorMessage(res.error);
+            } else {
+                setCustomOutput(res.output); // ✅ triggers console tab
+            }
+        } else {
+            setTestCaseRunSuccess(false);
+            // Run with test cases
+            const res = await runTestCases(code, language, question.testCases);
+
+            if (res.error) {
+                setErrorMessage(res.error);
+            } else {
+                setTestResults(res.results);
+                setTestCaseRunSuccess(true); // ✅ triggers testcases tab
+            }
+        }
+
         showLoader(false);
-        // alert(res.error ? res.error : res.output);
     };
+
 
     const handleLanguageChange = (lang) => {
         setLanguage(lang);
+        localStorage.setItem("language", lang);
+
+        let template = "";
         if (lang === "c") {
-            setCode(`#include <stdio.h>
+            template = `#include <stdio.h>
 int main() {
     printf("Hello, World!");
     return 0;
-}`);
+}`;
         } else if (lang === "cpp") {
-            setCode(`#include <iostream>
+            template = `#include <iostream>
 using namespace std;
 int main() {
     cout << "Hello, World!";
     return 0;
-}`);
+}`;
         } else if (lang === "java") {
-            setCode(`public class Main {
+            template = `public class Main {
     public static void main(String[] args) {
         System.out.println("Hello, World!");
     }
-}`);
+}`;
         } else if (lang === "python") {
-            setCode(`print("Hello, World!")`);
+            template = `print("Hello, World!")`;
         } else if (lang === "javascript") {
-            setCode(`console.log("Hello, World!");`);
+            template = `console.log("Hello, World!");`;
         }
+
+        setCode(template);
+        saveCodeToLocal(template, lang); // save change immediately
+    };
+
+
+    // Helper to save code + language for this question
+    const saveCodeToLocal = (newCode = code, newLang = language) => {
+        localStorage.setItem(
+            question.id,
+            JSON.stringify({ code: newCode, language: newLang })
+        );
     };
 
     return (
@@ -254,19 +320,40 @@ int main() {
                         <Editor
                             language={language}
                             value={code}
-                            onChange={(value) => setCode(value)}
+                            onChange={(value) => {
+                                setCode(value);
+                                saveCodeToLocal(value);
+                            }}
                             theme={isDark ? "vs-dark" : "vs-light"}
                             options={{
                                 fontSize: 14,
                                 lineNumbers: "on",
                                 minimap: { enabled: false },
                                 padding: { top: 8, bottom: 8 },
+                                contextmenu: false,
+                                scrollbar: {
+                                    verticalScrollbarSize: 6,
+                                    horizontalScrollbarSize: 6,
+                                    handleMouseWheel: true,
+                                    alwaysConsumeMouseWheel: false,
+                                    useShadows: false,
+                                },
                             }}
                             height="100%"
                         />
                     </div>
                     {/* TestCaseDock stays fixed to bottom of editor */}
-                    <TestCaseDock testCases={question.testCases} isDark={isDark} />
+                    <TestCaseDock
+                        testCases={question.testCases}
+                        isDark={isDark}
+                        results={testResults}
+                        errorMessage={errorMessage}
+                        customInput={customInput} // pass value
+                        setCustomInput={setCustomInput} // pass setter
+                        customOutput={customOutput}
+                        useCustomInput={useCustomInput}
+                        setUseCustomInput={setUseCustomInput}
+                    />
                 </div>
             </div>
         </div>

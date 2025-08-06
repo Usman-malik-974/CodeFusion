@@ -24,7 +24,7 @@ const UserManagement = () => {
     const inputref = useRef(null);
     const dispatch = useDispatch();
     const usersList = useSelector((state) => state.users.usersList);
-    const navigate=useNavigate();
+    const navigate = useNavigate();
 
     const handleSearchChange = useCallback(
         debounce(async (query) => {
@@ -54,7 +54,7 @@ const UserManagement = () => {
             try {
                 const res = await getAllUsers();
                 console.log(res);
-                if(res.status && res.status===403){
+                if (res.status && res.status === 403) {
                     toast.error("Unauthorized Access");
                     // localStorage.removeItem("token");
                     navigate("/login");
@@ -202,7 +202,7 @@ const UserManagement = () => {
     };
 
 
-    const handleExcelUpload = (e) => {
+    const handleExcelUpload =async (e) => {
         const file = e.target.files[0];
 
         if (!file) {
@@ -225,6 +225,48 @@ const UserManagement = () => {
 
         ///implemet api logic from here
         // Your Excel parsing or uploading logic can go here
+        const formData = new FormData();
+        formData.append("file", file);
+        const token = localStorage.getItem("token");
+        try {
+            const response = await fetch("http://localhost:5000/api/users/upload", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                body: formData,
+            });
+
+            if (response.status === 200) {
+                const result = await response.json();
+                toast.success(`${result.inserted} users inserted successfully`);
+            } else if (response.status === 400) {
+                const inserted = response.headers.get("X-Inserted-Count");
+                const failed = response.headers.get("X-Failed-Count");
+
+                const blob = await response.blob();
+
+                // Download the failed Excel file
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = "failed-users.xlsx";
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+
+                toast.error(
+                    `${failed} rejected. ${inserted} inserted. Failed list downloaded.`
+                );
+            } else {
+                toast.error("Unexpected error during upload.");
+            }
+        } catch (err) {
+            console.error("Upload error:", err);
+            toast.error("Server error. Please try again later.");
+        }
+        e.target.value = null;
     };
     // const handleSearch = (e) => {
     //     const value = e.target.value;

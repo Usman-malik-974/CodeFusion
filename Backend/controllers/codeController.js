@@ -183,17 +183,17 @@ exports.runTestCases = async (req, res) => {
       });
       const actual = (execResult.stdout || '').trim();
       const stderr = (execResult.stderr || '').trim();
-      let verdict = '✅ Passed';
+      let verdict = 'Passed';
       if (execResult.error?.code === 'ETIMEDOUT') {
-        verdict = '⏱️ Time Limit Exceeded';
+        verdict = 'Time Limit Exceeded';
       } else if (execResult.status !== 0) {
-        verdict = '❌ Runtime Error';
+        verdict = 'Runtime Error';
       } else if (actual !== expected) {
-        verdict = '❌ Failed';
+        verdict = 'Failed';
       }
       const result = {
         verdict,
-        error: verdict !== '✅ Passed' ? stderr : undefined
+        error: verdict !== 'Passed' ? stderr : undefined
       };
       if (!isHidden) {
         result.input = input;

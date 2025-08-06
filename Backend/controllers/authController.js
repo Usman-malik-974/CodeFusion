@@ -1,50 +1,50 @@
-const {User} = require('../models/index');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const sendWelcomeMail = require('../utils/sendMail');
-const isAdmin = require('../utils/isAdmin');
+const { User } = require("../models/index");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const sendWelcomeMail = require("../utils/sendMail");
+const isAdmin = require("../utils/isAdmin");
 
 const loginUser = async (req, res) => {
   console.log(req.body);
   const { email, password } = req.body;
 
   try {
-    if(!email || !password){
-      return res.status(401).json({ error: 'Please provide all details' });
+    if (!email || !password) {
+      return res.status(401).json({ error: "Please provide all details" });
     }
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ error: "Invalid email or password" });
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ error: "Invalid email or password" });
     }
     const token = jwt.sign(
       { id: user._id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: '7d' }
+      { expiresIn: "7d" }
     );
     res.status(200).json({
-      message: 'Login successful',
+      message: "Login successful",
       token,
       user: {
         id: user._id,
         email: user.email,
-        name: user.fullname, 
-        role:user.role
+        name: user.fullname,
+        role: user.role,
       },
     });
-
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    res.status(500).json({ error: "Server error" });
   }
 };
 
 const generatePassword = () => {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$';
-  let pass = '';
+  const chars =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$";
+  let pass = "";
   for (let i = 0; i < 8; i++) {
     pass += chars.charAt(Math.floor(Math.random() * chars.length));
   }
@@ -53,17 +53,17 @@ const generatePassword = () => {
 
 const signupUser = async (req, res) => {
   try {
-    if(!(await isAdmin(req.user.id))){
-      return res.status(403).json({ error: 'Unauthorized Access.' });
+    if (!(await isAdmin(req.user.id))) {
+      return res.status(403).json({ error: "Unauthorized Access." });
     }
     const { fullname, email, role, course, session, rollno } = req.body;
     console.log(req.body);
     if (!fullname || !email || !role) {
-      return res.status(400).json({ error: 'All fields are required.' });
+      return res.status(400).json({ error: "All fields are required." });
     }
-    if (role === 'user') {
+    if (role === "user") {
       if (!course || !session || !rollno) {
-        return res.status(400).json({ error: 'Please provide all details.' });
+        return res.status(400).json({ error: "Please provide all details." });
       }
     }
     const plainPassword = generatePassword();
@@ -72,36 +72,38 @@ const signupUser = async (req, res) => {
       fullname,
       email,
       password: hashedPassword,
-      role
+      role,
     });
-    if (role === 'user') {
+    if (role === "user") {
       newUser.course = course;
       newUser.session = session;
       newUser.rollno = rollno;
     }
     console.log("in response");
-    let signupres=await newUser.save();
+    let signupres = await newUser.save();
     // console.log(a);
     await sendWelcomeMail({
       to: email,
       fullname,
       email,
-      password: plainPassword
+      password: plainPassword,
     });
-    return res.status(201).json({ id:signupres._id,message: 'User created and welcome email sent.' });
+    return res.status(201).json({
+      id: signupres._id,
+      message: "User created and welcome email sent.",
+    });
   } catch (err) {
     if (err.code === 11000 && err.keyPattern?.email) {
-      return res.status(409).json({ error: 'Email already registered.' });
+      return res.status(409).json({ error: "Email already registered." });
     }
-    if (err.name === 'ValidationError') {
+    if (err.name === "ValidationError") {
       const field = Object.keys(err.errors)[0];
       const errorMessage = err.errors[field].message;
       return res.status(400).json({ error: errorMessage });
     }
-    console.error('Signup Error:', err);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    console.error("Signup Error:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
-
-module.exports = { loginUser,signupUser };
+module.exports = { loginUser, signupUser };
