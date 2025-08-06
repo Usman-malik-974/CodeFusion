@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { getUnassignedUsers } from "../shared/networking/api/questionApi/getUnassignedUsers";
+import { getAssignedUsers } from "../shared/networking/api/questionApi/getAssignedUsers";
 
-const AssignQuesToUserView = ({ questionID }) => {
-    // console.log(questionId);
+const AssignQuesToUserView = ({questionID}) => {
     const [activeSubTab, setActiveSubTab] = useState("assigned");
     const [assignedUsers, setAssignedUsers] = useState([]);
     const [UnAssignedUsers, setUnAssignedUsers] = useState([]);
@@ -12,20 +13,19 @@ const AssignQuesToUserView = ({ questionID }) => {
     ];
 
     useEffect(() => {
-        // if (!questionId) return; // wait until questionId is available
-
-        console.log("Current questionId:", questionID);
-
-        if (activeSubTab === "assigned") {
-            // assigned API call
-            console.log(`Fetching assigned users for question ${questionID}`);
-        } else if (activeSubTab === "not-assigned") {
-            // unassigned API call
-            console.log(`Fetching unassigned users for question ${questionID
-                
-            }`);
+        async function getUsers(){
+            if(!questionID) return;
+            if (activeSubTab == 'assigned'){
+                const res=await getAssignedUsers(questionID);
+                console.log("Assign: ",res);
+            }
+            else if(activeSubTab==='not-assigned'){
+                const res=await getUnassignedUsers(questionID);
+                console.log("Unassign: ",res);
+            }
         }
-    }, [activeSubTab]);
+        getUsers();
+    }, [activeSubTab,questionID])
 
     return (
         <div>
