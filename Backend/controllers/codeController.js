@@ -2,8 +2,6 @@ const { v4: uuidv4 } = require('uuid');
 const fs = require('fs-extra');
 const { execSync, spawnSync } = require('child_process');
 const path = require('path');
-const { exec } = require('child_process');
-const { spawn } = require('child_process');
 
 exports.runCode = async (req, res) => {
     const { code, language, input = '' } = req.body;
@@ -186,17 +184,17 @@ exports.runTestCases = async (req, res) => {
       });
       const actual = (execResult.stdout || '').trim();
       const stderr = (execResult.stderr || '').trim();
-      let verdict = '✅ Passed';
+      let verdict = 'Passed';
       if (execResult.error?.code === 'ETIMEDOUT') {
-        verdict = '⏱️ Time Limit Exceeded';
+        verdict = 'Time Limit Exceeded';
       } else if (execResult.status !== 0) {
-        verdict = '❌ Runtime Error';
+        verdict = 'Runtime Error';
       } else if (actual !== expected) {
-        verdict = '❌ Failed';
+        verdict = 'Failed';
       }
       const result = {
         verdict,
-        error: verdict !== '✅ Passed' ? stderr : undefined
+        error: verdict !== 'Passed' ? stderr : undefined
       };
       if (!isHidden) {
         result.input = input;
