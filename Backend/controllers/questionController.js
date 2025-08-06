@@ -92,7 +92,10 @@ const addQuestion = async (req, res) => {
       if (!deletedQuestion) {
         return res.status(404).json({ error: 'Question not found' });
       }
-  
+      await User.updateMany(
+        { assignedQuestions: id }, 
+        { $pull: { assignedQuestions: id } }
+      );
       return res.status(200).json({ message: 'Question deleted successfully' });
     } catch (error) {
       console.error('Delete error:', error);
