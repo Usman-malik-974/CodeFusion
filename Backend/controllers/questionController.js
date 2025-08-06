@@ -1,4 +1,4 @@
-const {Question}=require('../models/index');
+const {Question,User}=require('../models/index');
 const isAdmin = require('../utils/isAdmin');
 
 const getAllQuestions = async (req, res) => {
@@ -102,6 +102,32 @@ const addQuestion = async (req, res) => {
     }
   };
 
-  
+  const getAssignedUsers=async (req,res)=>{
+    try {
+      if(!(await isAdmin(req.user.id))){
+        return res.status(403).json({ error: 'Unauthorized Access.' });
+      }
+      const { id } = req.params;
+      const users = await User.find({ assignedQuestions: id ,role:'user'}, '_id fullname email rollno course session');
+      res.status(200).json({ users });
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(500).json({ error: 'Server error' });
+    }
+  }
 
-  module.exports={addQuestion,getAllQuestions,deleteQuestion};
+  const getUnassignedUsers=async (req,res)=>{
+    try {
+      if(!(await isAdmin(req.user.id))){
+        return res.status(403).json({ error: 'Unauthorized Access.' });
+      }
+      const { id } = req.params;
+      const users = await User.find({ role:'user',assignedQuestions:{ $ne: id } }, '_id fullname email rollno course session');
+      res.status(200).json({ users });
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(500).json({ error: 'Server error' });
+    }
+  }
+
+  module.exports={addQuestion,getAllQuestions,deleteQuestion,getAssignedUsers,getUnassignedUsers};
