@@ -6,9 +6,6 @@ const getUnassignedUsers= async (id) => {
           'Authorization': `Bearer ${token}`,
       },
       });
-      if (response.status === 403) {
-        return { status: 403 };
-      }
       const data = await response.json();
       return data;
     } catch (error) {

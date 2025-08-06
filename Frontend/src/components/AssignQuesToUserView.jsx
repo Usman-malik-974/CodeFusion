@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { getUnassignedUsers } from "../shared/networking/api/questionApi/getUnassignedUsers";
 import { getAssignedUsers } from "../shared/networking/api/questionApi/getAssignedUsers";
 import { HashLoader } from "react-spinners";
+import { assignQuestion } from "../shared/networking/api/questionApi/assignQuestion";
+import { unassignQuestion } from "../shared/networking/api/questionApi/unassignQuestion";
 
 const AssignQuesToUserView = ({ questionID }) => {
     const [activeSubTab, setActiveSubTab] = useState("assigned");
@@ -34,11 +36,15 @@ const AssignQuesToUserView = ({ questionID }) => {
         getUsers();
     }, [activeSubTab, questionID])
 
-    const handleAssignUser = (userid) => {
-        console.log(userid);
+    const handleAssignUser = async(userid) => {
+        console.log(userid, questionID);
+        const res=await assignQuestion(questionID,userid);
+        console.log(res);
     }
-    const handleRemoveUser = (userid) => {
+    const handleRemoveUser = async(userid) => {
         console.log(userid);
+        const res=await unassignQuestion(questionID,userid);
+        console.log(res);
     }
     return (
         <div>
