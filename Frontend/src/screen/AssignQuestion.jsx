@@ -41,6 +41,7 @@ const AssignQuestion = () => {
 
             {/* Tab Content */}
             <div className="mt-6 p-4 bg-white shadow-sm rounded-md">
+                {console.log(questionID)}
                 {activeTab === "users" && (
                     <AssignQuesToUserView questionID={questionID} />
                 )}

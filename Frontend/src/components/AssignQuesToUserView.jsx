@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-const AssignQuesToUserView = ({questionId}) => {
-    console.log(questionId);
+const AssignQuesToUserView = ({ questionID }) => {
+    // console.log(questionId);
     const [activeSubTab, setActiveSubTab] = useState("assigned");
     const [assignedUsers, setAssignedUsers] = useState([]);
     const [UnAssignedUsers, setUnAssignedUsers] = useState([]);
@@ -12,13 +12,20 @@ const AssignQuesToUserView = ({questionId}) => {
     ];
 
     useEffect(() => {
-        if (activeSubTab == 'assigned'){
-              //assighnes api call
+        // if (!questionId) return; // wait until questionId is available
+
+        console.log("Current questionId:", questionID);
+
+        if (activeSubTab === "assigned") {
+            // assigned API call
+            console.log(`Fetching assigned users for question ${questionID}`);
+        } else if (activeSubTab === "not-assigned") {
+            // unassigned API call
+            console.log(`Fetching unassigned users for question ${questionID
+                
+            }`);
         }
-        else if(activeSubTab==='not-assigned'){
-             //unassigned api call
-        }
-    }, [activeSubTab])
+    }, [activeSubTab]);
 
     return (
         <div>
