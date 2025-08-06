@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { BiLogOut } from "react-icons/bi";
+import { getUserQuestions } from "../shared/networking/api/questionApi/getUserQuestions";
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -16,6 +17,23 @@ const Dashboard = () => {
         { id: "questions", label: "Questions" },
         { id: "batches", label: "Batches" },
     ];
+    
+    useEffect(() => {
+        async function getData() {
+            // setIsLoading(true);
+            if (activeTab == 'questions') {
+                const res =await getUserQuestions();
+                console.log("Assign: ",res);
+            }
+            else if (activeTab === 'batches') {
+                // const res = await getUnassignedUsers(questionID);
+                // setIsLoading(false);
+                // setUnAssignedUsers(res.users);
+                console.log("Batches");
+            }
+        }
+        getData();
+    }, [activeTab])
 
     return (
         <div className="p-6">
