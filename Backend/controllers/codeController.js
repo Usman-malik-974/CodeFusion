@@ -2,9 +2,6 @@ const { v4: uuidv4 } = require('uuid');
 const fs = require('fs-extra');
 const { execSync, spawnSync } = require('child_process');
 const path = require('path');
-const { exec } = require('child_process');
-const { spawn } = require('child_process');
-
 exports.runCode = async (req, res) => {
     const { code, language, input = '' } = req.body;
     if (!code || !language) {
