@@ -12,6 +12,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Dashboard from './screen/Dashboard'
 import AdminQuestionView from './screen/AdminQuestionView'
+import AssignQuestion from './screen/AssignQuestion'
 
 function App() {
 
@@ -36,6 +37,7 @@ function App() {
               <Route path='users' element={<UserManagement />} />
               <Route path='batches' element={<Batches />} />
               <Route path='contests' element={<Contests />} />
+              <Route path='assign' element={<AssignQuestion/>} />
             </Route>
             <Route path='/question/:id' element={<AdminQuestionView/>} /> 
           </Routes>

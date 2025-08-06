@@ -148,7 +148,7 @@ const QuestionBank = () => {
                   onChange={handleSearch}
                />
                <button
-                  className="bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-blue-600 transition"
+                  className="bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-blue-600 transition cursor-pointer"
                   onClick={() => setShowAddForm(true)}
                >
                   Add Question +
@@ -197,19 +197,32 @@ const QuestionBank = () => {
 
                                  <button
                                     onClick={() => handleViewClick(question.id)}
-                                    className="bg-blue-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-blue-600 transition"
+                                    className="bg-blue-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-blue-600 transition cursor-pointer"
                                  >
                                     View
+                                 </button>
+                                 <button
+                                    // onClick={() => {
+                                    //    setShowPopUp(true);
+                                    //    setSelectedQuestion({ index, id: question.id });
+                                    // }}
+                                    onClick={()=>navigate("assign",{state:{
+                                       questionID:question.id
+                                    }})}
+                                    className="bg-blue-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-blue-600 transition cursor-pointer"
+                                 >
+                                    Assign
                                  </button>
                                  <button
                                     onClick={() => {
                                        setShowPopUp(true);
                                        setSelectedQuestion({ index, id: question.id });
                                     }}
-                                    className="bg-red-200 text-red-600 px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-300 transition border border-red-200"
+                                    className="bg-red-200 text-red-600 px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-300 transition border border-red-200 cursor-pointer"
                                  >
                                     Delete
                                  </button>
+
                               </div>
                            </td>
                         </tr>
