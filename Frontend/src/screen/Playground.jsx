@@ -126,6 +126,7 @@ public class Main {
                             lineNumbersMinChars: 2,
                             minimap: { enabled: false },
                             padding: { top: 8, bottom: 8 },
+                            contextmenu:false,
                             scrollbar: {
                                 verticalScrollbarSize: 6,
                                 horizontalScrollbarSize: 6,
