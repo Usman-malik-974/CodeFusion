@@ -6,6 +6,7 @@ import { VscRunAll } from "react-icons/vsc";
 import { ClipLoader } from "react-spinners";
 import { runCode } from "../shared/networking/api/codeApi/runCode";
 import TestCaseDock from "../components/TestCaseDock";
+import { runTestCases } from "../shared/networking/api/codeApi/runTestCases";
 
 const QuestionView = () => {
     const { id } = useParams();
@@ -41,9 +42,9 @@ int main() {
 
     const handleRun = async () => {
         showLoader(true);
-        // const res = await runCode(code.trim(), language, "");
-        // console.log(res);
-        console.log(code);
+        const res = await runTestCases(code,language,question.testCases);
+        console.log(res);
+        console.log(code,language,question.testCases);
         showLoader(false);
         // alert(res.error ? res.error : res.output);
     };

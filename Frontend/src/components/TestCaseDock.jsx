@@ -4,7 +4,6 @@ import { FiChevronUp, FiChevronDown, FiEye, FiEyeOff } from "react-icons/fi";
 const TestCaseDock = ({ testCases, isDark }) => {
     const [isOpen, setIsOpen] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
-
     return (
         <div
             className={`absolute bottom-0 left-0 right-0 border-t shadow-lg transition-transform duration-300 ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-gray-300"
