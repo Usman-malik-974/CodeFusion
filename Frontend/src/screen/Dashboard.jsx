@@ -27,7 +27,7 @@ const Dashboard = () => {
                 </h1>
                 <button
                     onClick={handleLogout}
-                    className="flex items-center gap-1 text-blue-500 hover:text-blue-700 transition-colors duration-200"
+                    className="flex items-center gap-1 text-blue-500 hover:text-blue-700 transition-colors duration-200 cursor-pointer"
                 >
                     <BiLogOut size={22} />
                     <span className="text-base font-medium">Logout</span>
@@ -40,7 +40,7 @@ const Dashboard = () => {
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`relative py-2 px-4 text-sm font-medium transition-colors duration-300
+                        className={`relative py-2 px-4 text-sm font-medium transition-colors duration-300 cursor-pointer
               ${activeTab === tab.id
                                 ? "text-blue-600"
                                 : "text-gray-600 hover:text-blue-500"
