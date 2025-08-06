@@ -64,10 +64,14 @@ const TestCaseDock = ({ testCases, isDark }) => {
                             </div>
                             <textarea
                                 readOnly
-                                value={testCases[currentIndex].input}
+                                value={
+                                    testCases[currentIndex].hidden
+                                        ? "Hidden for this case"
+                                        : testCases[currentIndex].input
+                                }
                                 className={`w-full h-20 p-2 rounded border resize-none text-sm ${isDark
-                                    ? "bg-neutral-900 border-neutral-700 text-gray-100"
-                                    : "bg-gray-50 border-gray-300 text-gray-900"
+                                        ? "bg-neutral-900 border-neutral-700 text-gray-100"
+                                        : "bg-gray-50 border-gray-300 text-gray-900"
                                     }`}
                             />
                         </div>
@@ -77,14 +81,19 @@ const TestCaseDock = ({ testCases, isDark }) => {
                             <span className="font-semibold text-sm">Expected Output</span>
                             <textarea
                                 readOnly
-                                value={testCases[currentIndex].output}
+                                value={
+                                    testCases[currentIndex].hidden
+                                        ? "Hidden for this case"
+                                        : testCases[currentIndex].output
+                                }
                                 className={`w-full h-20 p-2 rounded border resize-none text-sm ${isDark
-                                    ? "bg-neutral-900 border-neutral-700 text-gray-100"
-                                    : "bg-gray-50 border-gray-300 text-gray-900"
+                                        ? "bg-neutral-900 border-neutral-700 text-gray-100"
+                                        : "bg-gray-50 border-gray-300 text-gray-900"
                                     }`}
                             />
                         </div>
                     </div>
+
                 </>
             )}
         </div>
