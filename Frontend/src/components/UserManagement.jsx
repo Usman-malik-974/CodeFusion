@@ -262,7 +262,7 @@ const UserManagement = () => {
                     />
                     <div className='flex gap-2 items-center'>
                         <button
-                            className="flex items-center gap-2 bg-green-600 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-green-700 transition"
+                            className="flex items-center gap-2 bg-green-600 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-green-700 transition cursor-pointer"
                             onClick={() => inputref.current && inputref.current.click()}
                         >
                             <Upload size={16} />
@@ -270,7 +270,7 @@ const UserManagement = () => {
                         </button>
 
                         <button
-                            className="flex items-center gap-2 bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-blue-600 transition"
+                            className="flex items-center gap-2 bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-blue-600 transition cursor-pointer"
                             onClick={() => setShowForm(true)}
                         >
                             <UserPlus size={16} />
@@ -405,7 +405,7 @@ const UserManagement = () => {
                                                     <>
                                                         <button
                                                             onClick={handleSaveClick}
-                                                            className="bg-green-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-green-600 transition"
+                                                            className="bg-green-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-green-600 transition cursor-pointer"
                                                         >
                                                             Save
                                                         </button>
@@ -415,7 +415,7 @@ const UserManagement = () => {
                                                                 setEditedUser({});
                                                             }}
 
-                                                            className="bg-red-100 text-red-600 px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-200 transition border border-red-200"
+                                                            className="bg-red-100 text-red-600 px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-200 transition border border-red-200 cursor-pointer"
                                                         >
                                                             Cancel
                                                         </button>
@@ -424,7 +424,7 @@ const UserManagement = () => {
                                                     <>
                                                         <button
                                                             onClick={() => handleEditClick(index)}
-                                                            className="bg-blue-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-blue-600 transition"
+                                                            className="bg-blue-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-blue-600 transition cursor-pointer"
                                                         >
                                                             Edit
                                                         </button>
@@ -433,7 +433,7 @@ const UserManagement = () => {
                                                                 setShowPopUp(true);
                                                                 setSelectedUser({ index, id: user.id });
                                                             }}
-                                                            className="bg-red-200 text-red-600 px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-300 transition border border-red-200"
+                                                            className="bg-red-200 text-red-600 px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-300 transition border border-red-200 cursor-pointer"
                                                         >
                                                             Delete
                                                         </button>
@@ -468,7 +468,7 @@ const UserManagement = () => {
                             <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md relative">
                                 <button
                                     onClick={() => { setShowPopUp(false) }}
-                                    className="absolute top-3 right-3 text-gray-500 hover:text-red-500 transition"
+                                    className="absolute top-3 right-3 text-gray-500 hover:text-red-500 transition "
                                     aria-label="Close"
                                 >
                                     <X className="w-5 h-5" />
@@ -477,8 +477,8 @@ const UserManagement = () => {
                                     Are you Sure?
                                 </h2>
                                 <div className='flex gap-2 justify-center'>
-                                    <button className='bg-red-400 text-white px-3 py-1 rounded-md' onClick={() => setShowPopUp(false)}>No</button>
-                                    <button className='bg-blue-500 text-white px-3 py-1 rounded-md' onClick={() => {
+                                    <button className='bg-red-400 text-white px-3 py-1 rounded-md cursor-pointer' onClick={() => setShowPopUp(false)}>No</button>
+                                    <button className='bg-blue-500 text-white px-3 py-1 rounded-md cursor-pointer' onClick={() => {
                                         handleDelete(selectedUser.index, selectedUser.id);
                                         setShowPopUp(false);
                                     }}>Yes</button>
