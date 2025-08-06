@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { getUnassignedUsers } from "../shared/networking/api/questionApi/getUnassignedUsers";
+import { getAssignedUsers } from "../shared/networking/api/questionApi/getAssignedUsers";
 
-const AssignQuesToUserView = ({questionId}) => {
-    console.log(questionId);
+const AssignQuesToUserView = ({questionID}) => {
     const [activeSubTab, setActiveSubTab] = useState("assigned");
     const [assignedUsers, setAssignedUsers] = useState([]);
     const [UnAssignedUsers, setUnAssignedUsers] = useState([]);
@@ -12,13 +13,19 @@ const AssignQuesToUserView = ({questionId}) => {
     ];
 
     useEffect(() => {
-        if (activeSubTab == 'assigned'){
-              //assighnes api call
+        async function getUsers(){
+            if(!questionID) return;
+            if (activeSubTab == 'assigned'){
+                const res=await getAssignedUsers(questionID);
+                console.log("Assign: ",res);
+            }
+            else if(activeSubTab==='not-assigned'){
+                const res=await getUnassignedUsers(questionID);
+                console.log("Unassign: ",res);
+            }
         }
-        else if(activeSubTab==='not-assigned'){
-             //unassigned api call
-        }
-    }, [activeSubTab])
+        getUsers();
+    }, [activeSubTab,questionID])
 
     return (
         <div>
