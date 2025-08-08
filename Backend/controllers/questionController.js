@@ -226,7 +226,10 @@ const addQuestion = async (req, res) => {
         sampleOutput: q.sampleOutput,
         tags: q.tags,
         difficulty: q.difficulty,
-        testCases: q.testCases,
+        testCases: q.testCases.map((t)=>{
+          if(t.hidden) return {hidden:true};
+          else return {input:t.input,output:t.output,hidden:t.hidden};
+        }),
       }))
      });
     } catch (error) {

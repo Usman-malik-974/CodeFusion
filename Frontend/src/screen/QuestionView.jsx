@@ -86,7 +86,7 @@ int main() {
         } else {
             setTestCaseRunSuccess(false);
             // Run with test cases
-            const res = await runTestCases(code, language, question.testCases);
+            const res = await runTestCases(code, language, question.id);
 
             if (res.error) {
                 setErrorMessage(res.error);
