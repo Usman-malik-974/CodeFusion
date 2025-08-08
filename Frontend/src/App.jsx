@@ -40,7 +40,7 @@ function App() {
               <Route path='contests' element={<Contests />} />
               <Route path='assign' element={<AssignQuestion/>} />
             </Route>
-            <Route path='/question/:id' element={<QuestionView/>} /> 
+            <Route path='/question' element={<QuestionView/>} /> 
           </Routes>
         </div>
       </BrowserRouter>

@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import { FiCheck, FiX } from "react-icons/fi";
 
 const TestCaseDock = ({
     testCases,
     isDark,
     results,
     errorMessage,
+    setErrorMessage,
     customInput,
     setCustomInput,
     customOutput,
@@ -17,22 +19,29 @@ const TestCaseDock = ({
     const [currentIndex, setCurrentIndex] = useState(0);
     const [activeTab, setActiveTab] = useState("testcases");
 
-    // Auto-switch to console if error OR custom output from runCode
     useEffect(() => {
-        if (errorMessage || customOutput) {
+        if (errorMessage) {
+            // ✅ Priority: Error → Console
+            setActiveTab("console");
+            setIsOpen(true);
+        } else if (testCaseRunSuccess && results?.length) {
+            // ✅ No error → TestCases
+            setActiveTab("testcases");
+            setIsOpen(true);
+        } else if (customOutput) {
+            // ✅ Optional: custom output without error
             setActiveTab("console");
             setIsOpen(true);
         }
-    }, [errorMessage, customOutput]);
+    }, [errorMessage, testCaseRunSuccess, results, customOutput]);
 
-    // ✅ Switch to TestCases tab if runTestCases succeeds
-    useEffect(() => {
-        // console.log("triggered");
-        if (testCaseRunSuccess && !errorMessage && results?.length) {
-            setActiveTab("testcases"); // ✅ Always switch when test cases pass
-            setIsOpen(true);
-        }
-    }, [testCaseRunSuccess, errorMessage, results]);
+   useEffect(() => {
+    if (results && results[currentIndex]?.verdict === "Runtime Error" && results[currentIndex]?.error) {
+        setActiveTab("console");
+        setErrorMessage(results[currentIndex].error);
+    }
+}, [results, currentIndex]);
+
 
     return (
         <div
@@ -48,7 +57,7 @@ const TestCaseDock = ({
                 <div className="flex h-full items-center">
                     {/* Test Cases Tab */}
                     <button
-                        onClick={() => setActiveTab("testcases")}
+                        onClick={() => { setActiveTab("testcases")}}
                         className={`px-4 font-medium text-sm flex items-center border-b-2 transition-colors ${activeTab === "testcases"
                             ? "border-blue-500 text-blue-500"
                             : "border-transparent hover:text-blue-400"
@@ -113,9 +122,9 @@ const TestCaseDock = ({
                             style={{ height: "calc(100% - 40px)" }}
                         >
                             {errorMessage ? (
-                                <span className="text-red-500">Error: {errorMessage}</span>
+                                <pre className="text-red-500">Error: {errorMessage}</pre>
                             ) : customOutput ? (
-                                <span className="text-green-400">{customOutput}</span>
+                                <pre className="text-green-400">{customOutput}</pre>
                             ) : (
                                 "Console output will appear here..."
                             )}
@@ -130,10 +139,12 @@ const TestCaseDock = ({
                                     }`}
                             >
                                 {testCases.map((_, idx) => (
+                                    // <div className="flex items-center gap">
+
                                     <button
                                         key={idx}
                                         onClick={() => setCurrentIndex(idx)}
-                                        className={`px-4 py-2 text-sm font-medium ${currentIndex === idx
+                                        className={`px-4 py-2 text-sm font-medium flex items-center gap-2 ${currentIndex === idx
                                             ? isDark
                                                 ? "bg-neutral-700 text-blue-400"
                                                 : "bg-gray-200 text-blue-600"
@@ -142,18 +153,25 @@ const TestCaseDock = ({
                                                 : "hover:bg-gray-100 text-gray-800"
                                             }`}
                                     >
-                                        Case {idx + 1}
+                                        <span>Case {idx + 1}</span>
                                         {results && results[idx]?.verdict && (
-                                            <span
-                                                className={`ml-2 text-xs ${results[idx].verdict === "Passed"
-                                                    ? "text-green-500"
-                                                    : "text-red-500"
-                                                    }`}
-                                            >
-                                                {results[idx].verdict}
-                                            </span>
+                                            results[idx].verdict === "Passed" ? (
+                                                <FiCheck className="text-green-500 font-bold text-lg" />
+                                            ) : results[idx].verdict === "Failed" ? (
+                                                <FiX className="text-red-500 font-bold text-lg" />
+                                            ) : results[idx].verdict === "Runtime Error" ? (
+                                                <span className="text-red-500 font-medium">
+                                                    {results[idx].verdict}
+                                                </span>
+                                            ) : null
                                         )}
+
+
                                     </button>
+
+
+
+                                    // </div>
                                 ))}
                             </div>
 
@@ -200,8 +218,8 @@ const TestCaseDock = ({
                                                 : testCases[currentIndex].output
                                         }
                                         className={`w-full h-20 p-2 rounded border resize-none text-sm ${isDark
-                                                ? "bg-neutral-900 border-neutral-700 text-gray-100"
-                                                : "bg-gray-50 border-gray-300 text-gray-900"
+                                            ? "bg-neutral-900 border-neutral-700 text-gray-100"
+                                            : "bg-gray-50 border-gray-300 text-gray-900"
                                             }`}
                                     />
                                 </div>
@@ -217,12 +235,12 @@ const TestCaseDock = ({
                                                 : ""
                                         }
                                         className={`w-full h-20 p-2 rounded border resize-none text-sm ${results && results[currentIndex]?.actual === testCases[currentIndex]?.output
-                                                ? "border-green-500 text-green-600" // ✅ Match = green
-                                                : results && results[currentIndex]?.actual
-                                                    ? "border-red-500 text-red-600" // ❌ Mismatch = red
-                                                    : isDark
-                                                        ? "bg-neutral-900 border-neutral-700 text-gray-100"
-                                                        : "bg-gray-50 border-gray-300 text-gray-900"
+                                            ? "border-green-500 text-green-600" // ✅ Match = green
+                                            : results && results[currentIndex]?.actual
+                                                ? "border-red-500 text-red-600" // ❌ Mismatch = red
+                                                : isDark
+                                                    ? "bg-neutral-900 border-neutral-700 text-gray-100"
+                                                    : "bg-gray-50 border-gray-300 text-gray-900"
                                             }`}
                                     />
                                 </div>

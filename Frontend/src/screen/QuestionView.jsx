@@ -9,7 +9,7 @@ import TestCaseDock from "../components/TestCaseDock";
 import { runTestCases } from "../shared/networking/api/codeApi/runTestCases";
 
 const QuestionView = () => {
-    const { id } = useParams();
+    // const { id } = useParams();
     const location = useLocation();
 
     const question = location.state?.questionData;
@@ -295,7 +295,7 @@ int main() {
                             disabled={loader}
                         >
                             {loader ? (
-                                <ClipLoader size={20} color="#fff" />
+                                <ClipLoader size={24} color="#fff" />
                             ) : (
                                 <>
                                     <VscRunAll />
@@ -348,6 +348,7 @@ int main() {
                         isDark={isDark}
                         results={testResults}
                         errorMessage={errorMessage}
+                        setErrorMessage={setErrorMessage}
                         customInput={customInput} // pass value
                         setCustomInput={setCustomInput} // pass setter
                         customOutput={customOutput}
