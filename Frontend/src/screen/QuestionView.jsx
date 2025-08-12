@@ -112,7 +112,7 @@ int main() {
     return 0;
 }`;
         } else if (lang === "cpp") {
-            template = `#include <iostream>
+            template = `#include <bits/stdc++.h>
 using namespace std;
 int main() {
     cout << "Hello, World!";

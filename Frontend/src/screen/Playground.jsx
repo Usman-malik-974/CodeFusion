@@ -23,7 +23,7 @@ int main()
 }`)
         }
         else if (language === 'cpp') {
-            setCode(`#include <iostream>
+            setCode(`#include <bits/stdc++.h>
 using namespace std;
 
 int main() 
