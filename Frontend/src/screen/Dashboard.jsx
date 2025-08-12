@@ -57,7 +57,7 @@ const Dashboard = () => {
 
     const handleViewClick = (id) => {
         console.log('View question with ID:', id);
-        navigate(`/question/${id}`, {
+        navigate(`/question`, {
             state: {
                 questionData: questions.find((question) => question.id == id)
             }

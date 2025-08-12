@@ -181,10 +181,9 @@ exports.runCode = async (req, res) => {
           timeout,
           maxBuffer: 1024 * 1024
       });
-
       const output = (result.stdout || '').trim();
       const stderr = (result.stderr || '').trim();
-
+      console.log(stderr);
       await fs.remove(tempDir);
 
       if (result.error?.code === 'ETIMEDOUT') {
