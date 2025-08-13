@@ -61,8 +61,8 @@ const QuestionBank = () => {
       // console.log('View question with ID:', id);
       navigate(`/admin/question`, {
          state: {
-            questionData: questions.find((question) => question.id == id)
-            // questionData:id
+            // questionData: questions.find((question) => question.id == id)
+            questionId:id
          }
       });
    };

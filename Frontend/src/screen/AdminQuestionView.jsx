@@ -12,6 +12,9 @@ import AdminTestCaseDock from "../components/AdminTestCaseDock";
 import { getQuestionSubmissions } from "../shared/networking/api/codeApi/getQuestionSubmissions";
 import { updateQuestion } from "../shared/networking/api/questionApi/updateQuestion";
 import { toast } from "react-toastify";
+import { getQuestion } from "../shared/networking/api/questionApi/getQuestion";
+import { toast } from "react-toastify";
+import HashLoader from 'react-spinners/HashLoader';
 
 const AdminQuestionView = () => {
     const location = useLocation();
@@ -35,14 +38,28 @@ int main() {
     const [activeTab, setActiveTab] = useState("question");
     const [submissions, setSubmissions] = useState([]);
     const [disabled, setDisabled] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
 
     const [viewingCode, setViewingCode] = useState(null);
     const [isEditable, setIsEditable] = useState(false);
 
+    const LoadQuestionData = async (id) => {
+        setIsLoading(true);
+        const res = await getQuestion(id);
+        if (res.error) {
+            toast.error(error);
+            return;
+        }
+        setIsLoading(false);
+        setQuestion(res.question);
+        console.log(res);
+    }
+
     useEffect(() => {
-        const data = location.state?.questionData || {};
-        setQuestion((prev) => ({ ...prev, ...data }));
+        const data = location.state?.questionId || "";
+        // setQuestion((prev) => ({ ...prev, ...data }));
+        LoadQuestionData(data);
         console.log("IN effect" + data);
     }, [location.state]);
 
@@ -177,470 +194,477 @@ int main() {
     }
 
     return (
-        <div
-            className={`flex flex-col lg:flex-row gap-4 p-6 transition-colors duration-300 ${isDark ? "bg-neutral-900 text-gray-100" : "bg-blue-50 text-gray-900"
-                } lg:h-screen lg:overflow-hidden`}
-        >
-
-            {/* Left Question Panel */}
+        isLoading ? (
+            <div className="flex items-center justify-center h-64">
+                <HashLoader color="#3B82F6" size={60} />
+            </div>
+        ) : (
             <div
-                className={`w-full lg:w-1/2 shadow-lg rounded-xl p-6 border transition-colors duration-300 no-scrollbar
-        ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-blue-200 "}`}
-                style={{ overflowY: "auto" }} // scroll only this if content overflows
+                className={`flex flex-col lg:flex-row gap-4 p-6 transition-colors duration-300 ${isDark ? "bg-neutral-900 text-gray-100" : "bg-blue-50 text-gray-900"
+                    } lg:h-screen lg:overflow-hidden`}
             >
-                <div className="flex">
-                    <button
-                        className={`flex-1 p-3 text-center rounded-t-2xl  ${activeTab === "question"
-                            ? isDark
-                                ? "bg-neutral-700"
-                                : "bg-blue-100"
-                            : ""
-                            }`}
-                        onClick={() => setActiveTab("question")}
-                    >
-                        Question
-                    </button>
-                    <button
-                        className={`flex-1 p-3 text-center rounded-t-2xl ${activeTab === "submissions"
-                            ? isDark
-                                ? "bg-neutral-700"
-                                : "bg-blue-100"
-                            : ""
-                            }`}
-                        onClick={() => {
-                            LoadSubmissionData();
-                            setActiveTab("submissions")
-                        }
-                        }
-                    >
-                        Submissions
-                    </button>
-                </div>
-                {activeTab === "question" ? (
-                    <div className="p-6">
-                        {/* Question Title */}
-                        <div className="flex items-center justify-between gap-3 mb-3">
-                            {isEditable ? (
-                                <input
-                                    type="text"
-                                    value={question?.title || ""}
-                                    onChange={(e) =>
-                                        setQuestion({ ...question, title: e.target.value })
-                                    }
-                                    className={`font-bold text-3xl w-full bg-transparent outline-none border-b p-1 ${isDark ? "text-blue-400 border-blue-400" : "text-blue-500 border-blue-500"
-                                        }`}
-                                />
-                            ) : (
-                                <h3
-                                    className={`font-bold text-3xl ${isDark ? "text-blue-400" : "text-blue-500"
-                                        }`}
-                                >
-                                    {question?.title || "Untitled Question"}
-                                </h3>
-                            )}
 
-                            {isEditable ? (
-                                <button
-                                    className="flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md transition-colors"
-                                    onClick={() => {
-                                        handleSaveClick();
-                                        
-                                    }
-                                    }
-                                >
-                                    Save
-                                </button>
-                            ) : (
-                                <button
-                                    className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md transition-colors"
-                                    onClick={() => {
-
-                                        setIsEditable(true);
-                                        setDisabled(true);
-                                    }
-                                    }
-                                >
-                                    <CiEdit size={20} />
-                                    Edit
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Difficulty & Tags */}
-                        <div className="flex items-center gap-3 mb-4">
-                            <span
-                                className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyBadgeColor(
-                                    question?.difficulty
-                                )}`}
-                            >
-                                {question?.difficulty || "Unknown"}
-                            </span>
-                            {question?.tags?.map((tag, idx) => (
-                                <span
-                                    key={idx}
-                                    className={`px-3 py-1 rounded-full text-sm font-medium border transition-colors duration-300 ${isDark
-                                        ? "bg-neutral-700 text-blue-300 border-neutral-600"
-                                        : "bg-blue-100 text-blue-800 border-blue-200"
-                                        }`}
-                                >
-                                    {tag}
-                                </span>
-                            ))}
-                        </div>
-
-                        {/* Problem Sections */}
-                        <div className="space-y-4">
-                            {/* Problem Statement */}
-                            <div>
-                                <h3
-                                    className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
-                                        }`}
-                                >
-                                    Problem Statement:
-                                </h3>
-                                {isEditable ? (
-                                    <textarea
-                                        value={question?.statement || ""}
-                                        onChange={(e) =>
-                                            setQuestion({ ...question, statement: e.target.value })
-                                        }
-                                        className={`whitespace-pre-wrap w-full p-3 rounded-lg border transition-colors duration-300 ${isDark
-                                            ? "bg-neutral-700 border-neutral-600 text-white"
-                                            : "bg-blue-50 border-blue-100 text-gray-800"
-                                            }`}
-                                    />
-                                ) : (
-                                    <pre
-                                        className={`whitespace-pre-wrap p-3 rounded-lg border transition-colors duration-300 ${isDark
-                                            ? "bg-neutral-700 border-neutral-600 text-white"
-                                            : "bg-blue-50 border-blue-100 text-gray-800"
-                                            }`}
-                                    >
-                                        {question?.statement}
-                                    </pre>
-                                )}
-                            </div>
-
-                            {/* Input Format */}
-                            <div>
-                                <h3
-                                    className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
-                                        }`}
-                                >
-                                    Input Format:
-                                </h3>
-                                {isEditable ? (
-                                    <textarea
-                                        value={question?.inputFormat || ""}
-                                        onChange={(e) =>
-                                            setQuestion({ ...question, inputFormat: e.target.value })
-                                        }
-                                        className={`w-full p-3 rounded-lg border transition-colors duration-300 ${isDark
-                                            ? "bg-neutral-700 border-neutral-600 text-white"
-                                            : "bg-blue-50 border-blue-100 text-gray-800"
-                                            }`}
-                                    />
-                                ) : (
-                                    <pre
-                                        className={`p-3 rounded-lg border transition-colors duration-300 ${isDark
-                                            ? "bg-neutral-700 border-neutral-600 text-white"
-                                            : "bg-blue-50 border-blue-100 text-gray-800"
-                                            }`}
-                                    >
-                                        {question?.inputFormat}
-                                    </pre>
-                                )}
-                            </div>
-
-                            {/* Output Format */}
-                            <div>
-                                <h3
-                                    className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
-                                        }`}
-                                >
-                                    Output Format:
-                                </h3>
-                                {isEditable ? (
-                                    <textarea
-                                        value={question?.outputFormat || ""}
-                                        onChange={(e) =>
-                                            setQuestion({ ...question, outputFormat: e.target.value })
-                                        }
-                                        className={`w-full p-3 rounded-lg border transition-colors duration-300 ${isDark
-                                            ? "bg-neutral-700 border-neutral-600 text-white"
-                                            : "bg-blue-50 border-blue-100 text-gray-800"
-                                            }`}
-                                    />
-                                ) : (
-                                    <pre
-                                        className={`p-3 rounded-lg border transition-colors duration-300 ${isDark
-                                            ? "bg-neutral-700 border-neutral-600 text-white"
-                                            : "bg-blue-50 border-blue-100 text-gray-800"
-                                            }`}
-                                    >
-                                        {question?.outputFormat}
-                                    </pre>
-                                )}
-                            </div>
-
-                            {/* Sample Input */}
-                            <div>
-                                <h3
-                                    className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
-                                        }`}
-                                >
-                                    Sample Input:
-                                </h3>
-                                {isEditable ? (
-                                    <textarea
-                                        value={question?.sampleInput || ""}
-                                        onChange={(e) =>
-                                            setQuestion({ ...question, sampleInput: e.target.value })
-                                        }
-                                        className={`w-full p-3 rounded-lg font-mono ${isDark
-                                            ? "bg-gray-800 text-white"
-                                            : "bg-gray-100 text-gray-800"
-                                            }`}
-                                    />
-                                ) : (
-                                    <pre
-                                        className={`p-3 rounded-lg font-mono ${isDark
-                                            ? "bg-gray-800 text-white"
-                                            : "bg-gray-100 text-gray-800"
-                                            }`}
-                                    >
-                                        {question?.sampleInput}
-                                    </pre>
-                                )}
-                            </div>
-
-                            {/* Sample Output */}
-                            <div>
-                                <h3
-                                    className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
-                                        }`}
-                                >
-                                    Sample Output:
-                                </h3>
-                                {isEditable ? (
-                                    <textarea
-                                        value={question?.sampleOutput || ""}
-                                        onChange={(e) =>
-                                            setQuestion({ ...question, sampleOutput: e.target.value })
-                                        }
-                                        className={`w-full p-3 rounded-lg font-mono ${isDark
-                                            ? "bg-gray-800 text-white"
-                                            : "bg-gray-100 text-gray-800"
-                                            }`}
-                                    />
-                                ) : (
-                                    <pre
-                                        className={`p-3 rounded-lg font-mono ${isDark
-                                            ? "bg-gray-800 text-white"
-                                            : "bg-gray-100 text-gray-800"
-                                            }`}
-                                    >
-                                        {question?.sampleOutput}
-                                    </pre>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                ) : (
-                    <div className="p-6">
-                        {/* Submissions Table */}
-                        <table
-                            className={`min-w-full border-collapse rounded-xl overflow-hidden shadow-md ${isDark ? "bg-neutral-800 text-white" : "bg-white text-gray-800"
+                {/* Left Question Panel */}
+                <div
+                    className={`w-full lg:w-1/2 shadow-lg rounded-xl p-6 border transition-colors duration-300 no-scrollbar
+        ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-blue-200 "}`}
+                    style={{ overflowY: "auto" }} // scroll only this if content overflows
+                >
+                    <div className="flex">
+                        <button
+                            className={`flex-1 p-3 text-center rounded-t-2xl  ${activeTab === "question"
+                                ? isDark
+                                    ? "bg-neutral-700"
+                                    : "bg-blue-100"
+                                : ""
                                 }`}
+                            onClick={() => setActiveTab("question")}
                         >
-                            <thead
-                                className={`text-left text-sm font-semibold ${isDark ? "bg-neutral-700 text-blue-300" : "bg-blue-100 text-blue-600"
-                                    }`}
-                            >
-                                <tr>
-                                    <th className="px-4 py-3 border-b border-blue-200">Language</th>
-                                    <th className="px-4 py-3 border-b border-blue-200">Time</th>
-                                    <th className="px-4 py-3 border-b border-blue-200">Passed</th>
-                                    <th className="px-4 py-3 border-b border-blue-200">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {submissions.map((sub, idx) => {
-                                    const allPassed = sub.passed === sub.total;
-                                    return (
-                                        <tr
-                                            key={idx}
-                                            className={`hover:bg-blue-50 transition ${isDark ? "even:bg-neutral-700 hover:bg-neutral-600" : "even:bg-gray-50"
+                            Question
+                        </button>
+                        <button
+                            className={`flex-1 p-3 text-center rounded-t-2xl ${activeTab === "submissions"
+                                ? isDark
+                                    ? "bg-neutral-700"
+                                    : "bg-blue-100"
+                                : ""
+                                }`}
+                            onClick={() => {
+                                LoadSubmissionData();
+                                setActiveTab("submissions")
+                            }
+                            }
+                        >
+                            Submissions
+                        </button>
+                    </div>
+                    {activeTab === "question" ? (
+                        <div className="p-6">
+                            {/* Question Title */}
+                            <div className="flex items-center justify-between gap-3 mb-3">
+                                {isEditable ? (
+                                    <input
+                                        type="text"
+                                        value={question?.title || ""}
+                                        onChange={(e) =>
+                                            setQuestion({ ...question, title: e.target.value })
+                                        }
+                                        className={`font-bold text-3xl w-full bg-transparent outline-none border-b p-1 ${isDark ? "text-blue-400 border-blue-400" : "text-blue-500 border-blue-500"
+                                            }`}
+                                    />
+                                ) : (
+                                    <h3
+                                        className={`font-bold text-3xl ${isDark ? "text-blue-400" : "text-blue-500"
+                                            }`}
+                                    >
+                                        {question?.title || "Untitled Question"}
+                                    </h3>
+                                )}
+
+                                {isEditable ? (
+                                    <button
+                                        className="flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md transition-colors"
+                                        onClick={() => {
+                                            handleSaveClick();
+
+                                        }
+                                        }
+                                    >
+                                        Save
+                                    </button>
+                                ) : (
+                                    <button
+                                        className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md transition-colors"
+                                        onClick={() => {
+
+                                            setIsEditable(true);
+                                            setDisabled(true);
+                                        }
+                                        }
+                                    >
+                                        <CiEdit size={20} />
+                                        Edit
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Difficulty & Tags */}
+                            <div className="flex items-center gap-3 mb-4">
+                                <span
+                                    className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyBadgeColor(
+                                        question?.difficulty
+                                    )}`}
+                                >
+                                    {question?.difficulty || "Unknown"}
+                                </span>
+                                {question?.tags?.map((tag, idx) => (
+                                    <span
+                                        key={idx}
+                                        className={`px-3 py-1 rounded-full text-sm font-medium border transition-colors duration-300 ${isDark
+                                            ? "bg-neutral-700 text-blue-300 border-neutral-600"
+                                            : "bg-blue-100 text-blue-800 border-blue-200"
+                                            }`}
+                                    >
+                                        {tag}
+                                    </span>
+                                ))}
+                            </div>
+
+                            {/* Problem Sections */}
+                            <div className="space-y-4">
+                                {/* Problem Statement */}
+                                <div>
+                                    <h3
+                                        className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
+                                            }`}
+                                    >
+                                        Problem Statement:
+                                    </h3>
+                                    {isEditable ? (
+                                        <textarea
+                                            value={question?.statement || ""}
+                                            onChange={(e) =>
+                                                setQuestion({ ...question, statement: e.target.value })
+                                            }
+                                            className={`whitespace-pre-wrap w-full p-3 rounded-lg border transition-colors duration-300 ${isDark
+                                                ? "bg-neutral-700 border-neutral-600 text-white"
+                                                : "bg-blue-50 border-blue-100 text-gray-800"
+                                                }`}
+                                        />
+                                    ) : (
+                                        <pre
+                                            className={`whitespace-pre-wrap p-3 rounded-lg border transition-colors duration-300 ${isDark
+                                                ? "bg-neutral-700 border-neutral-600 text-white"
+                                                : "bg-blue-50 border-blue-100 text-gray-800"
                                                 }`}
                                         >
-                                            <td className="px-4 py-3 border-b border-gray-200">{sub.language}</td>
-                                            <td className="px-4 py-3 border-b border-gray-200">
-                                                {new Date(sub.submittedAt).toLocaleString()}
-                                            </td>
-                                            <td
-                                                className={`border p-2 text-center font-bold ${allPassed ? "text-green-600" : "text-red-600"
-                                                    }`}
-                                            >
-                                                {sub.passed}/{sub.total}
-                                            </td>
-                                            <td className="px-4 py-3 border-b border-gray-200">
-                                                <button
-                                                    className="bg-blue-500 text-white px-2 py-1 rounded"
-                                                    onClick={() => setViewingCode(sub.code)}
-                                                >
-                                                    View Code
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-
-                        {/* View Code Sidebar */}
-                        {viewingCode && (
-                            <div
-                                className={`absolute top-0 left-0 h-full w-1/2 z-50 flex flex-col border-r ${isDark
-                                    ? "bg-neutral-900 border-neutral-700"
-                                    : "bg-white border-gray-300"
-                                    }`}
-                            >
-                                <div
-                                    className={`flex justify-between items-center p-4 border-b ${isDark
-                                        ? "bg-neutral-800 border-neutral-700 text-white"
-                                        : "bg-gray-100 border-gray-300 text-gray-800"
-                                        }`}
-                                >
-                                    <h2 className="text-lg font-bold">Submitted Code</h2>
-                                    <button
-                                        className={`text-2xl font-bold hover:text-red-400 ${isDark ? "text-white" : "text-gray-800"
-                                            }`}
-                                        onClick={() => setViewingCode(null)}
-                                    >
-                                        ✕
-                                    </button>
+                                            {question?.statement}
+                                        </pre>
+                                    )}
                                 </div>
-                                <div className="flex-1 overflow-auto p-6">
-                                    <pre
-                                        className={`whitespace-pre-wrap font-mono ${isDark ? "text-white" : "text-gray-800"
+
+                                {/* Input Format */}
+                                <div>
+                                    <h3
+                                        className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
                                             }`}
                                     >
-                                        {viewingCode}
-                                    </pre>
+                                        Input Format:
+                                    </h3>
+                                    {isEditable ? (
+                                        <textarea
+                                            value={question?.inputFormat || ""}
+                                            onChange={(e) =>
+                                                setQuestion({ ...question, inputFormat: e.target.value })
+                                            }
+                                            className={`w-full p-3 rounded-lg border transition-colors duration-300 ${isDark
+                                                ? "bg-neutral-700 border-neutral-600 text-white"
+                                                : "bg-blue-50 border-blue-100 text-gray-800"
+                                                }`}
+                                        />
+                                    ) : (
+                                        <pre
+                                            className={`p-3 rounded-lg border transition-colors duration-300 ${isDark
+                                                ? "bg-neutral-700 border-neutral-600 text-white"
+                                                : "bg-blue-50 border-blue-100 text-gray-800"
+                                                }`}
+                                        >
+                                            {question?.inputFormat}
+                                        </pre>
+                                    )}
+                                </div>
+
+                                {/* Output Format */}
+                                <div>
+                                    <h3
+                                        className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
+                                            }`}
+                                    >
+                                        Output Format:
+                                    </h3>
+                                    {isEditable ? (
+                                        <textarea
+                                            value={question?.outputFormat || ""}
+                                            onChange={(e) =>
+                                                setQuestion({ ...question, outputFormat: e.target.value })
+                                            }
+                                            className={`w-full p-3 rounded-lg border transition-colors duration-300 ${isDark
+                                                ? "bg-neutral-700 border-neutral-600 text-white"
+                                                : "bg-blue-50 border-blue-100 text-gray-800"
+                                                }`}
+                                        />
+                                    ) : (
+                                        <pre
+                                            className={`p-3 rounded-lg border transition-colors duration-300 ${isDark
+                                                ? "bg-neutral-700 border-neutral-600 text-white"
+                                                : "bg-blue-50 border-blue-100 text-gray-800"
+                                                }`}
+                                        >
+                                            {question?.outputFormat}
+                                        </pre>
+                                    )}
+                                </div>
+
+                                {/* Sample Input */}
+                                <div>
+                                    <h3
+                                        className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
+                                            }`}
+                                    >
+                                        Sample Input:
+                                    </h3>
+                                    {isEditable ? (
+                                        <textarea
+                                            value={question?.sampleInput || ""}
+                                            onChange={(e) =>
+                                                setQuestion({ ...question, sampleInput: e.target.value })
+                                            }
+                                            className={`w-full p-3 rounded-lg font-mono ${isDark
+                                                ? "bg-gray-800 text-white"
+                                                : "bg-gray-100 text-gray-800"
+                                                }`}
+                                        />
+                                    ) : (
+                                        <pre
+                                            className={`p-3 rounded-lg font-mono ${isDark
+                                                ? "bg-gray-800 text-white"
+                                                : "bg-gray-100 text-gray-800"
+                                                }`}
+                                        >
+                                            {question?.sampleInput}
+                                        </pre>
+                                    )}
+                                </div>
+
+                                {/* Sample Output */}
+                                <div>
+                                    <h3
+                                        className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
+                                            }`}
+                                    >
+                                        Sample Output:
+                                    </h3>
+                                    {isEditable ? (
+                                        <textarea
+                                            value={question?.sampleOutput || ""}
+                                            onChange={(e) =>
+                                                setQuestion({ ...question, sampleOutput: e.target.value })
+                                            }
+                                            className={`w-full p-3 rounded-lg font-mono ${isDark
+                                                ? "bg-gray-800 text-white"
+                                                : "bg-gray-100 text-gray-800"
+                                                }`}
+                                        />
+                                    ) : (
+                                        <pre
+                                            className={`p-3 rounded-lg font-mono ${isDark
+                                                ? "bg-gray-800 text-white"
+                                                : "bg-gray-100 text-gray-800"
+                                                }`}
+                                        >
+                                            {question?.sampleOutput}
+                                        </pre>
+                                    )}
                                 </div>
                             </div>
-                        )}
-                    </div>
-                )}
+                        </div>
 
+                    ) : (
+                        <div className="p-6">
+                            {/* Submissions Table */}
+                            <table
+                                className={`min-w-full border-collapse rounded-xl overflow-hidden shadow-md ${isDark ? "bg-neutral-800 text-white" : "bg-white text-gray-800"
+                                    }`}
+                            >
+                                <thead
+                                    className={`text-left text-sm font-semibold ${isDark ? "bg-neutral-700 text-blue-300" : "bg-blue-100 text-blue-600"
+                                        }`}
+                                >
+                                    <tr>
+                                        <th className="px-4 py-3 border-b border-blue-200">Language</th>
+                                        <th className="px-4 py-3 border-b border-blue-200">Time</th>
+                                        <th className="px-4 py-3 border-b border-blue-200">Passed</th>
+                                        <th className="px-4 py-3 border-b border-blue-200">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {submissions.map((sub, idx) => {
+                                        const allPassed = sub.passed === sub.total;
+                                        return (
+                                            <tr
+                                                key={idx}
+                                                className={`hover:bg-blue-50 transition ${isDark ? "even:bg-neutral-700 hover:bg-neutral-600" : "even:bg-gray-50"
+                                                    }`}
+                                            >
+                                                <td className="px-4 py-3 border-b border-gray-200">{sub.language}</td>
+                                                <td className="px-4 py-3 border-b border-gray-200">
+                                                    {new Date(sub.submittedAt).toLocaleString()}
+                                                </td>
+                                                <td
+                                                    className={`border p-2 text-center font-bold ${allPassed ? "text-green-600" : "text-red-600"
+                                                        }`}
+                                                >
+                                                    {sub.passed}/{sub.total}
+                                                </td>
+                                                <td className="px-4 py-3 border-b border-gray-200">
+                                                    <button
+                                                        className="bg-blue-500 text-white px-2 py-1 rounded"
+                                                        onClick={() => setViewingCode(sub.code)}
+                                                    >
+                                                        View Code
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
 
-
-            </div>
-
-            {/* Right Editor Panel */}
-            <div
-                className={`w-full lg:flex-1 shadow-lg rounded-xl border overflow-hidden flex flex-col transition-colors duration-300 
-        ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-blue-200"}`}
-            >
-                {/* Toolbar */}
-                <div
-                    className={`flex items-center justify-between px-4 py-2 border-b transition-colors duration-300 
-          ${isDark ? "border-neutral-700" : "border-gray-300"}`}
-                >
-                    <select
-                        onChange={(e) => handleLanguageChange(e.target.value)}
-                        value={language}
-                        className={`rounded px-2 py-1 text-sm border ${isDark
-                            ? "bg-neutral-900 text-white border-gray-600"
-                            : "bg-white text-black border-gray-400"
-                            }`}
-                    >
-                        <option value="c">C</option>
-                        <option value="cpp">CPP</option>
-                        <option value="java">Java</option>
-                        <option value="python">Python</option>
-                        <option value="javascript">Javascript</option>
-                    </select>
-
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={handleRun}
-                            className="bg-blue-500 text-white flex items-center gap-1 px-3 py-1 rounded-md disabled:bg-gray-400"
-                            disabled={loader || disabled}
-                        >
-                            {loader ? (
-                                <ClipLoader size={24} color="#fff" />
-                            ) : (
-                                <>
-                                    <VscRunAll />
-                                    <span>Run</span>
-                                </>
+                            {/* View Code Sidebar */}
+                            {viewingCode && (
+                                <div
+                                    className={`absolute top-0 left-0 h-full w-1/2 z-50 flex flex-col border-r ${isDark
+                                        ? "bg-neutral-900 border-neutral-700"
+                                        : "bg-white border-gray-300"
+                                        }`}
+                                >
+                                    <div
+                                        className={`flex justify-between items-center p-4 border-b ${isDark
+                                            ? "bg-neutral-800 border-neutral-700 text-white"
+                                            : "bg-gray-100 border-gray-300 text-gray-800"
+                                            }`}
+                                    >
+                                        <h2 className="text-lg font-bold">Submitted Code</h2>
+                                        <button
+                                            className={`text-2xl font-bold hover:text-red-400 ${isDark ? "text-white" : "text-gray-800"
+                                                }`}
+                                            onClick={() => setViewingCode(null)}
+                                        >
+                                            ✕
+                                        </button>
+                                    </div>
+                                    <div className="flex-1 overflow-auto p-6">
+                                        <pre
+                                            className={`whitespace-pre-wrap font-mono ${isDark ? "text-white" : "text-gray-800"
+                                                }`}
+                                        >
+                                            {viewingCode}
+                                        </pre>
+                                    </div>
+                                </div>
                             )}
-                        </button>
-                        <button
-                            className="flex items-center gap-1 bg-blue-500 text-white px-3 py-1 rounded hover:scale-105 transition-transform"
-                            title={`Switch to ${isDark ? "Light" : "Dark"} Mode`}
-                            onClick={() => setTheme(isDark ? "light" : "dark")}
-                        >
-                            {isDark ? <MdOutlineDarkMode /> : <MdDarkMode />}
-                            {isDark ? "Light" : "Dark"}
-                        </button>
-                    </div>
-                </div>
-
-                {/* Editor + Testcase Dock Wrapper */}
-                <div className="relative flex-1 flex flex-col overflow-hidden">
-                    <div className="flex-1 overflow-y-auto">
-                        <Editor
-                            language={language}
-                            value={code}
-                            onChange={(value) => {
-                                setCode(value);
-                                saveCodeToLocal(value);
-                            }}
-                            theme={isDark ? "vs-dark" : "vs-light"}
-                            options={{
-                                fontSize: 14,
-                                lineNumbers: "on",
-                                minimap: { enabled: false },
-                                padding: { top: 8, bottom: 8 },
-                                contextmenu: false,
-                                scrollbar: {
-                                    verticalScrollbarSize: 6,
-                                    horizontalScrollbarSize: 6,
-                                    handleMouseWheel: true,
-                                    alwaysConsumeMouseWheel: false,
-                                    useShadows: false,
-                                },
-                            }}
-                            height="100%"
-                        />
-                    </div>
-                    {question && Object.keys(question).length > 0 && (
-                        <AdminTestCaseDock
-                            testCases={question.testCases || []}
-                            setTestCases={(newTestCases) => {
-                                setQuestion((prev) => ({ ...prev, testCases: newTestCases }));
-                            }}
-                            isDark={isDark}
-                            results={testResults}
-                            errorMessage={errorMessage}
-                            setErrorMessage={setErrorMessage}
-                            customInput={customInput}
-                            setCustomInput={setCustomInput}
-                            customOutput={customOutput}
-                            useCustomInput={useCustomInput}
-                            setUseCustomInput={setUseCustomInput}
-                            isEditable={isEditable}
-                        />
+                        </div>
                     )}
 
 
 
                 </div>
+
+                {/* Right Editor Panel */}
+                <div
+                    className={`w-full lg:flex-1 shadow-lg rounded-xl border overflow-hidden flex flex-col transition-colors duration-300 
+        ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-blue-200"}`}
+                >
+                    {/* Toolbar */}
+                    <div
+                        className={`flex items-center justify-between px-4 py-2 border-b transition-colors duration-300 
+          ${isDark ? "border-neutral-700" : "border-gray-300"}`}
+                    >
+                        <select
+                            onChange={(e) => handleLanguageChange(e.target.value)}
+                            value={language}
+                            className={`rounded px-2 py-1 text-sm border ${isDark
+                                ? "bg-neutral-900 text-white border-gray-600"
+                                : "bg-white text-black border-gray-400"
+                                }`}
+                        >
+                            <option value="c">C</option>
+                            <option value="cpp">CPP</option>
+                            <option value="java">Java</option>
+                            <option value="python">Python</option>
+                            <option value="javascript">Javascript</option>
+                        </select>
+
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={handleRun}
+                                className="bg-blue-500 text-white flex items-center gap-1 px-3 py-1 rounded-md disabled:bg-gray-400"
+                                disabled={loader || disabled}
+                            >
+                                {loader ? (
+                                    <ClipLoader size={24} color="#fff" />
+                                ) : (
+                                    <>
+                                        <VscRunAll />
+                                        <span>Run</span>
+                                    </>
+                                )}
+                            </button>
+                            <button
+                                className="flex items-center gap-1 bg-blue-500 text-white px-3 py-1 rounded hover:scale-105 transition-transform"
+                                title={`Switch to ${isDark ? "Light" : "Dark"} Mode`}
+                                onClick={() => setTheme(isDark ? "light" : "dark")}
+                            >
+                                {isDark ? <MdOutlineDarkMode /> : <MdDarkMode />}
+                                {isDark ? "Light" : "Dark"}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Editor + Testcase Dock Wrapper */}
+                    <div className="relative flex-1 flex flex-col overflow-hidden">
+                        <div className="flex-1 overflow-y-auto">
+                            <Editor
+                                language={language}
+                                value={code}
+                                onChange={(value) => {
+                                    setCode(value);
+                                    saveCodeToLocal(value);
+                                }}
+                                theme={isDark ? "vs-dark" : "vs-light"}
+                                options={{
+                                    fontSize: 14,
+                                    lineNumbers: "on",
+                                    minimap: { enabled: false },
+                                    padding: { top: 8, bottom: 8 },
+                                    contextmenu: false,
+                                    scrollbar: {
+                                        verticalScrollbarSize: 6,
+                                        horizontalScrollbarSize: 6,
+                                        handleMouseWheel: true,
+                                        alwaysConsumeMouseWheel: false,
+                                        useShadows: false,
+                                    },
+                                }}
+                                height="100%"
+                            />
+                        </div>
+                        {question && Object.keys(question).length > 0 && (
+                            <AdminTestCaseDock
+                                testCases={question.testCases || []}
+                                setTestCases={(newTestCases) => {
+                                    setQuestion((prev) => ({ ...prev, testCases: newTestCases }));
+                                }}
+                                isDark={isDark}
+                                results={testResults}
+                                errorMessage={errorMessage}
+                                setErrorMessage={setErrorMessage}
+                                customInput={customInput}
+                                setCustomInput={setCustomInput}
+                                customOutput={customOutput}
+                                useCustomInput={useCustomInput}
+                                setUseCustomInput={setUseCustomInput}
+                                isEditable={isEditable}
+                            />
+                        )}
+
+
+
+                    </div>
+                </div>
             </div>
-        </div>
+        )
+
     );
 };
 

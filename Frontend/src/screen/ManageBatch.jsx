@@ -1,0 +1,423 @@
+import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
+import { FaUserPlus, FaQuestionCircle } from "react-icons/fa";
+import { UserPlus } from "lucide-react";
+
+const ManageBatch = () => {
+    const [batch, setBatch] = useState({});
+    const [activeTab, setActiveTab] = useState("users");
+    const [searchInput, setSearchInput] = useState("");
+    const [searchBy, setSearchBy] = useState("name");
+    const [showPopup, setShowPopup] = useState(false);
+    const [popupType, setPopupType] = useState(""); // "users" or "questions"
+    const [popupSearch, setPopupSearch] = useState("");
+    const [unAssignedUsers, setUnAssignedUsers] = useState([]);
+    const [unAssignedQuestions, setUnAssignedQuestions] = useState([]);
+    const [selectedItems, setSelectedItems] = useState([]);
+    const location = useLocation();
+
+    useEffect(() => {
+        const dummyData = {
+            batchName: "Batch Alpha 2025",
+            users: [
+                { rollNumber: "101", name: "Alice Johnson", email: "alice@example.com", course: "React Basics", session: "Morning", role: "Student" },
+                { rollNumber: "102", name: "Bob Smith", email: "bob@example.com", course: "Node.js Advanced", session: "Evening", role: "Student" },
+                { rollNumber: "103", name: "Charlie Davis", email: "charlie@example.com", course: "Full Stack", session: "Afternoon", role: "Mentor" }
+            ],
+            questions: [
+                { id: 1, title: "What is React?", difficulty: "Easy" },
+                { id: 2, title: "Explain useState hook", difficulty: "Medium" },
+                { id: 3, title: "What are props in React?", difficulty: "Easy" }
+            ]
+        };
+        setBatch(dummyData);
+    }, [location.state]);
+
+    // Dummy fetch functions
+    const getUnassignedUsers = () => {
+        //api call here
+        setUnAssignedUsers([
+            { rollNumber: "201", name: "David Lee", email: "david@example.com", course: "Vue.js", session: "Morning", role: "Student" },
+            { rollNumber: "202", name: "Eva Green", email: "eva@example.com", course: "Python Basics", session: "Evening", role: "Student" }
+        ]);
+    };
+
+    const getUnassignedQuestions = () => {
+        //api call here
+        setUnAssignedQuestions([
+            { id: 4, title: "Explain closures in JS", difficulty: "Medium" },
+            { id: 5, title: "What is async/await?", difficulty: "Easy" }
+        ]);
+    };
+
+    const openPopup = (type) => {
+        setPopupType(type);
+        setShowPopup(true);
+        setPopupSearch("");
+        setSelectedItems([]);
+        if (type === "users") {
+            getUnassignedUsers();
+        } else {
+            getUnassignedQuestions();
+        }
+    };
+
+    const handlePopupSearch = (item) => {
+        const value = popupSearch.toLowerCase();
+        if (!value) return true;
+        if (popupType === "users") {
+            return (
+                item.name.toLowerCase().includes(value) ||
+                item.rollNumber.toLowerCase().includes(value) ||
+                item.email.toLowerCase().includes(value)
+            );
+        } else {
+            return (
+                item.title.toLowerCase().includes(value) ||
+                item.difficulty.toLowerCase().includes(value)
+            );
+        }
+    };
+
+    const toggleItemSelection = (item) => {
+        const itemId = popupType === "users" ? item.rollNumber : item.id;
+        setSelectedItems(prev => 
+            prev.includes(itemId) 
+                ? prev.filter(id => id !== itemId) 
+                : [...prev, itemId]
+        );
+    };
+
+    const assignSelectedItems = () => {
+        if (popupType === "users") {
+            const usersToAdd = unAssignedUsers.filter(user => 
+                selectedItems.includes(user.rollNumber)
+            );
+
+            //api call for these
+            setBatch(prev => ({
+                ...prev,
+                users: [...prev.users, ...usersToAdd]
+            }));
+            setUnAssignedUsers(prev => 
+                prev.filter(user => !selectedItems.includes(user.rollNumber))
+            );
+        } else {
+            const questionsToAdd = unAssignedQuestions.filter(question => 
+                selectedItems.includes(question.id)
+            );
+
+             //api call for these
+            setBatch(prev => ({
+                ...prev,
+                questions: [...prev.questions, ...questionsToAdd]
+            }));
+            setUnAssignedQuestions(prev => 
+                prev.filter(question => !selectedItems.includes(question.id))
+            );
+        }
+        setShowPopup(false);
+    };
+
+    // Filters for main tables
+    const handleUserFilter = (user) => {
+        if (!searchInput) return true;
+        const value = searchInput.toLowerCase();
+        switch (searchBy) {
+            case "name":
+                return user.name.toLowerCase().includes(value);
+            case "rollno":
+                return user.rollNumber.toLowerCase().includes(value);
+            case "course":
+                return user.course.toLowerCase().includes(value);
+            case "email":
+                return user.email.toLowerCase().includes(value);
+            case "session":
+                return user.session.toLowerCase().includes(value);
+            case "role":
+                return user.role?.toLowerCase().includes(value);
+            default:
+                return true;
+        }
+    };
+
+    const handleQuestionFilter = (q) => {
+        if (!searchInput) return true;
+        const value = searchInput.toLowerCase();
+        switch (searchBy) {
+            case "title":
+                return q.title.toLowerCase().includes(value);
+            case "difficulty":
+                return q.difficulty.toLowerCase().includes(value);
+            default:
+                return true;
+        }
+    };
+
+    const filteredUsers = batch.users?.filter(handleUserFilter) || [];
+    const filteredQuestions = batch.questions?.filter(handleQuestionFilter) || [];
+
+    return (
+        <div className="p-6">
+            <h3 className="text-2xl font-bold mb-6">{batch.batchName || "Batch Details"}</h3>
+
+            {/* Tabs */}
+            <div className="flex border-b border-gray-300 mb-4">
+                <button
+                    onClick={() => { setActiveTab("users"); setSearchInput(""); setSearchBy("name"); }}
+                    className={`px-4 py-2 font-medium transition-colors ${activeTab === "users" ? "border-b-2 border-blue-500 text-blue-500" : "text-gray-500 hover:text-blue-500"}`}
+                >
+                    Users
+                </button>
+                <button
+                    onClick={() => { setActiveTab("questions"); setSearchInput(""); setSearchBy("title"); }}
+                    className={`px-4 py-2 font-medium transition-colors ${activeTab === "questions" ? "border-b-2 border-blue-500 text-blue-500" : "text-gray-500 hover:text-blue-500"}`}
+                >
+                    Questions
+                </button>
+            </div>
+
+            {/* Search bar + Search By + Buttons */}
+            <div className="flex items-center justify-between mb-4">
+                <div className="flex w-full md:w-1/2 items-center gap-3">
+                    <input
+                        type="text"
+                        placeholder={`Search ${activeTab === "users" ? "user" : "question"}`}
+                        onChange={(e) => setSearchInput(e.target.value)}
+                        className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-100 w-full"
+                        value={searchInput}
+                    />
+                    <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-sm font-medium text-blue-500">Search By</span>
+                        <select
+                            className="p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-100 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+                            value={searchBy}
+                            onChange={(e) => setSearchBy(e.target.value)}
+                        >
+                            {activeTab === "users" ? (
+                                <>
+                                    <option value="name">Name</option>
+                                    <option value="rollno">Roll No</option>
+                                    <option value="course">Course</option>
+                                    <option value="email">Email</option>
+                                    <option value="session">Session</option>
+                                    <option value="role">Role</option>
+                                </>
+                            ) : (
+                                <>
+                                    <option value="title">Title</option>
+                                    <option value="difficulty">Difficulty</option>
+                                </>
+                            )}
+                        </select>
+                    </div>
+                </div>
+
+                {/* Right Buttons */}
+                <div className="flex gap-2 items-center">
+                    {activeTab === "users" && (
+                        <button
+                            onClick={() => openPopup("users")}
+                            className="flex items-center gap-2 bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-blue-600 transition cursor-pointer"
+                        >
+                            <UserPlus size={16} />
+                            Add User
+                        </button>
+                    )}
+                    {activeTab === "questions" && (
+                        <button
+                            onClick={() => openPopup("questions")}
+                            className="flex items-center gap-2 bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-blue-600 transition cursor-pointer"
+                        >
+                            <FaQuestionCircle />
+                            Add Question
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {/* Tables */}
+            {activeTab === "users" && (
+                <div className="overflow-x-auto">
+                    <table className="min-w-full border-collapse rounded-xl overflow-hidden shadow-md">
+                        <thead className="bg-blue-100 text-left text-sm font-semibold text-blue-600">
+                            <tr>
+                                <th className="px-4 py-3 border-b border-blue-200">#</th>
+                                <th className="px-4 py-3 border-b border-blue-200">Roll Number</th>
+                                <th className="px-4 py-3 border-b border-blue-200">Name</th>
+                                <th className="px-4 py-3 border-b border-blue-200">Email</th>
+                                <th className="px-4 py-3 border-b border-blue-200">Course</th>
+                                <th className="px-4 py-3 border-b border-blue-200">Session</th>
+                                <th className="px-4 py-3 border-b border-blue-200">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredUsers.length > 0 ? (
+                                filteredUsers.map((user, idx) => (
+                                    <tr key={idx} className="hover:bg-blue-50 transition">
+                                        <td className="px-4 py-3 border-b border-gray-200">{idx + 1}</td>
+                                        <td className="px-4 py-3 border-b border-gray-200">{user.rollNumber}</td>
+                                        <td className="px-4 py-3 border-b border-gray-200">{user.name}</td>
+                                        <td className="px-4 py-3 border-b border-gray-200">{user.email}</td>
+                                        <td className="px-4 py-3 border-b border-gray-200">{user.course}</td>
+                                        <td className="px-4 py-3 border-b border-gray-200">{user.session}</td>
+                                        <td className="px-4 py-3 border-b border-gray-200">
+                                            <button className={`bg-red-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-600 transition`}>Remove</button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="7" className="text-center py-4 text-gray-500">No users found.</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {activeTab === "questions" && (
+                <div className="overflow-x-auto">
+                    <table className="min-w-full border-collapse rounded-xl overflow-hidden shadow-md">
+                        <thead className="bg-blue-100 text-left text-sm font-semibold text-blue-600">
+                            <tr>
+                                <th className="px-4 py-3 border-b border-blue-200">#</th>
+                                <th className="px-4 py-3 border-b border-blue-200">Question Title</th>
+                                <th className="px-4 py-3 border-b border-blue-200">Tags</th>
+                                <th className="px-4 py-3 border-b border-blue-200">Difficulty</th>
+                                <th className="px-4 py-3 border-b border-blue-200">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {filteredQuestions.length > 0 ? (
+                                filteredQuestions.map((q, idx) => (
+                                    <tr key={q.id} className="hover:bg-blue-50 transition">
+                                        <td className="px-4 py-3 border-b border-gray-200">{idx + 1}</td>
+                                        <td className="px-4 py-3 border-b border-gray-200">{q.title}</td>
+                                        <td className="px-4 py-3 border-b border-gray-200">{q.tags}</td>
+                                        <td className="px-4 py-3 border-b border-gray-200">{q.difficulty}</td>
+                                        <td className="px-4 py-3 border-b border-gray-200">
+                                            <button className={`bg-red-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-600 transition`}>Remove</button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="3" className="text-center py-4 text-gray-500">No questions found.</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            )}
+
+            {/* Popup */}
+            {showPopup && (
+                <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
+                        <h2 className="text-lg font-semibold mb-4">
+                            {popupType === "users" ? "Add User" : "Add Question"}
+                        </h2>
+                        <input
+                            type="text"
+                            placeholder="Search..."
+                            value={popupSearch}
+                            onChange={(e) => setPopupSearch(e.target.value)}
+                            className="w-full p-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        />
+                        <div className="max-h-60 overflow-y-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="bg-gray-100">
+                                        {popupType === "users" ? (
+                                            <>
+                                                <th className="p-2 text-left">Roll No</th>
+                                                <th className="p-2 text-left">Name</th>
+                                                <th className="p-2 text-left">Email</th>
+                                                <th className="p-2 text-left">Course</th>
+                                                <th className="p-2 text-left">Action</th>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <th className="p-2 text-left">Title</th>
+                                                <th className="p-2 text-left">Tags</th>
+                                                <th className="p-2 text-left">Difficulty</th>
+                                                <th className="p-2 text-left">Action</th>
+                                            </>
+                                        )}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {(popupType === "users" ? unAssignedUsers : unAssignedQuestions)
+                                        .filter(handlePopupSearch).length > 0 ? (
+                                        (popupType === "users" ? unAssignedUsers : unAssignedQuestions)
+                                            .filter(handlePopupSearch)
+                                            .map((item, idx) => {
+                                                const itemId = popupType === "users" ? item.rollNumber : item.id;
+                                                const isSelected = selectedItems.includes(itemId);
+                                                return (
+                                                    <tr 
+                                                        key={idx} 
+                                                        className={`hover:bg-blue-50 cursor-pointer ${isSelected ? 'bg-blue-100' : ''}`}
+                                                    >
+                                                        {popupType === "users" ? (
+                                                            <>
+                                                                <td className="p-2">{item.rollNumber}</td>
+                                                                <td className="p-2">{item.name}</td>
+                                                                <td className="p-2">{item.email}</td>
+                                                                <td className="p-2">{item.course}</td>
+                                                            </>
+                                                        ) : (
+                                                            <>
+                                                                <td className="p-2">{item.title}</td>
+                                                                <td className="p-2">{item.tags}</td>
+                                                                <td className="p-2">{item.difficulty}</td>
+                                                            </>
+                                                        )}
+                                                        <td className="p-2">
+                                                            <button
+                                                                onClick={() => toggleItemSelection(item)}
+                                                                className={`px-2 py-1 rounded text-sm ${isSelected ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}
+                                                            >
+                                                                {isSelected ? 'Remove' : 'Add'}
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })
+                                        ) : (
+                                            <tr>
+                                                <td
+                                                    colSpan={popupType === "users" ? 4 : 3}
+                                                    className="text-center p-4 text-gray-500"
+                                                >
+                                                    No results found.
+                                                </td>
+                                            </tr>
+                                        )}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="mt-4 flex justify-end gap-2">
+                            <button
+                                onClick={() => setShowPopup(false)}
+                                className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400 transition"
+                            >
+                                Close
+                            </button>
+                            <button
+                                onClick={assignSelectedItems}
+                                disabled={selectedItems.length === 0}
+                                className={`px-4 py-2 rounded-md transition ${selectedItems.length > 0 ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                            >
+                                Assign Selected
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export default ManageBatch;
