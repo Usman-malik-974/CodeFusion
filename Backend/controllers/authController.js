@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const sendWelcomeMail = require("../utils/sendMail");
 const isAdmin = require("../utils/isAdmin");
+const generatePassword = require("../utils/generatePassword");
 
 const loginUser = async (req, res) => {
   console.log(req.body);
@@ -41,15 +42,7 @@ const loginUser = async (req, res) => {
   }
 };
 
-const generatePassword = () => {
-  const chars =
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$";
-  let pass = "";
-  for (let i = 0; i < 8; i++) {
-    pass += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return pass;
-};
+
 
 const signupUser = async (req, res) => {
   try {
@@ -81,7 +74,6 @@ const signupUser = async (req, res) => {
     }
     console.log("in response");
     let signupres = await newUser.save();
-    // console.log(a);
     await sendWelcomeMail({
       to: email,
       fullname,
