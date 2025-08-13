@@ -72,7 +72,6 @@ const signupUser = async (req, res) => {
       newUser.session = session;
       newUser.rollno = rollno;
     }
-    console.log("in response");
     let signupres = await newUser.save();
     await sendWelcomeMail({
       to: email,

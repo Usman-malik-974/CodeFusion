@@ -1,14 +1,14 @@
-const assignQuestion = async (questionId, userId) => {
+const unassignBatch = async (batchId, userId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/questions/assign`, {
+      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/batches/unassign`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          questionId,
+          batchId,
           userId
         }),
       });
@@ -22,5 +22,5 @@ const assignQuestion = async (questionId, userId) => {
     }
   };
   
-  export { assignQuestion };
+  export { unassignBatch };
   

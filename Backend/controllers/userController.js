@@ -1,4 +1,4 @@
-const { User } = require("../models/index");
+const { User,Batch } = require("../models/index");
 const isAdmin = require("../utils/isAdmin");
 const xlsx = require("xlsx");
 const bcrypt = require("bcrypt");
@@ -10,8 +10,6 @@ const getAllUsers = async (req, res) => {
     if (!(await isAdmin(req.user.id))) {
       return res.status(403).json({ error: "Unauthorized Access." });
     }
-
-    console.log(isAdmin(req.user.id), "  yugh");
 
     const users = await User.find({}, '_id fullname email role rollno course session');
 
@@ -80,7 +78,10 @@ const deleteUser = async (req, res) => {
     if (!deletedUser) {
       return res.status(404).json({ error: "User not found" });
     }
-
+    await Batch.updateMany(
+      { users: id },
+      { $pull: { users: id } }
+    );
     return res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     console.error("Delete error:", error);

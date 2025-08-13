@@ -1,5 +1,4 @@
-const updateUser = async (updateData) => {
-    console.log(updateData,id);
+const updateQuestion = async (updateData) => {
       try {
         const token=localStorage.getItem('token');
         const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/questions/update`, {
@@ -24,5 +23,5 @@ const updateUser = async (updateData) => {
       }
     };
     
-    export { updateUser };
+    export { updateQuestion };
     

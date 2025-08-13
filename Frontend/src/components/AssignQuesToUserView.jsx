@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { getUnassignedUsers } from "../shared/networking/api/questionApi/getUnassignedUsers";
 import { getAssignedUsers } from "../shared/networking/api/questionApi/getAssignedUsers";
 import { HashLoader } from "react-spinners";
-import { assignQuestion } from "../shared/networking/api/questionApi/assignQuestion";
-import { unassignQuestion } from "../shared/networking/api/questionApi/unassignQuestion";
+import { assignQuestiontoUser } from "../shared/networking/api/questionApi/assignQuestiontoUser";
+import { unassignQuestiontoUser} from "../shared/networking/api/questionApi/unassignQuestiontoUser";
 import { toast } from "react-toastify";
 
 const AssignQuesToUserView = ({ questionID }) => {
@@ -44,7 +44,7 @@ const AssignQuesToUserView = ({ questionID }) => {
     const handleAssignUser = async (userid) => {
         // console.log(userid, questionID);
         setAssigningUserId(userid);
-        const res = await assignQuestion(questionID, userid);
+        const res = await assignQuestiontoUser(questionID, userid);
         if (res.error) {
             toast.error(res.error);
             return;
@@ -56,7 +56,7 @@ const AssignQuesToUserView = ({ questionID }) => {
     }
     const handleRemoveUser = async (userid) => {
         setRemovingUserId(userid);
-        const res = await unassignQuestion(questionID, userid);
+        const res = await unassignQuestiontoUser(questionID, userid);
         if (res.error) {
             toast.error(res.error);
             return;

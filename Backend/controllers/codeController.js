@@ -185,7 +185,6 @@ exports.runCode = async (req, res) => {
       });
       const output = (result.stdout || '').trim();
       const stderr = (result.stderr || '').trim();
-      console.log(stderr);
       await fs.remove(tempDir);
 
       if (result.error?.code === 'ETIMEDOUT') {
@@ -451,8 +450,8 @@ exports.runTestCases = async (req, res) => {
     const results = await Promise.all(testCases.map(runTestCase));
     await fs.remove(tempDir);
     const passedCount = results.filter(r => r.verdict === 'Passed').length;
-  const totalCount = testCases.length;
-  const submission = new Submission({
+    const totalCount = testCases.length;
+    const submission = new Submission({
     userID: req.user.id,
     questionID: questionId,
     passed: passedCount,
@@ -476,9 +475,6 @@ exports.getQuestionSubmissions = async (req, res) => {
   try {
     const userID = req.user.id;
     const questionID=req.params.id;
-    if (await isAdmin(req.user.id)) {
-      return res.status(403).json({ error: 'Unauthorized Access.' });
-    }
     const submissions=await Submission.find({userID,questionID});
     res.status(200).json({
       submissions:submissions.map((s)=>{

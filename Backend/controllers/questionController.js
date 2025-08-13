@@ -1,4 +1,4 @@
-const {Question,User}=require('../models/index');
+const {Question,User,Batch}=require('../models/index');
 const isAdmin = require('../utils/isAdmin');
 
 const getAllQuestions = async (req, res) => {
@@ -96,6 +96,11 @@ const addQuestion = async (req, res) => {
         { assignedQuestions: id }, 
         { $pull: { assignedQuestions: id } }
       );
+
+      await Batch.updateMany(
+        { assignedQuestions: id }, 
+        { $pull: { assignedQuestions: id } }
+      );
       return res.status(200).json({ message: 'Question deleted successfully' });
     } catch (error) {
       console.error('Delete error:', error);
@@ -145,7 +150,7 @@ const addQuestion = async (req, res) => {
     }
   }
 
-  const assignQuestion = async (req, res) => {
+  const assignQuestiontoUser = async (req, res) => {
     try {
       if(!(await isAdmin(req.user.id))){
         return res.status(403).json({ error: 'Unauthorized Access.' });
@@ -175,7 +180,7 @@ const addQuestion = async (req, res) => {
     }
   };
 
-  const unassignQuestion = async (req, res) => {
+  const unassignQuestiontoUser = async (req, res) => {
     try {
       if (!(await isAdmin(req.user.id))) {
         return res.status(403).json({ error: 'Unauthorized Access.' });
@@ -246,7 +251,7 @@ const addQuestion = async (req, res) => {
   
     try {
       const {
-        questionId,
+        id,
         title,
         statement,
         inputFormat,
@@ -257,12 +262,12 @@ const addQuestion = async (req, res) => {
         difficulty,
         testCases,
       } = req.body;
-      if (!questionId || !title || !statement || !testCases || testCases.length === 0) {
+      if (!id || !title || !statement || !testCases || testCases.length === 0) {
         return res.status(400).json({
           error: 'questionId, title, statement, and at least one test case are required.',
         });
       }
-      const question = await Question.findById(questionId);
+      const question = await Question.findById(id);
   
       if (!question) {
         return res.status(404).json({ error: 'Question not found' });
@@ -334,6 +339,107 @@ const addQuestion = async (req, res) => {
     }
   };
 
+  const getAssignedBatches=async (req,res)=>{
+    try {
+      if(!(await isAdmin(req.user.id))){
+        return res.status(403).json({ error: 'Unauthorized Access.' });
+      }
+      const { id } = req.params;
+      const batches = await Batch.find({ assignedQuestions: id}, 'id name users assignedQuestions');
+      res.status(200).json({
+        batches: batches.map((batch) => ({
+          id: batch._id,
+          batchName: batch.name,
+          assignedQuestions: batch.assignedQuestions,
+          users: batch.users,
+        }))
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(500).json({ error: 'Server error' });
+    }
+  }
+
+  const getUnassignedBatches=async (req,res)=>{
+    try {
+      if(!(await isAdmin(req.user.id))){
+        return res.status(403).json({ error: 'Unauthorized Access.' });
+      }
+      const { id } = req.params;
+      const batches= await Batch.find({assignedQuestions:{ $ne: id } }, 'id name users assignedQuestions');
+      res.status(200).json({
+        batches: batches.map((batch) => ({
+          id: batch._id,
+          batchName: batch.name,
+          assignedQuestions: batch.assignedQuestions,
+          users: batch.users,
+        }))
+      });
+    } catch (error) {
+      console.error('Error:', error);
+      return res.status(500).json({ error: 'Server error' });
+    }
+  }
+
+  const assignQuestiontoBatch = async (req, res) => {
+    try {
+      if(!(await isAdmin(req.user.id))){
+        return res.status(403).json({ error: 'Unauthorized Access.' });
+      }
+      const { questionId, batchId } = req.body;
+      if(!questionId || !batchId){
+        return res.status(400).json({ error: 'Please provide all details.' });
+      }
+      const question = await Question.findById(questionId);
+      if (!question) {
+        return res.status(404).json({ error: 'Question not found' });
+      }
+      const batch = await Batch.findById(batchId);
+      if (!batch) {
+        return res.status(404).json({ error: 'Batch not found' });
+      }
+      if (batch.assignedQuestions.includes(questionId)) {
+        return res.status(400).json({ error: 'Question already assigned to this batch' });
+      }
+      batch.assignedQuestions.push(questionId);
+      await batch.save();
   
+      res.status(200).json({ message: 'Question assigned successfully' });
+    } catch (error) {
+      console.error('Error assigning question:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+
+  const unassignQuestiontoBatch = async (req, res) => {
+    try {
+      if (!(await isAdmin(req.user.id))) {
+        return res.status(403).json({ error: 'Unauthorized Access.' });
+      }
+      const { questionId, batchId } = req.body;
+      if (!questionId || !batchId) {
+        return res.status(400).json({ error: 'Please provide all details.' });
+      }
+      const question = await Question.findById(questionId);
+      if (!question) {
+        return res.status(404).json({ error: 'Question not found' });
+      }
+      const batch = await Batch.findById(batchId);
+      if (!batch) {
+        return res.status(404).json({ error: 'Batch not found' });
+      }
+      if (!batch.assignedQuestions.includes(questionId)) {
+        return res.status(400).json({ error: 'Question is not assigned to this batch' });
+      }
+      batch.assignedQuestions = batch.assignedQuestions.filter(
+        (qId) => qId.toString() !== questionId
+      );
+      await batch.save();
+      res.status(200).json({ message: 'Question unassigned successfully'});
+    } catch (error) {
+      console.error('Error unassigning question:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
   
-  module.exports={addQuestion,getAllQuestions,deleteQuestion,getAssignedUsers,getUnassignedUsers,assignQuestion,unassignQuestion,getUserQuestions,updateQuestion,getQuestion};
+  module.exports={addQuestion,getAllQuestions,deleteQuestion,getAssignedUsers,getUnassignedUsers,assignQuestiontoUser,unassignQuestiontoUser,getUserQuestions,updateQuestion,getQuestion,getAssignedBatches,getUnassignedBatches,assignQuestiontoBatch,unassignQuestiontoBatch};
