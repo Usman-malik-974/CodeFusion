@@ -171,7 +171,7 @@ int main() {
             >
                 <div className="flex">
                     <button
-                        className={`flex-1 p-3 text-center rounded-md  ${activeTab === "question"
+                        className={`flex-1 p-3 text-center rounded-t-2xl  ${activeTab === "question"
                             ? isDark
                                 ? "bg-neutral-700"
                                 : "bg-blue-100"
@@ -182,7 +182,7 @@ int main() {
                         Question
                     </button>
                     <button
-                        className={`flex-1 p-3 text-center rounded-md ${activeTab === "submissions"
+                        className={`flex-1 p-3 text-center rounded-t-2xl ${activeTab === "submissions"
                             ? isDark
                                 ? "bg-neutral-700"
                                 : "bg-blue-100"

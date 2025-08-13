@@ -33,39 +33,7 @@ int main() {
     const [useCustomInput, setUseCustomInput] = useState(false);
     const [testCaseRunSuccess, setTestCaseRunSuccess] = useState(false);
     const [activeTab, setActiveTab] = useState("question");
-    const [submissions, setSubmissions] = useState([
-        {
-            id: 1,
-            user: "John Doe",
-            problem: "Two Sum",
-            language: "JavaScript",
-            status: "Accepted",
-            code: "sjakj",
-            runtime: "120 ms",
-            memory: "14 MB",
-            submittedAt: "2025-08-12 14:35"
-        },
-        {
-            id: 2,
-            user: "Jane Smith",
-            problem: "Reverse Linked List",
-            language: "C++",
-            status: "Wrong Answer",
-            runtime: "—",
-            memory: "—",
-            submittedAt: "2025-08-12 14:40"
-        },
-        {
-            id: 3,
-            user: "Alex Johnson",
-            problem: "Valid Parentheses",
-            language: "Python",
-            status: "Time Limit Exceeded",
-            runtime: "—",
-            memory: "—",
-            submittedAt: "2025-08-12 14:50"
-        }
-    ]);
+    const [submissions, setSubmissions] = useState([]);
 
     const [viewingCode, setViewingCode] = useState(null);
 
@@ -182,10 +150,11 @@ int main() {
         );
     };
 
-    const LoadSubmissionData = async() => {
+    const LoadSubmissionData = async () => {
         //submission here
-        const res=await getQuestionSubmissions(question.id);
+        const res = await getQuestionSubmissions(question.id);
         console.log(res);
+        setSubmissions(res.submissions);
     }
 
     return (
@@ -202,7 +171,7 @@ int main() {
             >
                 <div className="flex">
                     <button
-                        className={`flex-1 p-3 text-center rounded-md  ${activeTab === "question"
+                        className={`flex-1 p-3 text-center rounded-t-2xl  ${activeTab === "question"
                             ? isDark
                                 ? "bg-neutral-700"
                                 : "bg-blue-100"
@@ -213,7 +182,7 @@ int main() {
                         Question
                     </button>
                     <button
-                        className={`flex-1 p-3 text-center rounded-md ${activeTab === "submissions"
+                        className={`flex-1 p-3 text-center rounded-t-2xl ${activeTab === "submissions"
                             ? isDark
                                 ? "bg-neutral-700"
                                 : "bg-blue-100"
@@ -250,8 +219,8 @@ int main() {
                                 <span
                                     key={idx}
                                     className={`px-3 py-1 rounded-full text-sm font-medium border transition-colors duration-300 ${isDark
-                                            ? "bg-neutral-700 text-blue-300 border-neutral-600"
-                                            : "bg-blue-100 text-blue-800 border-blue-200"
+                                        ? "bg-neutral-700 text-blue-300 border-neutral-600"
+                                        : "bg-blue-100 text-blue-800 border-blue-200"
                                         }`}
                                 >
                                     {tag}
@@ -270,8 +239,8 @@ int main() {
                                 </h3>
                                 <pre
                                     className={`whitespace-pre-wrap p-3 rounded-lg border transition-colors duration-300 ${isDark
-                                            ? "bg-neutral-700 border-neutral-600 text-white"
-                                            : "bg-blue-50 border-blue-100 text-gray-800"
+                                        ? "bg-neutral-700 border-neutral-600 text-white"
+                                        : "bg-blue-50 border-blue-100 text-gray-800"
                                         }`}
                                 >
                                     {question?.statement}
@@ -287,8 +256,8 @@ int main() {
                                 </h3>
                                 <pre
                                     className={`p-3 rounded-lg border transition-colors duration-300 ${isDark
-                                            ? "bg-neutral-700 border-neutral-600 text-white"
-                                            : "bg-blue-50 border-blue-100 text-gray-800"
+                                        ? "bg-neutral-700 border-neutral-600 text-white"
+                                        : "bg-blue-50 border-blue-100 text-gray-800"
                                         }`}
                                 >
                                     {question?.inputFormat}
@@ -304,8 +273,8 @@ int main() {
                                 </h3>
                                 <pre
                                     className={`p-3 rounded-lg border transition-colors duration-300 ${isDark
-                                            ? "bg-neutral-700 border-neutral-600 text-white"
-                                            : "bg-blue-50 border-blue-100 text-gray-800"
+                                        ? "bg-neutral-700 border-neutral-600 text-white"
+                                        : "bg-blue-50 border-blue-100 text-gray-800"
                                         }`}
                                 >
                                     {question?.outputFormat}
@@ -398,14 +367,14 @@ int main() {
                         {viewingCode && (
                             <div
                                 className={`absolute top-0 left-0 h-full w-1/2 z-50 flex flex-col border-r ${isDark
-                                        ? "bg-neutral-900 border-neutral-700"
-                                        : "bg-white border-gray-300"
+                                    ? "bg-neutral-900 border-neutral-700"
+                                    : "bg-white border-gray-300"
                                     }`}
                             >
                                 <div
                                     className={`flex justify-between items-center p-4 border-b ${isDark
-                                            ? "bg-neutral-800 border-neutral-700 text-white"
-                                            : "bg-gray-100 border-gray-300 text-gray-800"
+                                        ? "bg-neutral-800 border-neutral-700 text-white"
+                                        : "bg-gray-100 border-gray-300 text-gray-800"
                                         }`}
                                 >
                                     <h2 className="text-lg font-bold">Submitted Code</h2>
