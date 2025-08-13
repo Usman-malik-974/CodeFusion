@@ -14,6 +14,7 @@ import Dashboard from './screen/Dashboard'
 import AdminQuestionView from './screen/AdminQuestionView'
 import QuestionView from './screen/QuestionView'
 import AssignQuestion from './screen/AssignQuestion'
+import ManageBatch from './screen/ManageBatch'
 
 function App() {
 
@@ -42,6 +43,7 @@ function App() {
             </Route>
             <Route path='/question' element={<QuestionView/>} /> 
             <Route path='/admin/question' element={<AdminQuestionView/>} /> 
+            <Route path='/admin/batch' element={<ManageBatch/>} /> 
           </Routes>
         </div>
       </BrowserRouter>

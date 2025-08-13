@@ -10,6 +10,7 @@ const getQuestionSubmissions=async(questionId)=>{
             return {status:response.status}
         }
         const data=await response.json();
+        // console.log(data);
         return data;
     }
     catch(e){
