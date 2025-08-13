@@ -2,7 +2,7 @@ const getAllBatches = async () => {
   try {
     const token = localStorage.getItem("token");
     const response = await fetch(
-      `${import.meta.env.VITE_SERVER_URL}/api/batches/`,
+      `${import.meta.env.VITE_SERVER_URL}/api/batches`,
       {
         headers: {
           Authorization: `Bearer ${token}`,

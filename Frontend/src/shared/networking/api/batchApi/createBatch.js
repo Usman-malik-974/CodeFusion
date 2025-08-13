@@ -12,15 +12,18 @@ const createBatch = async (batchData) => {
         body: JSON.stringify(batchData),
       }
     );
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.message || "Failed to create batch");
-    }
+
     const result = await response.json();
-    return result;
+
+    // Agar HTTP status 400+ hai to error return karo
+    if (!response.ok) {
+      return { error: result.message || result.error || "Request failed" };
+    }
+
+    return result; // success
   } catch (error) {
     console.error("Error creating batch:", error.message);
-    throw error;
+    return { error: "Something went wrong." };
   }
 };
 

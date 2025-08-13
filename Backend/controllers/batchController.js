@@ -6,28 +6,32 @@ const createBatch = async (req, res) => {
     return res.status(403).json({ error: "Unauthorized Access." });
   }
   try {
-    const { batchName, assignedQuestions, users, batchId, createdBy } =
-      req.body;
-
+    const { batchName } = req.body;
+    console.log(req.body);
     if (!batchName) {
       return res.status(400).json({
-        error: "Batch Name and at least more than 1 users are required.",
+        error: "Batch Name is required.",
       });
     }
-    const newBatch = new Batch({
-      batchName,
-      assignedQuestions,
-      users,
-      batchId,
-      createdBy: createdBy || req.user.id,
-    });
 
+    const exists = await Batch.findOne({ name: batchName.trim() });
+    if (exists) {
+      return res.status(400).json({ message: "Batch name already exists" });
+    }
+    const newBatch = new Batch({
+      name: batchName.trim(),
+      createdBy: req.user.id,
+    });
     const savedBatch = await newBatch.save();
     const batchObj = savedBatch.toObject();
     delete batchObj.createdBy;
     return res.status(201).json({
       message: "Batch created successfully.",
-      batch: batchObj,
+      batch: {
+        id: batchObj._id,
+        batchName: batchObj.name,
+        users: batchObj.users,
+      },
     });
   } catch (err) {
     console.error("Create Batch Error:", err);
@@ -35,6 +39,9 @@ const createBatch = async (req, res) => {
       const field = Object.keys(err.errors)[0];
       const errorMessage = err.errors[field].message;
       return res.status(400).json({ error: errorMessage });
+    }
+    if (err.code === 11000) {
+      return res.status(400).json({ error: "Batch name already exists" });
     }
     return res.status(500).json({ error: "Internal Server Error" });
   }
@@ -46,10 +53,15 @@ const getAllBatches = async (req, res) => {
       return res.status(403).json({ error: "Unauthorized Access." });
     }
     const batches = await Batch.find({});
-    if (!batches || batches.length === 0) {
-      return res.status(404).json({ error: "No batches found." });
-    }
-    res.status(200).json(batches);
+    console.log(batches);
+    res.status(200).json({
+      batches: batches.map((batch) => ({
+        id: batch._id,
+        batchName: batch.name,
+        assignedQuestions: batch.assignedQuestions,
+        users: batch.users,
+      })),
+    });
   } catch (err) {
     console.error("Get All Batches Error:", err);
     res.status(500).json({ error: "Server error" });

@@ -1,18 +1,14 @@
 const mongoose = require("mongoose");
 const batchSchema = new mongoose.Schema({
-  batchId: {
-    type: Number,
-    required: [true, "Batch ID is required"],
-    unique: true,
-  },
-  batchName: {
+  name: {
     type: String,
     required: [true, "Batch Name is required"],
     trim: true,
     match: [
-      /^[A-Za-z ]{2,50}$/,
-      "Name must be 2-50 characters and contain only letters and spaces",
+      /^[A-Za-z0-9 \-]{3,50}$/,
+      "Batch name must be 3–50 characters, using only letters, numbers, spaces, or hyphens.",
     ],
+    unique: [true, "Already exists"],
   },
   assignedQuestions: [
     {

@@ -2,24 +2,18 @@ import { useEffect, useState } from "react";
 import { FaUser, FaLayerGroup } from "react-icons/fa";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { toast } from "react-toastify";
 import { getAllBatches } from "../shared/networking/api/batchApi/getAllBatches";
+import { createBatch } from "../shared/networking/api/batchApi/createBatch";
 
 const Batches = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [showForm, setShowForm] = useState(false);
-
-  const [batches, setBatches] = useState([
-    {
-      batchId: 1,
-      batchName: "Sample Batch",
-      users: [],
-      assignedQuestions: [],
-      createdBy: localStorage.getItem("userId"),
-      createdAt: new Date(),
-    },
-  ]);
-
+  const [batches, setBatches] = useState([]);
+  const filteredBatches = batches.filter((batch) =>
+    batch.batchName.toLowerCase().includes(searchInput.toLowerCase())
+  );
   const validationSchema = Yup.object({
     batchName: Yup.string()
       .required("Batch name is required")
@@ -30,52 +24,36 @@ const Batches = () => {
     initialValues: { batchName: "" },
     validationSchema,
     onSubmit: async (values, { resetForm }) => {
-      const newBatch = {
-        batchId: batches.length + 1,
-        batchName: values.batchName,
-        users: [],
-        assignedQuestions: [],
-        createdBy: localStorage.getItem("userId"),
-      };
-      const token = localStorage.getItem("token");
-      try {
-        const response = await fetch(
-          "http://localhost:5000/api/batches/create",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(newBatch),
-          }
-        );
+      const newBatch = { batchName: values.batchName };
 
-        if (!response.ok) {
-          throw new Error("Failed to create batch");
+      try {
+        const res = await createBatch(newBatch);
+
+        if (res.error) {
+          toast.error(res.error); // Duplicate ya koi bhi backend error yaha show hoga
+          return;
         }
 
-        // Parse the saved batch returned from the backend
-        const savedBatch = await response.json();
-
-        // Update local state with backend's saved batch
-        setBatches([...batches, savedBatch]);
-
-        // Clear form
+        setBatches([...batches, res.batch]);
+        toast.success(res.message);
         resetForm();
         setShowForm(false);
       } catch (error) {
-        console.error("Error creating batch:", error);
-        alert("Something went wrong while creating the batch.");
+        toast.error("Something went wrong");
       }
     },
   });
   useEffect(() => {
     const fetchData = async () => {
-      const data = await getAllBatches();
-      setBatches(Array.isArray(data) ? data : []); // ensure array
-      setIsLoading(false);
-      console.log(data);
+      try {
+        const data = await getAllBatches();
+        console.log(data);
+        setBatches(data.batches);
+        setIsLoading(false);
+        console.log(data);
+      } catch (e) {
+        toast.error("Something went wrong");
+      }
     };
     console.log(batches);
     fetchData();
@@ -109,9 +87,9 @@ const Batches = () => {
       )}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {batches.map((batch) => (
+        {filteredBatches.map((batch) => (
           <div
-            key={batch.batchId}
+            key={batch.id}
             className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm 
                        flex flex-col items-center text-center 
                        transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-blue-300"
