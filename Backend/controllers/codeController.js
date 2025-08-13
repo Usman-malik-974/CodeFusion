@@ -2,7 +2,8 @@ const { v4: uuidv4 } = require('uuid');
 const fs = require('fs-extra');
 const { execSync, spawnSync } = require('child_process');
 const path = require('path');
-const {Question}=require('../models/index');
+const {Question,Submission}=require('../models/index');
+
 // exports.runCode = async (req, res) => {
 //     const { code, language, input = '' } = req.body;
 //     if (!code || !language) {
@@ -325,6 +326,7 @@ exports.runCode = async (req, res) => {
 
 exports.runTestCases = async (req, res) => {
   const { code, language, questionId } = req.body;
+  console.log(req.user);
   if (!code || !language || !questionId) {
     return res.status(400).json({ error: 'Missing code, language, or questionId' });
   }
@@ -449,8 +451,21 @@ exports.runTestCases = async (req, res) => {
   try {
     const results = await Promise.all(testCases.map(runTestCase));
     await fs.remove(tempDir);
+    const passedCount = results.filter(r => r.verdict === 'Passed').length;
+  const totalCount = testCases.length;
+  const submission = new Submission({
+    userID: req.user.id,
+    questionID: questionId,
+    passed: passedCount,
+    total: totalCount,
+    language,
+    code
+  });
+
+  await submission.save(); 
     return res.status(200).json({ results });
   } catch (err) {
+    console.log(err);
     await fs.remove(tempDir);
     return res.status(500).json({
       error: 'Internal server error. Please try again later.'
