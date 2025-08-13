@@ -16,5 +16,5 @@ const getQuestion = async (id) => {
     }
   };
   
-  export { getAllQuestions };
+  export { getQuestion };
   
