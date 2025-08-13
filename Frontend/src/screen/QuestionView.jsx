@@ -39,6 +39,7 @@ int main() {
             problem: "Two Sum",
             language: "JavaScript",
             status: "Accepted",
+            code: "sjakj",
             runtime: "120 ms",
             memory: "14 MB",
             submittedAt: "2025-08-12 14:35"
@@ -226,21 +227,19 @@ int main() {
                 </div>
                 {activeTab === "question" ? (
                     <div className="p-6">
+                        {/* Question Title */}
                         <div className="flex items-center gap-3 mb-3">
                             <h3
-                                className={`font-bold text-3xl ${isDark ? "text-blue-400" : "text-blue-500"
-                                    }`}
+                                className={`font-bold text-3xl ${isDark ? "text-blue-400" : "text-blue-500"}`}
                             >
                                 {question?.title || "Untitled Question"}
                             </h3>
-
                         </div>
 
+                        {/* Difficulty & Tags */}
                         <div className="flex items-center gap-3 mb-4">
                             <span
-                                className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyBadgeColor(
-                                    question?.difficulty
-                                )}`}
+                                className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyBadgeColor(question?.difficulty)}`}
                             >
                                 {question?.difficulty || "Unknown"}
                             </span>
@@ -248,8 +247,8 @@ int main() {
                                 <span
                                     key={idx}
                                     className={`px-3 py-1 rounded-full text-sm font-medium border transition-colors duration-300 ${isDark
-                                        ? "bg-neutral-700 text-blue-300 border-neutral-600"
-                                        : "bg-blue-100 text-blue-800 border-blue-200"
+                                            ? "bg-neutral-700 text-blue-300 border-neutral-600"
+                                            : "bg-blue-100 text-blue-800 border-blue-200"
                                         }`}
                                 >
                                     {tag}
@@ -257,78 +256,85 @@ int main() {
                             ))}
                         </div>
 
+                        {/* Problem Sections */}
                         <div className="space-y-4">
+                            {/* Problem Statement */}
                             <div>
                                 <h3
-                                    className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
-                                        }`}
+                                    className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"}`}
                                 >
                                     Problem Statement:
                                 </h3>
                                 <pre
                                     className={`whitespace-pre-wrap p-3 rounded-lg border transition-colors duration-300 ${isDark
-                                        ? "bg-neutral-700 border-neutral-600"
-                                        : "bg-blue-50 border-blue-100"
+                                            ? "bg-neutral-700 border-neutral-600 text-white"
+                                            : "bg-blue-50 border-blue-100 text-gray-800"
                                         }`}
                                 >
                                     {question?.statement}
                                 </pre>
                             </div>
 
+                            {/* Input Format */}
                             <div>
                                 <h3
-                                    className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
-                                        }`}
+                                    className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"}`}
                                 >
                                     Input Format:
                                 </h3>
                                 <pre
                                     className={`p-3 rounded-lg border transition-colors duration-300 ${isDark
-                                        ? "bg-neutral-700 border-neutral-600"
-                                        : "bg-blue-50 border-blue-100"
+                                            ? "bg-neutral-700 border-neutral-600 text-white"
+                                            : "bg-blue-50 border-blue-100 text-gray-800"
                                         }`}
                                 >
                                     {question?.inputFormat}
                                 </pre>
                             </div>
 
+                            {/* Output Format */}
                             <div>
                                 <h3
-                                    className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
-                                        }`}
+                                    className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"}`}
                                 >
                                     Output Format:
                                 </h3>
                                 <pre
                                     className={`p-3 rounded-lg border transition-colors duration-300 ${isDark
-                                        ? "bg-neutral-700 border-neutral-600"
-                                        : "bg-blue-50 border-blue-100"
+                                            ? "bg-neutral-700 border-neutral-600 text-white"
+                                            : "bg-blue-50 border-blue-100 text-gray-800"
                                         }`}
                                 >
                                     {question?.outputFormat}
                                 </pre>
                             </div>
 
+                            {/* Sample Input */}
                             <div>
                                 <h3
-                                    className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
-                                        }`}
+                                    className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"}`}
                                 >
                                     Sample Input:
                                 </h3>
-                                <pre className="bg-gray-900 text-white p-3 rounded-lg font-mono">
+                                <pre
+                                    className={`p-3 rounded-lg font-mono ${isDark ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-800"
+                                        }`}
+                                >
                                     {question?.sampleInput}
                                 </pre>
                             </div>
 
+                            {/* Sample Output */}
                             <div>
                                 <h3
-                                    className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
-                                        }`}
+                                    className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"}`}
                                 >
                                     Sample Output:
                                 </h3>
-                                <pre className="bg-gray-900 text-white p-3 rounded-lg font-mono">
+                                <pre
+                                    className={`p-3 rounded-lg font-mono ${isDark ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-800"
+                                        }`}
+                                >
                                     {question?.sampleOutput}
                                 </pre>
                             </div>
@@ -336,30 +342,37 @@ int main() {
                     </div>
                 ) : (
                     <div className="p-6">
-                        <table className="min-w-full border-collapse rounded-xl overflow-hidden shadow-md">
-                            <thead className="bg-blue-100 text-left text-sm font-semibold text-blue-600">
+                        {/* Submissions Table */}
+                        <table
+                            className={`min-w-full border-collapse rounded-xl overflow-hidden shadow-md ${isDark ? "bg-neutral-800 text-white" : "bg-white text-gray-800"
+                                }`}
+                        >
+                            <thead
+                                className={`text-left text-sm font-semibold ${isDark ? "bg-neutral-700 text-blue-300" : "bg-blue-100 text-blue-600"
+                                    }`}
+                            >
                                 <tr>
-                                    <th className="px-4 py-2 border-b border-blue-200">Language</th>
-                                    <th className="px-4 py-2 border-b border-blue-200">Time</th>
-                                    <th className="px-4 py-2 border-b border-blue-200">Passed</th>
-                                    <th className="px-4 py-2 border-b border-blue-200">Action</th>
+                                    <th className="px-4 py-3 border-b border-blue-200">Language</th>
+                                    <th className="px-4 py-3 border-b border-blue-200">Time</th>
+                                    <th className="px-4 py-3 border-b border-blue-200">Passed</th>
+                                    <th className="px-4 py-3 border-b border-blue-200">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {submissions.map((sub, idx) => {
                                     const allPassed = sub.passed === sub.total;
                                     return (
-                                        <tr key={idx} className="even:bg-gray-50 hover:bg-blue-50 transition">
-                                            <td className="px-4 py-3 border-b border-gray-200">
-                                                {sub.language}
-                                            </td>
+                                        <tr
+                                            key={idx}
+                                            className={`hover:bg-blue-50 transition ${isDark ? "even:bg-neutral-700 hover:bg-neutral-600" : "even:bg-gray-50"
+                                                }`}
+                                        >
+                                            <td className="px-4 py-3 border-b border-gray-200">{sub.language}</td>
                                             <td className="px-4 py-3 border-b border-gray-200">
                                                 {new Date(sub.submittedAt).toLocaleString()}
                                             </td>
                                             <td
-                                                className={`border p-2 text-center font-bold ${allPassed
-                                                    ? "text-green-600"
-                                                    : "text-red-600"
+                                                className={`border p-2 text-center font-bold ${allPassed ? "text-green-600" : "text-red-600"
                                                     }`}
                                             >
                                                 {sub.passed}/{sub.total}
@@ -367,9 +380,7 @@ int main() {
                                             <td className="px-4 py-3 border-b border-gray-200">
                                                 <button
                                                     className="bg-blue-500 text-white px-2 py-1 rounded"
-                                                    onClick={() =>
-                                                        setViewingCode(sub.code)
-                                                    }
+                                                    onClick={() => setViewingCode(sub.code)}
                                                 >
                                                     View Code
                                                 </button>
@@ -380,22 +391,42 @@ int main() {
                             </tbody>
                         </table>
 
+                        {/* View Code Sidebar */}
                         {viewingCode && (
-                            <div className="mt-4">
-                                <h3 className="font-bold mb-2">Submitted Code:</h3>
-                                <pre className="bg-gray-900 text-white p-3 rounded-lg overflow-auto">
-                                    {viewingCode}
-                                </pre>
-                                <button
-                                    className="mt-2 bg-red-500 text-white px-3 py-1 rounded"
-                                    onClick={() => setViewingCode(null)}
+                            <div
+                                className={`absolute top-0 left-0 h-full w-1/2 z-50 flex flex-col border-r ${isDark
+                                        ? "bg-neutral-900 border-neutral-700"
+                                        : "bg-white border-gray-300"
+                                    }`}
+                            >
+                                <div
+                                    className={`flex justify-between items-center p-4 border-b ${isDark
+                                            ? "bg-neutral-800 border-neutral-700 text-white"
+                                            : "bg-gray-100 border-gray-300 text-gray-800"
+                                        }`}
                                 >
-                                    Close
-                                </button>
+                                    <h2 className="text-lg font-bold">Submitted Code</h2>
+                                    <button
+                                        className={`text-2xl font-bold hover:text-red-400 ${isDark ? "text-white" : "text-gray-800"
+                                            }`}
+                                        onClick={() => setViewingCode(null)}
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                                <div className="flex-1 overflow-auto p-6">
+                                    <pre
+                                        className={`whitespace-pre-wrap font-mono ${isDark ? "text-white" : "text-gray-800"
+                                            }`}
+                                    >
+                                        {viewingCode}
+                                    </pre>
+                                </div>
                             </div>
                         )}
                     </div>
                 )}
+
 
 
             </div>
