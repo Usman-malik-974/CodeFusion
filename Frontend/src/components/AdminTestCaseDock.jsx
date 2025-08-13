@@ -152,6 +152,17 @@ const AdminTestCaseDock = ({
                                                 }`}
                                         >
                                             <span>Case {idx + 1}</span>
+                                            {results && results[idx]?.verdict && (
+                                                results[idx].verdict === "Passed" ? (
+                                                    <FiCheck className="text-green-500 font-bold text-lg" />
+                                                ) : results[idx].verdict === "Failed" ? (
+                                                    <FiX className="text-red-500 font-bold text-lg" />
+                                                ) : results[idx].verdict === "Runtime Error" ? (
+                                                    <span className="text-red-500 font-medium">
+                                                        {results[idx].verdict}
+                                                    </span>
+                                                ) : null
+                                            )}
 
                                             {/* Only show remove button in editable mode */}
                                             {isEditable && (
