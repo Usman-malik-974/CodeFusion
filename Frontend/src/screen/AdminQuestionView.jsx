@@ -10,6 +10,8 @@ import { CiEdit } from "react-icons/ci";
 import AdminTestCaseDock from "../components/AdminTestCaseDock";
 // import { setQuestionsList } from "../app/slices/questionsSlice";
 import { getQuestionSubmissions } from "../shared/networking/api/codeApi/getQuestionSubmissions";
+import { updateQuestion } from "../shared/networking/api/questionApi/updateQuestion";
+import { toast } from "react-toastify";
 
 const AdminQuestionView = () => {
     const location = useLocation();
@@ -156,10 +158,19 @@ int main() {
         console.log(question.id);
         const res = await getQuestionSubmissions(question.id);
         console.log(res);
-        // setSubmissions(res.submissions);
+        setSubmissions(res.submissions);
     }
 
-    const handleSaveClick = () => {
+    const handleSaveClick = async() => {
+        console.log(question);
+        const res=await updateQuestion(question);
+        if(res.error){
+            toast.error(res.error);
+        }
+        else{
+            toast.success(res.message);
+            setQuestion(res.question);
+        }
         //update logic here
         setIsEditable(false);
         setDisabled(false);
