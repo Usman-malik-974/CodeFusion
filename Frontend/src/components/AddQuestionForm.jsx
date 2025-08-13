@@ -33,7 +33,7 @@ const initialValues = {
     testCases: [{ input: '', output: '', hidden: false }],
 };
 
-const AddQuestionForm = ({ onSubmit,onClose }) => {
+const AddQuestionForm = ({ onSubmit, onClose }) => {
     const formik = useFormik({
         initialValues,
         validationSchema,
@@ -41,7 +41,7 @@ const AddQuestionForm = ({ onSubmit,onClose }) => {
         // validateOnBlur:false,
         onSubmit: (values, { resetForm }) => {
             const formatted = {
-                ...values ,
+                ...values,
                 tags: values.tags
                     .split(',')
                     .map(tag => tag.trim())
@@ -73,14 +73,17 @@ const AddQuestionForm = ({ onSubmit,onClose }) => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-500 to-indigo-600 p-6 text-white">
             <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg text-gray-900">
-                <h2 className="text-3xl font-bold mb-6 text-center text-blue-700">Add New Question</h2>
+                <h2 className="text-3xl font-bold mb-6 text-center text-blue-500">Add New Question</h2>
 
                 <form onSubmit={formik.handleSubmit} className="space-y-6">
                     {/* Title */}
                     <div>
                         <label className="font-semibold">Title</label>
-                        <input {...formik.getFieldProps('title')} placeholder="Enter question title"
-                            className="w-full p-3 border rounded mt-1" />
+                        <textarea
+                            {...formik.getFieldProps("title")}
+                            placeholder="Enter question title"
+                            className="w-full p-3 border rounded mt-1"
+                        />
                         {formik.touched.title && formik.errors.title && (
                             <div className="text-red-500 text-sm mt-1">{formik.errors.title}</div>
                         )}
@@ -89,10 +92,16 @@ const AddQuestionForm = ({ onSubmit,onClose }) => {
                     {/* Statement */}
                     <div>
                         <label className="font-semibold">Statement</label>
-                        <textarea {...formik.getFieldProps('statement')} rows={5}
-                            placeholder="Describe the problem statement" className="w-full p-3 border rounded mt-1" />
+                        <textarea
+                            {...formik.getFieldProps("statement")}
+                            rows={5}
+                            placeholder="Describe the problem statement"
+                            className="w-full p-3 border rounded mt-1"
+                        />
                         {formik.touched.statement && formik.errors.statement && (
-                            <div className="text-red-500 text-sm mt-1">{formik.errors.statement}</div>
+                            <div className="text-red-500 text-sm mt-1">
+                                {formik.errors.statement}
+                            </div>
                         )}
                     </div>
 
@@ -100,18 +109,28 @@ const AddQuestionForm = ({ onSubmit,onClose }) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="font-semibold">Input Format</label>
-                            <input {...formik.getFieldProps('inputFormat')} placeholder="Describe input format"
-                                className="w-full p-3 border rounded mt-1" />
+                            <textarea
+                                {...formik.getFieldProps("inputFormat")}
+                                placeholder="Describe input format"
+                                className="w-full p-3 border rounded mt-1"
+                            />
                             {formik.touched.inputFormat && formik.errors.inputFormat && (
-                                <div className="text-red-500 text-sm mt-1">{formik.errors.inputFormat}</div>
+                                <div className="text-red-500 text-sm mt-1">
+                                    {formik.errors.inputFormat}
+                                </div>
                             )}
                         </div>
                         <div>
                             <label className="font-semibold">Output Format</label>
-                            <input {...formik.getFieldProps('outputFormat')} placeholder="Describe output format"
-                                className="w-full p-3 border rounded mt-1" />
+                            <textarea
+                                {...formik.getFieldProps("outputFormat")}
+                                placeholder="Describe output format"
+                                className="w-full p-3 border rounded mt-1"
+                            />
                             {formik.touched.outputFormat && formik.errors.outputFormat && (
-                                <div className="text-red-500 text-sm mt-1">{formik.errors.outputFormat}</div>
+                                <div className="text-red-500 text-sm mt-1">
+                                    {formik.errors.outputFormat}
+                                </div>
                             )}
                         </div>
                     </div>
@@ -120,18 +139,28 @@ const AddQuestionForm = ({ onSubmit,onClose }) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="font-semibold">Sample Input</label>
-                            <input {...formik.getFieldProps('sampleInput')} placeholder="Provide sample input"
-                                className="w-full p-3 border rounded mt-1" />
+                            <textarea
+                                {...formik.getFieldProps("sampleInput")}
+                                placeholder="Provide sample input"
+                                className="w-full p-3 border rounded mt-1"
+                            />
                             {formik.touched.sampleInput && formik.errors.sampleInput && (
-                                <div className="text-red-500 text-sm mt-1">{formik.errors.sampleInput}</div>
+                                <div className="text-red-500 text-sm mt-1">
+                                    {formik.errors.sampleInput}
+                                </div>
                             )}
                         </div>
                         <div>
                             <label className="font-semibold">Sample Output</label>
-                            <input {...formik.getFieldProps('sampleOutput')} placeholder="Provide sample output"
-                                className="w-full p-3 border rounded mt-1" />
+                            <textarea
+                                {...formik.getFieldProps("sampleOutput")}
+                                placeholder="Provide sample output"
+                                className="w-full p-3 border rounded mt-1"
+                            />
                             {formik.touched.sampleOutput && formik.errors.sampleOutput && (
-                                <div className="text-red-500 text-sm mt-1">{formik.errors.sampleOutput}</div>
+                                <div className="text-red-500 text-sm mt-1">
+                                    {formik.errors.sampleOutput}
+                                </div>
                             )}
                         </div>
                     </div>
@@ -140,21 +169,31 @@ const AddQuestionForm = ({ onSubmit,onClose }) => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label className="font-semibold">Tags (comma-separated)</label>
-                            <input {...formik.getFieldProps('tags')} placeholder="e.g. arrays, dp, strings"
-                                className="w-full p-3 border rounded mt-1" />
+                            <textarea
+                                {...formik.getFieldProps("tags")}
+                                placeholder="e.g. arrays, dp, strings"
+                                className="w-full p-3 border rounded mt-1"
+                            />
                             {formik.touched.tags && formik.errors.tags && (
-                                <div className="text-red-500 text-sm mt-1">{formik.errors.tags}</div>
+                                <div className="text-red-500 text-sm mt-1">
+                                    {formik.errors.tags}
+                                </div>
                             )}
                         </div>
                         <div>
                             <label className="font-semibold">Difficulty</label>
-                            <select {...formik.getFieldProps('difficulty')} className="w-full p-3 border rounded mt-1">
+                            <select
+                                {...formik.getFieldProps("difficulty")}
+                                className="w-full p-3 border rounded mt-1"
+                            >
                                 <option value="Easy">Easy</option>
                                 <option value="Medium">Medium</option>
                                 <option value="Hard">Hard</option>
                             </select>
                             {formik.touched.difficulty && formik.errors.difficulty && (
-                                <div className="text-red-500 text-sm mt-1">{formik.errors.difficulty}</div>
+                                <div className="text-red-500 text-sm mt-1">
+                                    {formik.errors.difficulty}
+                                </div>
                             )}
                         </div>
                     </div>
@@ -164,11 +203,14 @@ const AddQuestionForm = ({ onSubmit,onClose }) => {
                         <label className="font-semibold">Test Cases</label>
                         <div className="space-y-4 mt-2">
                             {formik.values.testCases.map((tc, index) => (
-                                <div key={index} className="bg-gray-50 p-4 rounded shadow space-y-2">
-                                    <div className="flex  gap-4">
+                                <div
+                                    key={index}
+                                    className="bg-gray-50 p-4 rounded shadow space-y-2"
+                                >
+                                    <div className="flex gap-4">
                                         {/* Input */}
                                         <div>
-                                            <input
+                                            <textarea
                                                 name={`testCases.${index}.input`}
                                                 value={tc.input}
                                                 onChange={formik.handleChange}
@@ -176,16 +218,17 @@ const AddQuestionForm = ({ onSubmit,onClose }) => {
                                                 placeholder="Input"
                                                 className="p-2 border rounded"
                                             />
-                                            {formik.touched.testCases?.[index]?.input && formik.errors.testCases?.[index]?.input && (
-                                                <div className="text-red-500 text-sm mt-1">
-                                                    {formik.errors.testCases[index].input}
-                                                </div>
-                                            )}
+                                            {formik.touched.testCases?.[index]?.input &&
+                                                formik.errors.testCases?.[index]?.input && (
+                                                    <div className="text-red-500 text-sm mt-1">
+                                                        {formik.errors.testCases[index].input}
+                                                    </div>
+                                                )}
                                         </div>
 
                                         {/* Output */}
                                         <div>
-                                            <input
+                                            <textarea
                                                 name={`testCases.${index}.output`}
                                                 value={tc.output}
                                                 onChange={formik.handleChange}
@@ -193,11 +236,12 @@ const AddQuestionForm = ({ onSubmit,onClose }) => {
                                                 placeholder="Expected Output"
                                                 className="p-2 border rounded"
                                             />
-                                            {formik.touched.testCases?.[index]?.output && formik.errors.testCases?.[index]?.output && (
-                                                <div className="text-red-500 text-sm mt-1">
-                                                    {formik.errors.testCases[index].output}
-                                                </div>
-                                            )}
+                                            {formik.touched.testCases?.[index]?.output &&
+                                                formik.errors.testCases?.[index]?.output && (
+                                                    <div className="text-red-500 text-sm mt-1">
+                                                        {formik.errors.testCases[index].output}
+                                                    </div>
+                                                )}
                                         </div>
 
                                         {/* Hidden Checkbox */}
@@ -206,8 +250,11 @@ const AddQuestionForm = ({ onSubmit,onClose }) => {
                                                 type="checkbox"
                                                 name={`testCases.${index}.hidden`}
                                                 checked={tc.hidden}
-                                                onChange={e =>
-                                                    formik.setFieldValue(`testCases.${index}.hidden`, e.target.checked)
+                                                onChange={(e) =>
+                                                    formik.setFieldValue(
+                                                        `testCases.${index}.hidden`,
+                                                        e.target.checked
+                                                    )
                                                 }
                                                 className="p-2 border rounded"
                                             />
@@ -229,25 +276,23 @@ const AddQuestionForm = ({ onSubmit,onClose }) => {
                                     )}
                                 </div>
                             ))}
-                            <button type="button" onClick={handleAddTestCase}
-                                className="text-blue-600 hover:underline text-sm mt-2">
+
+                            <button
+                                type="button"
+                                onClick={handleAddTestCase}
+                                className="text-blue-600 hover:underline text-sm mt-2"
+                            >
                                 + Add Test Case
                             </button>
-                            {/* General testCases array error */}
-                            {typeof formik.errors.testCases === 'string' && (
-                                <div className="text-red-500 text-sm mt-1">{formik.errors.testCases}</div>
-                            )}
                         </div>
-
-                        {formik.errors.testCases && typeof formik.errors.testCases === 'string' && (
-                            <div className="text-red-500 text-sm mt-1">{formik.errors.testCases}</div>
-                        )}
                     </div>
 
                     {/* Submit */}
                     <div className="text-center pt-4">
-                        <button type="submit"
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition duration-200">
+                        <button
+                            type="submit"
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl shadow-md transition duration-200"
+                        >
                             Submit Question
                         </button>
                     </div>
