@@ -2,6 +2,14 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { FaUserPlus, FaQuestionCircle } from "react-icons/fa";
 import { UserPlus } from "lucide-react";
+import { getBatch } from "../shared/networking/api/batchApi/getBatch";
+import { getRemainingUsers } from "../shared/networking/api/batchApi/getRemainingUsers";
+import { getRemainingQuestions } from "../shared/networking/api/batchApi/getRemainingQuestions";
+import { assignBatch } from "../shared/networking/api/batchApi/assignBatch";
+import {toast} from "react-toastify";
+import { assignQuestions } from "../shared/networking/api/batchApi/assignQuestions";
+import { unassignBatch } from "../shared/networking/api/batchApi/unassignBatch";
+import { unassignQuestiontoBatch } from "../shared/networking/api/questionApi/unassignQuestiontoBatch";
 
 const ManageBatch = () => {
     const [batch, setBatch] = useState({});
@@ -15,39 +23,39 @@ const ManageBatch = () => {
     const [unAssignedQuestions, setUnAssignedQuestions] = useState([]);
     const [selectedItems, setSelectedItems] = useState([]);
     const location = useLocation();
+    const batchID = location.state?.batchID;
+    console.log(batchID);
 
     useEffect(() => {
-        const dummyData = {
-            batchName: "Batch Alpha 2025",
-            users: [
-                { rollNumber: "101", name: "Alice Johnson", email: "alice@example.com", course: "React Basics", session: "Morning", role: "Student" },
-                { rollNumber: "102", name: "Bob Smith", email: "bob@example.com", course: "Node.js Advanced", session: "Evening", role: "Student" },
-                { rollNumber: "103", name: "Charlie Davis", email: "charlie@example.com", course: "Full Stack", session: "Afternoon", role: "Mentor" }
-            ],
-            questions: [
-                { id: 1, title: "What is React?", difficulty: "Easy" },
-                { id: 2, title: "Explain useState hook", difficulty: "Medium" },
-                { id: 3, title: "What are props in React?", difficulty: "Easy" }
-            ]
-        };
-        setBatch(dummyData);
+        const fetchBatch=async()=>{
+            const res=await getBatch(batchID);
+            if(res.error){
+                toast.error(res.error);
+                return;
+            }
+            setBatch(res.batch);
+        }
+        fetchBatch();
     }, [location.state]);
 
-    // Dummy fetch functions
-    const getUnassignedUsers = () => {
+    const getUnassignedUsers = async() => {
         //api call here
-        setUnAssignedUsers([
-            { rollNumber: "201", name: "David Lee", email: "david@example.com", course: "Vue.js", session: "Morning", role: "Student" },
-            { rollNumber: "202", name: "Eva Green", email: "eva@example.com", course: "Python Basics", session: "Evening", role: "Student" }
-        ]);
+        const res=await getRemainingUsers(batchID);
+        if(res.error){
+            toast.error(res.error);
+            return;
+        }
+        setUnAssignedUsers(res.users);
     };
 
-    const getUnassignedQuestions = () => {
+    const getUnassignedQuestions = async() => {
         //api call here
-        setUnAssignedQuestions([
-            { id: 4, title: "Explain closures in JS", difficulty: "Medium" },
-            { id: 5, title: "What is async/await?", difficulty: "Easy" }
-        ]);
+        const res=await getRemainingQuestions(batchID);
+        if(res.error){
+            toast.error(res.error);
+            return;
+        }
+        setUnAssignedQuestions(res.questions);
     };
 
     const openPopup = (type) => {
@@ -62,13 +70,40 @@ const ManageBatch = () => {
         }
     };
 
+    const removeUser=async(id)=>{
+        const res=await unassignBatch(batch.id,id);
+        if(res.error){
+            toast.error(res.error);
+            return;
+        }
+        toast.success(res.message);
+        setBatch(prev =>({
+            ...prev,
+            users:prev.users.filter(u=> u.id !== id)
+        }) 
+        )
+    }
+
+    const removeQuestion=async(id)=>{
+        const res=await unassignQuestiontoBatch(id,batch.id);
+        if(res.error){
+            toast.error(res.error);
+            return;
+        }
+        toast.success(res.message);
+        setBatch(prev =>({
+            ...prev,
+            questions:prev.questions.filter(q=> q.id !== id)
+        }) 
+        )
+    }
+
     const handlePopupSearch = (item) => {
         const value = popupSearch.toLowerCase();
         if (!value) return true;
         if (popupType === "users") {
             return (
                 item.name.toLowerCase().includes(value) ||
-                item.rollNumber.toLowerCase().includes(value) ||
                 item.email.toLowerCase().includes(value)
             );
         } else {
@@ -80,7 +115,7 @@ const ManageBatch = () => {
     };
 
     const toggleItemSelection = (item) => {
-        const itemId = popupType === "users" ? item.rollNumber : item.id;
+        const itemId=item.id;
         setSelectedItems(prev => 
             prev.includes(itemId) 
                 ? prev.filter(id => id !== itemId) 
@@ -88,26 +123,27 @@ const ManageBatch = () => {
         );
     };
 
-    const assignSelectedItems = () => {
+    const assignSelectedItems = async() => {
         if (popupType === "users") {
             const usersToAdd = unAssignedUsers.filter(user => 
-                selectedItems.includes(user.rollNumber)
+                selectedItems.includes(user.id)
             );
-
-            //api call for these
+            const res=await assignBatch(batch.id,selectedItems);
+            toast.success(res.message);
             setBatch(prev => ({
                 ...prev,
                 users: [...prev.users, ...usersToAdd]
             }));
             setUnAssignedUsers(prev => 
-                prev.filter(user => !selectedItems.includes(user.rollNumber))
+                prev.filter(user => !selectedItems.includes(user.id))
             );
         } else {
             const questionsToAdd = unAssignedQuestions.filter(question => 
                 selectedItems.includes(question.id)
             );
 
-             //api call for these
+            const res=await assignQuestions(selectedItems,batch.id);
+            toast.success(res.message);
             setBatch(prev => ({
                 ...prev,
                 questions: [...prev.questions, ...questionsToAdd]
@@ -127,7 +163,7 @@ const ManageBatch = () => {
             case "name":
                 return user.name.toLowerCase().includes(value);
             case "rollno":
-                return user.rollNumber.toLowerCase().includes(value);
+                return user.rollno.toLowerCase().includes(value);
             case "course":
                 return user.course.toLowerCase().includes(value);
             case "email":
@@ -256,13 +292,13 @@ const ManageBatch = () => {
                                 filteredUsers.map((user, idx) => (
                                     <tr key={idx} className="hover:bg-blue-50 transition">
                                         <td className="px-4 py-3 border-b border-gray-200">{idx + 1}</td>
-                                        <td className="px-4 py-3 border-b border-gray-200">{user.rollNumber}</td>
+                                        <td className="px-4 py-3 border-b border-gray-200">{user.rollno}</td>
                                         <td className="px-4 py-3 border-b border-gray-200">{user.name}</td>
                                         <td className="px-4 py-3 border-b border-gray-200">{user.email}</td>
                                         <td className="px-4 py-3 border-b border-gray-200">{user.course}</td>
                                         <td className="px-4 py-3 border-b border-gray-200">{user.session}</td>
                                         <td className="px-4 py-3 border-b border-gray-200">
-                                            <button className={`bg-red-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-600 transition`}>Remove</button>
+                                            <button className={`bg-red-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-600 transition`} onClick={()=>removeUser(user.id)}>Remove</button>
                                         </td>
                                     </tr>
                                 ))
@@ -297,7 +333,7 @@ const ManageBatch = () => {
                                         <td className="px-4 py-3 border-b border-gray-200">{q.tags}</td>
                                         <td className="px-4 py-3 border-b border-gray-200">{q.difficulty}</td>
                                         <td className="px-4 py-3 border-b border-gray-200">
-                                            <button className={`bg-red-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-600 transition`}>Remove</button>
+                                            <button className={`bg-red-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-600 transition`} onClick={()=>removeQuestion(q.id)}>Remove</button>
                                         </td>
                                     </tr>
                                 ))
@@ -353,7 +389,7 @@ const ManageBatch = () => {
                                         (popupType === "users" ? unAssignedUsers : unAssignedQuestions)
                                             .filter(handlePopupSearch)
                                             .map((item, idx) => {
-                                                const itemId = popupType === "users" ? item.rollNumber : item.id;
+                                                const itemId = item.id;
                                                 const isSelected = selectedItems.includes(itemId);
                                                 return (
                                                     <tr 
@@ -362,7 +398,7 @@ const ManageBatch = () => {
                                                     >
                                                         {popupType === "users" ? (
                                                             <>
-                                                                <td className="p-2">{item.rollNumber}</td>
+                                                                <td className="p-2">{item.rollno}</td>
                                                                 <td className="p-2">{item.name}</td>
                                                                 <td className="p-2">{item.email}</td>
                                                                 <td className="p-2">{item.course}</td>

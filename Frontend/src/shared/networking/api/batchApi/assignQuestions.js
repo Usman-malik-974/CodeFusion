@@ -1,15 +1,15 @@
-const assignBatch = async (batchId, userIds) => {
+const assignQuestions = async (questionIds, batchId) => {
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/batches/assign`, {
+      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/batches/assignQuestions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
         body: JSON.stringify({
-          batchId,
-          userIds
+          questionIds,
+          batchId
         }),
       });
       const data = await response.json();
@@ -22,5 +22,5 @@ const assignBatch = async (batchId, userIds) => {
     }
   };
   
-  export { assignBatch };
+  export { assignQuestions };
   

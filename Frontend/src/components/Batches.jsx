@@ -108,7 +108,7 @@ const Batches = () => {
                     state: {
                       // questionData: questions.find((question) => question.id == id)
                       // questionData:id
-                      batchData:batch,
+                      batchID:batch.id,
                     }
                   });
                 }}
