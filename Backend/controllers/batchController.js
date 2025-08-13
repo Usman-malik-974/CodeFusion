@@ -215,42 +215,55 @@ const assignBatchToUser = async (req, res) => {
   }
 
   try {
-    const { userId, batchId } = req.body;
+    const { userIds, batchId } = req.body;
+
     if (
-      !mongoose.Types.ObjectId.isValid(userId) ||
+      !Array.isArray(userIds) ||
+      userIds.length === 0 ||
       !mongoose.Types.ObjectId.isValid(batchId)
     ) {
-      return res.status(400).json({ error: "Invalid userId or batchId" });
+      return res.status(400).json({ error: "Invalid userIds or batchId" });
     }
 
-    const user = await User.findById(userId);
     const batch = await Batch.findById(batchId);
-
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
     if (!batch) {
       return res.status(404).json({ error: "Batch not found" });
     }
-    const alreadyAssigned =
-      user.batches.includes(batchId) && batch.users.includes(userId);
 
-    if (alreadyAssigned) {
-      return res.status(200).json({
-        error: "Batch is already assigned to the user.",
-      });
+    const result = {
+      assigned: [],
+      notFound: [],
+      invalidIds: [],
+    };
+
+    for (const userId of userIds) {
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        result.invalidIds.push(userId);
+        continue;
+      }
+
+      const user = await User.findById(userId);
+      if (!user) {
+        result.notFound.push(userId);
+        continue;
+      }
+      if (!user.batches.includes(batchId)) {
+        user.batches.push(batchId);
+        await user.save();
+      }
+
+      if (!batch.users.includes(userId)) {
+        batch.users.push(userId);
+      }
+
+      result.assigned.push(userId);
     }
-    if (!user.batches.includes(batchId)) {
-      user.batches.push(batchId);
-      await user.save();
-    }
-    if (!batch.users.includes(userId)) {
-      batch.users.push(userId);
-      await batch.save();
-    }
+
+    await batch.save();
 
     return res.status(200).json({
-      message: "Batch assigned successfully."
+      message: "Batch assigned to users successfully.",
+      summary: result,
     });
   } catch (err) {
     console.error("Error:", err);
@@ -341,4 +354,108 @@ const deleteBatch = async (req, res) => {
   }
 };
 
-module.exports = { createBatch, getAllBatches,getBatchUsers,getUsersNotInBatch,getBatchQuestions,getUnassignedQuestionsForBatch,assignBatchToUser,unassignBatchFromUser,deleteBatch};
+const getBatch = async (req, res) => {
+  if (!(await isAdmin(req.user.id))) {
+    return res.status(403).json({ error: 'Unauthorized Access.' });
+  }
+
+  try {
+    const id = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({ error: "Invalid Batch ID" });
+    }
+
+    const batch = await Batch.findById(id)
+      .populate("users", "_id fullname email rollno course session")
+      .populate("assignedQuestions", "_id title statement tags difficulty");
+
+    if (!batch) {
+      return res.status(404).json({ error: 'Batch not found' });
+    }
+
+    return res.status(200).json({
+      batch: {
+        id: batch._id,
+        name: batch.name,
+        users: batch.users.map(user => ({
+          id: user._id,
+          name: user.fullname,
+          email: user.email,
+          rollno: user.rollno,
+          course: user.course,
+          session: user.session,
+        })),
+        questions: batch.assignedQuestions.map(question => ({
+          id: question._id,
+          title: question.title,
+          statement: question.statement,
+          tags: question.tags,
+          difficulty: question.difficulty,
+        }))
+      }
+    });
+  } catch (err) {
+    console.error('Error:', err);
+    return res.status(500).json({ error: 'Internal Server Error' });
+  }
+};
+
+
+const assignQuestions = async (req, res) => {
+  try {
+    if (!(await isAdmin(req.user.id))) {
+      return res.status(403).json({ error: "Unauthorized Access." });
+    }
+
+    const { questionIds, batchId } = req.body;
+
+    if (
+      !Array.isArray(questionIds) ||
+      questionIds.length === 0 ||
+      !mongoose.Types.ObjectId.isValid(batchId)
+    ) {
+      return res.status(400).json({ error: "Invalid questionIds or batchId." });
+    }
+
+    const batch = await Batch.findById(batchId);
+    if (!batch) {
+      return res.status(404).json({ error: "Batch not found" });
+    }
+
+    const result = {
+      assigned: [],
+      notFound: [],
+      invalidIds: [],
+    };
+
+    for (const qid of questionIds) {
+      if (!mongoose.Types.ObjectId.isValid(qid)) {
+        result.invalidIds.push(qid);
+        continue;
+      }
+
+      const question = await Question.findById(qid);
+      if (!question) {
+        result.notFound.push(qid);
+        continue;
+      }
+      if (!batch.assignedQuestions.includes(qid)) {
+        batch.assignedQuestions.push(qid);
+        result.assigned.push(qid);
+      }
+    }
+
+    await batch.save();
+
+    return res.status(200).json({
+      message: "Questions assigned successfully.",
+      summary: result,
+    });
+
+  } catch (error) {
+    console.error("Error assigning questions:", error);
+    return res.status(500).json({ error: "Internal server error" });
+  }
+};
+module.exports = { createBatch, getAllBatches,getBatchUsers,getUsersNotInBatch,getBatchQuestions,getUnassignedQuestionsForBatch,assignBatchToUser,unassignBatchFromUser,deleteBatch,getBatch,assignQuestions};
