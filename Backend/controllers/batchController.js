@@ -138,11 +138,6 @@ const getUsersNotInBatch = async (req, res) => {
   }
 };
 
-const mongoose = require('mongoose');
-const Batch = require('../models/Batch');
-const Question = require('../models/Question');
-const isAdmin = require('../utils/isAdmin'); // Adjust path
-
 const getBatchQuestions = async (req, res) => {
   if (!(await isAdmin(req.user.id))) {
     return res.status(403).json({ error: 'Unauthorized Access.' });
