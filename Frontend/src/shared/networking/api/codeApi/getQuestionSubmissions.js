@@ -1,13 +1,10 @@
-const runTestCases=async(code,language,questionId)=>{
+const getQuestionSubmissions=async(questionId)=>{
     try{
         const token=localStorage.getItem('token');
-        const response=await fetch(`${import.meta.env.VITE_SERVER_URL}/api/code/runtestcases`,{
-            method:"POST",
+        const response=await fetch(`${import.meta.env.VITE_SERVER_URL}/api/code/submissions/${questionId}`,{
             headers:{
-                "Content-Type":"application/json",
                 'Authorization': `Bearer ${token}`,
-            },
-            body:JSON.stringify({language,code,questionId})
+            }
         });
         if(response.status>=401 && response.status<=404){
             return {status:response.status}
@@ -23,4 +20,4 @@ const runTestCases=async(code,language,questionId)=>{
     }
 }
 
-export {runTestCases};
+export {getQuestionSubmissions};

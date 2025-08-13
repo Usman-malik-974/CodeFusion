@@ -58,10 +58,11 @@ const QuestionBank = () => {
    };
 
    const handleViewClick = (id) => {
-      console.log('View question with ID:', id);
-      navigate(`/question/${id}`, {
+      // console.log('View question with ID:', id);
+      navigate(`/admin/question`, {
          state: {
             questionData: questions.find((question) => question.id == id)
+            // questionData:id
          }
       });
    };
