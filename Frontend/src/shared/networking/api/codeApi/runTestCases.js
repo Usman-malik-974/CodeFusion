@@ -9,6 +9,9 @@ const runTestCases=async(code,language,questionId)=>{
             },
             body:JSON.stringify({language,code,questionId})
         });
+        if(response.status>=401 && response.status<=404){
+            return {status:response.status}
+        }
         const data=await response.json();
         return data;
     }

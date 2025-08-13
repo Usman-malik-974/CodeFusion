@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { BiLogOut } from "react-icons/bi";
 import { getUserQuestions } from "../shared/networking/api/questionApi/getUserQuestions";
 import { HashLoader } from "react-spinners";
+import { toast } from "react-toastify";
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -25,16 +26,18 @@ const Dashboard = () => {
             setIsLoading(true);
             if (activeTab == 'questions') {
                 // if (questions.length == 0) {
-                    const res = await getUserQuestions();
+                const res = await getUserQuestions();
                 // }
                 // console.log("Assign: ", res.questions);
                 setIsLoading(false);
+                if (res.status && (res.status >= 401 && res.status <= 404)) {
+                    toast.error("Unauthorized Access");
+                    navigate("/login");
+                    return;
+                }
                 setQuestions(res.questions);
             }
             else if (activeTab === 'batches') {
-                // const res = await getUnassignedUsers(questionID);
-                // setIsLoading(false);
-                // setUnAssignedUsers(res.users);
                 setIsLoading(false);
                 console.log("Batches");
             }

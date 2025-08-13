@@ -31,25 +31,56 @@ int main() {
     const [customOutput, setCustomOutput] = useState("");
     const [useCustomInput, setUseCustomInput] = useState(false);
     const [testCaseRunSuccess, setTestCaseRunSuccess] = useState(false);
+    const [activeTab, setActiveTab] = useState("question");
+    const [submissions, setSubmissions] = useState([
+        {
+            id: 1,
+            user: "John Doe",
+            problem: "Two Sum",
+            language: "JavaScript",
+            status: "Accepted",
+            runtime: "120 ms",
+            memory: "14 MB",
+            submittedAt: "2025-08-12 14:35"
+        },
+        {
+            id: 2,
+            user: "Jane Smith",
+            problem: "Reverse Linked List",
+            language: "C++",
+            status: "Wrong Answer",
+            runtime: "—",
+            memory: "—",
+            submittedAt: "2025-08-12 14:40"
+        },
+        {
+            id: 3,
+            user: "Alex Johnson",
+            problem: "Valid Parentheses",
+            language: "Python",
+            status: "Time Limit Exceeded",
+            runtime: "—",
+            memory: "—",
+            submittedAt: "2025-08-12 14:50"
+        }
+    ]);
+
+    const [viewingCode, setViewingCode] = useState(null);
 
 
     useEffect(() => {
-        const savedLang = localStorage.getItem("language");
-        if (savedLang) setLanguage(savedLang);
-
         const prevData = JSON.parse(localStorage.getItem(question.id));
-        if (prevData && prevData.code) {
+        if (prevData && prevData.code && language === prevData.language) {
             setCode(prevData.code);
-            if (prevData.language) setLanguage(prevData.language);
         }
-    }, []);
+    }, [language]);
 
-    useEffect(() => {
-        let prevCode = JSON.parse(localStorage.getItem(question.id));
-        if (prevCode && prevCode.language && prevCode.language === language && prevCode.code != "") {
-            setCode(prevCode.code);
-        }
-    }, [language])
+    // useEffect(() => {
+    //     let prevCode = JSON.parse(localStorage.getItem(question.id));
+    //     if (prevCode && prevCode.language && prevCode.language === language && prevCode.code != "") {
+    //         setCode(prevCode.code);
+    //     }
+    // }, [language])
 
     const isDark = theme === "dark";
 
@@ -73,11 +104,11 @@ int main() {
         setErrorMessage(null);
         setTestResults(null);
         setCustomOutput(null);
-        
+
         if (useCustomInput) {
             // Run with custom input
             const res = await runCode(code.trim(), language, customInput.trim());
-            
+
             if (res.error) {
                 setErrorMessage(res.error);
             } else {
@@ -87,6 +118,12 @@ int main() {
             setTestCaseRunSuccess(false);
             // Run with test cases
             const res = await runTestCases(code, language, question.id);
+
+            if (res.status && (res.status >= 401 && res.status <= 404)) {
+                toast.error("Unauthorized Access");
+                navigate("/login");
+                return;
+            }
 
             if (res.error) {
                 setErrorMessage(res.error);
@@ -102,7 +139,7 @@ int main() {
 
     const handleLanguageChange = (lang) => {
         setLanguage(lang);
-        localStorage.setItem("language", lang);
+        // localStorage.setItem("language", lang);
 
         let template = "";
         if (lang === "c") {
@@ -131,7 +168,7 @@ int main() {
         }
 
         setCode(template);
-        saveCodeToLocal(template, lang); // save change immediately
+        // saveCodeToLocal(template, lang); // save change immediately
     };
 
 
@@ -143,124 +180,224 @@ int main() {
         );
     };
 
+    const LoadSubmissionData = () => {
+        //submission here
+    }
+
     return (
         <div
             className={`flex flex-col lg:flex-row gap-4 p-6 transition-colors duration-300 ${isDark ? "bg-neutral-900 text-gray-100" : "bg-blue-50 text-gray-900"
                 } lg:h-screen lg:overflow-hidden`}
         >
+
             {/* Left Question Panel */}
             <div
                 className={`w-full lg:w-1/2 shadow-lg rounded-xl p-6 border transition-colors duration-300 no-scrollbar
         ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-blue-200 "}`}
                 style={{ overflowY: "auto" }} // scroll only this if content overflows
             >
-                <div className="flex items-center gap-3 mb-3">
-                    <h3
-                        className={`font-bold text-3xl ${isDark ? "text-blue-400" : "text-blue-500"
+                <div className="flex">
+                    <button
+                        className={`flex-1 p-3 text-center rounded-md  ${activeTab === "question"
+                            ? isDark
+                                ? "bg-neutral-700"
+                                : "bg-blue-100"
+                            : ""
                             }`}
+                        onClick={() => setActiveTab("question")}
                     >
-                        {question?.title || "Untitled Question"}
-                    </h3>
-
-                </div>
-
-                <div className="flex items-center gap-3 mb-4">
-                    <span
-                        className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyBadgeColor(
-                            question?.difficulty
-                        )}`}
+                        Question
+                    </button>
+                    <button
+                        className={`flex-1 p-3 text-center rounded-md ${activeTab === "submissions"
+                            ? isDark
+                                ? "bg-neutral-700"
+                                : "bg-blue-100"
+                            : ""
+                            }`}
+                        onClick={() => {
+                            LoadSubmissionData();
+                            setActiveTab("submissions")
+                        }
+                        }
                     >
-                        {question?.difficulty || "Unknown"}
-                    </span>
-                    {question?.tags?.map((tag, idx) => (
-                        <span
-                            key={idx}
-                            className={`px-3 py-1 rounded-full text-sm font-medium border transition-colors duration-300 ${isDark
-                                ? "bg-neutral-700 text-blue-300 border-neutral-600"
-                                : "bg-blue-100 text-blue-800 border-blue-200"
-                                }`}
-                        >
-                            {tag}
-                        </span>
-                    ))}
+                        Submissions
+                    </button>
                 </div>
+                {activeTab === "question" ? (
+                    <div className="p-6">
+                        <div className="flex items-center gap-3 mb-3">
+                            <h3
+                                className={`font-bold text-3xl ${isDark ? "text-blue-400" : "text-blue-500"
+                                    }`}
+                            >
+                                {question?.title || "Untitled Question"}
+                            </h3>
 
-                <div className="space-y-4">
-                    <div>
-                        <h3
-                            className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
-                                }`}
-                        >
-                            Problem Statement:
-                        </h3>
-                        <pre
-                            className={`whitespace-pre-wrap p-3 rounded-lg border transition-colors duration-300 ${isDark
-                                ? "bg-neutral-700 border-neutral-600"
-                                : "bg-blue-50 border-blue-100"
-                                }`}
-                        >
-                            {question?.statement}
-                        </pre>
-                    </div>
+                        </div>
 
-                    <div>
-                        <h3
-                            className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
-                                }`}
-                        >
-                            Input Format:
-                        </h3>
-                        <p
-                            className={`p-3 rounded-lg border transition-colors duration-300 ${isDark
-                                ? "bg-neutral-700 border-neutral-600"
-                                : "bg-blue-50 border-blue-100"
-                                }`}
-                        >
-                            {question?.inputFormat}
-                        </p>
-                    </div>
+                        <div className="flex items-center gap-3 mb-4">
+                            <span
+                                className={`px-3 py-1 rounded-full text-sm font-medium ${getDifficultyBadgeColor(
+                                    question?.difficulty
+                                )}`}
+                            >
+                                {question?.difficulty || "Unknown"}
+                            </span>
+                            {question?.tags?.map((tag, idx) => (
+                                <span
+                                    key={idx}
+                                    className={`px-3 py-1 rounded-full text-sm font-medium border transition-colors duration-300 ${isDark
+                                        ? "bg-neutral-700 text-blue-300 border-neutral-600"
+                                        : "bg-blue-100 text-blue-800 border-blue-200"
+                                        }`}
+                                >
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
 
-                    <div>
-                        <h3
-                            className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
-                                }`}
-                        >
-                            Output Format:
-                        </h3>
-                        <p
-                            className={`p-3 rounded-lg border transition-colors duration-300 ${isDark
-                                ? "bg-neutral-700 border-neutral-600"
-                                : "bg-blue-50 border-blue-100"
-                                }`}
-                        >
-                            {question?.outputFormat}
-                        </p>
-                    </div>
+                        <div className="space-y-4">
+                            <div>
+                                <h3
+                                    className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
+                                        }`}
+                                >
+                                    Problem Statement:
+                                </h3>
+                                <pre
+                                    className={`whitespace-pre-wrap p-3 rounded-lg border transition-colors duration-300 ${isDark
+                                        ? "bg-neutral-700 border-neutral-600"
+                                        : "bg-blue-50 border-blue-100"
+                                        }`}
+                                >
+                                    {question?.statement}
+                                </pre>
+                            </div>
 
-                    <div>
-                        <h3
-                            className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
-                                }`}
-                        >
-                            Sample Input:
-                        </h3>
-                        <p className="bg-gray-900 text-white p-3 rounded-lg font-mono">
-                            {question?.sampleInput}
-                        </p>
-                    </div>
+                            <div>
+                                <h3
+                                    className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
+                                        }`}
+                                >
+                                    Input Format:
+                                </h3>
+                                <pre
+                                    className={`p-3 rounded-lg border transition-colors duration-300 ${isDark
+                                        ? "bg-neutral-700 border-neutral-600"
+                                        : "bg-blue-50 border-blue-100"
+                                        }`}
+                                >
+                                    {question?.inputFormat}
+                                </pre>
+                            </div>
 
-                    <div>
-                        <h3
-                            className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
-                                }`}
-                        >
-                            Sample Output:
-                        </h3>
-                        <p className="bg-gray-900 text-white p-3 rounded-lg font-mono">
-                            {question?.sampleOutput}
-                        </p>
+                            <div>
+                                <h3
+                                    className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
+                                        }`}
+                                >
+                                    Output Format:
+                                </h3>
+                                <pre
+                                    className={`p-3 rounded-lg border transition-colors duration-300 ${isDark
+                                        ? "bg-neutral-700 border-neutral-600"
+                                        : "bg-blue-50 border-blue-100"
+                                        }`}
+                                >
+                                    {question?.outputFormat}
+                                </pre>
+                            </div>
+
+                            <div>
+                                <h3
+                                    className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
+                                        }`}
+                                >
+                                    Sample Input:
+                                </h3>
+                                <pre className="bg-gray-900 text-white p-3 rounded-lg font-mono">
+                                    {question?.sampleInput}
+                                </pre>
+                            </div>
+
+                            <div>
+                                <h3
+                                    className={`font-semibold ${isDark ? "text-blue-400" : "text-blue-500"
+                                        }`}
+                                >
+                                    Sample Output:
+                                </h3>
+                                <pre className="bg-gray-900 text-white p-3 rounded-lg font-mono">
+                                    {question?.sampleOutput}
+                                </pre>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                ) : (
+                    <div className="p-6">
+                        <table className="min-w-full border-collapse rounded-xl overflow-hidden shadow-md">
+                            <thead className="bg-blue-100 text-left text-sm font-semibold text-blue-600">
+                                <tr>
+                                    <th className="px-4 py-2 border-b border-blue-200">Language</th>
+                                    <th className="px-4 py-2 border-b border-blue-200">Time</th>
+                                    <th className="px-4 py-2 border-b border-blue-200">Passed</th>
+                                    <th className="px-4 py-2 border-b border-blue-200">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {submissions.map((sub, idx) => {
+                                    const allPassed = sub.passed === sub.total;
+                                    return (
+                                        <tr key={idx} className="even:bg-gray-50 hover:bg-blue-50 transition">
+                                            <td className="px-4 py-3 border-b border-gray-200">
+                                                {sub.language}
+                                            </td>
+                                            <td className="px-4 py-3 border-b border-gray-200">
+                                                {new Date(sub.submittedAt).toLocaleString()}
+                                            </td>
+                                            <td
+                                                className={`border p-2 text-center font-bold ${allPassed
+                                                    ? "text-green-600"
+                                                    : "text-red-600"
+                                                    }`}
+                                            >
+                                                {sub.passed}/{sub.total}
+                                            </td>
+                                            <td className="px-4 py-3 border-b border-gray-200">
+                                                <button
+                                                    className="bg-blue-500 text-white px-2 py-1 rounded"
+                                                    onClick={() =>
+                                                        setViewingCode(sub.code)
+                                                    }
+                                                >
+                                                    View Code
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                            </tbody>
+                        </table>
+
+                        {viewingCode && (
+                            <div className="mt-4">
+                                <h3 className="font-bold mb-2">Submitted Code:</h3>
+                                <pre className="bg-gray-900 text-white p-3 rounded-lg overflow-auto">
+                                    {viewingCode}
+                                </pre>
+                                <button
+                                    className="mt-2 bg-red-500 text-white px-3 py-1 rounded"
+                                    onClick={() => setViewingCode(null)}
+                                >
+                                    Close
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+
             </div>
 
             {/* Right Editor Panel */}
