@@ -1,6 +1,6 @@
 const express = require('express');
 const authenticateToken = require('../middlewares/authenticateToken');
-const { addQuestion, getAllQuestions, deleteQuestion, getAssignedUsers, getUnassignedUsers, assignQuestion, unassignQuestion, getUserQuestions } = require('../controllers/questionController');
+const { addQuestion, getAllQuestions, deleteQuestion, getAssignedUsers, getUnassignedUsers, assignQuestion, unassignQuestion, getUserQuestions, updateQuestion, getQuestion } = require('../controllers/questionController');
 const router = express.Router();
 
 router.get('/',authenticateToken,getAllQuestions);
@@ -18,5 +18,9 @@ router.post('/unassign',authenticateToken,unassignQuestion);
 router.get('/userquestions',authenticateToken,getUserQuestions);
 
 router.post('/add',authenticateToken,addQuestion);
+
+router.post('/update',authenticateToken,updateQuestion);
+
+router.get('/getQuestion/:id',authenticateToken,getQuestion);
 
 module.exports = router;
