@@ -7,6 +7,7 @@ import { ClipLoader } from "react-spinners";
 import { runCode } from "../shared/networking/api/codeApi/runCode";
 import TestCaseDock from "../components/TestCaseDock";
 import { runTestCases } from "../shared/networking/api/codeApi/runTestCases";
+import { getQuestionSubmissions } from "../shared/networking/api/codeApi/getQuestionSubmissions";
 
 const QuestionView = () => {
     // const { id } = useParams();
@@ -180,8 +181,10 @@ int main() {
         );
     };
 
-    const LoadSubmissionData = () => {
+    const LoadSubmissionData = async() => {
         //submission here
+        const res=await getQuestionSubmissions(question.id);
+        console.log(res);
     }
 
     return (

@@ -3,6 +3,7 @@ const fs = require('fs-extra');
 const { execSync, spawnSync } = require('child_process');
 const path = require('path');
 const {Question,Submission}=require('../models/index');
+const isAdmin = require('../utils/isAdmin');
 
 // exports.runCode = async (req, res) => {
 //     const { code, language, input = '' } = req.body;
@@ -325,7 +326,6 @@ exports.runCode = async (req, res) => {
 
 exports.runTestCases = async (req, res) => {
   const { code, language, questionId } = req.body;
-  console.log(req.user);
   if (!code || !language || !questionId) {
     return res.status(400).json({ error: 'Missing code, language, or questionId' });
   }
@@ -469,5 +469,40 @@ exports.runTestCases = async (req, res) => {
     return res.status(500).json({
       error: 'Internal server error. Please try again later.'
     });
+  }
+};
+
+exports.getQuestionSubmissions = async (req, res) => {
+  try {
+    const userID = req.user.id;
+    const questionID=req.params.id;
+    if (await isAdmin(req.user.id)) {
+      return res.status(403).json({ error: 'Unauthorized Access.' });
+    }
+    const submissions=await Submission.find({userID,questionID});
+    res.status(200).json({
+      submissions:submissions.map((s)=>{
+        const formattedDate = new Intl.DateTimeFormat('en-IN', {
+          day: '2-digit',
+          month: 'long',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+          timeZone: 'Asia/Kolkata'
+      }).format(s.submittedAt).replace(" at",",");
+      return{
+          id:s._id,
+          language:s.language,
+          passed:s.passed,
+          submittedAt:formattedDate,
+          total:s.total,
+          code:s.code
+      }
+      })
+    })
+  } catch (error) {
+    console.error('Error fetching submissions:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
 };
