@@ -2,75 +2,62 @@ import { useEffect, useState } from "react";
 import { FaUser, FaLayerGroup } from "react-icons/fa";
 import { useFormik } from "formik";
 import * as Yup from "yup";
+import { toast } from "react-toastify";
+import { getAllBatches } from "../shared/networking/api/batchApi/getAllBatches";
+import { createBatch } from "../shared/networking/api/batchApi/createBatch";
 
 const Batches = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [showForm, setShowForm] = useState(false);
-
-  const [batches, setBatches] = useState([
-    {
-      batch_id: 1,
-      batch_name: "Alpha Beginners",
-      users: [
-        { user_id: 1, name: "Alice Khan" },
-        { user_id: 2, name: "Bob Sharma" },
-        { user_id: 3, name: "Charlie Roy" },
-      ],
-    },
-    {
-      batch_id: 2,
-      batch_name: "Beta Intermediates",
-      users: [
-        { user_id: 4, name: "David Patel" },
-        { user_id: 5, name: "Eva Singh" },
-        { user_id: 6, name: "Frank Gupta" },
-      ],
-    },
-    {
-      batch_id: 3,
-      batch_name: "Gamma Advanced",
-      users: [
-        { user_id: 7, name: "Grace Mehta" },
-        { user_id: 8, name: "Harry Kumar" },
-        { user_id: 9, name: "Irene Das" },
-      ],
-    },
-    {
-      batch_id: 4,
-      batch_name: "Delta Beginners",
-      users: [
-        { user_id: 10, name: "John Paul" },
-        { user_id: 11, name: "Kevin George" },
-        { user_id: 12, name: "Lara Hussain" },
-      ],
-    },
-  ]);
-
+  const [batches, setBatches] = useState([]);
+  const filteredBatches = batches.filter((batch) =>
+    batch.batchName.toLowerCase().includes(searchInput.toLowerCase())
+  );
   const validationSchema = Yup.object({
-    batch_name: Yup.string()
+    batchName: Yup.string()
       .required("Batch name is required")
       .min(3, "Batch name must be at least 3 characters"),
   });
 
   const formik = useFormik({
-    initialValues: { batch_name: "" },
+    initialValues: { batchName: "" },
     validationSchema,
-    onSubmit: (values, { resetForm }) => {
-    //   const newBatch = {
-    //     batch_id: batches.length + 1,
-    //     batch_name: values.batch_name,
-    //     users: [],
-    //   };
-      //create api lgic here
-      setBatches([...batches, newBatch]);
-      resetForm();
-      setShowForm(false);
+    onSubmit: async (values, { resetForm }) => {
+      const newBatch = { batchName: values.batchName };
+
+      try {
+        const res = await createBatch(newBatch);
+
+        if (res.error) {
+          toast.error(res.error); // Duplicate ya koi bhi backend error yaha show hoga
+          return;
+        }
+
+        setBatches([...batches, res.batch]);
+        toast.success(res.message);
+        resetForm();
+        setShowForm(false);
+      } catch (error) {
+        toast.error("Something went wrong");
+      }
     },
   });
-  useEffect(()=>{
-     //batch load api here
-  },[]);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getAllBatches();
+        console.log(data);
+        setBatches(data.batches);
+        setIsLoading(false);
+        console.log(data);
+      } catch (e) {
+        toast.error("Something went wrong");
+      }
+    };
+    console.log(batches);
+    fetchData();
+  }, []);
 
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
@@ -100,15 +87,15 @@ const Batches = () => {
       )}
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {batches.map((batch) => (
+        {filteredBatches.map((batch) => (
           <div
-            key={batch.batch_id}
+            key={batch.id}
             className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm 
                        flex flex-col items-center text-center 
                        transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-blue-300"
           >
             <h4 className="text-lg font-semibold text-gray-800 mb-3">
-              {batch.batch_name}
+              {batch.batchName}
             </h4>
 
             <div className="flex items-center gap-2 text-gray-700 bg-blue-50 px-4 py-2 rounded-full">
@@ -131,20 +118,20 @@ const Batches = () => {
                 </label>
                 <input
                   type="text"
-                  name="batch_name"
+                  name="batchName"
                   placeholder="Enter batch name"
-                  value={formik.values.batch_name}
+                  value={formik.values.batchName}
                   onChange={formik.handleChange}
                   onBlur={formik.handleBlur}
                   className={`w-full border rounded-md px-3 py-2 focus:outline-none ${
-                    formik.touched.batch_name && formik.errors.batch_name
+                    formik.touched.batchName && formik.errors.batchName
                       ? "border-red-500"
                       : "border-gray-300 focus:border-blue-400"
                   }`}
                 />
-                {formik.touched.batch_name && formik.errors.batch_name && (
+                {formik.touched.batchName && formik.errors.batchName && (
                   <div className="text-red-500 text-sm mt-1">
-                    {formik.errors.batch_name}
+                    {formik.errors.batchName}
                   </div>
                 )}
               </div>
