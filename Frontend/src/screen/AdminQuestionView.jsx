@@ -8,7 +8,8 @@ import { runCode } from "../shared/networking/api/codeApi/runCode";
 import { runTestCases } from "../shared/networking/api/codeApi/runTestCases";
 import { CiEdit } from "react-icons/ci";
 import AdminTestCaseDock from "../components/AdminTestCaseDock";
-import { setQuestionsList } from "../app/slices/questionsSlice";
+// import { setQuestionsList } from "../app/slices/questionsSlice";
+import { getQuestionSubmissions } from "../shared/networking/api/codeApi/getQuestionSubmissions";
 
 const AdminQuestionView = () => {
     const location = useLocation();
@@ -31,6 +32,7 @@ int main() {
     const [testCaseRunSuccess, setTestCaseRunSuccess] = useState(false);
     const [activeTab, setActiveTab] = useState("question");
     const [submissions, setSubmissions] = useState([]);
+    const [disabled, setDisabled] = useState(false);
 
 
     const [viewingCode, setViewingCode] = useState(null);
@@ -89,6 +91,7 @@ int main() {
             setTestCaseRunSuccess(false);
             // Run with test cases
             const res = await runTestCases(code, language, question.id);
+            // console.log(res);
 
             if (res.status && (res.status >= 401 && res.status <= 404)) {
                 toast.error("Unauthorized Access");
@@ -148,13 +151,18 @@ int main() {
         );
     };
 
-    const LoadSubmissionData = () => {
+    const LoadSubmissionData = async () => {
         //submission here
+        console.log(question.id);
+        const res = await getQuestionSubmissions(question.id);
+        console.log(res);
+        // setSubmissions(res.submissions);
     }
 
     const handleSaveClick = () => {
         //update logic here
         setIsEditable(false);
+        setDisabled(false);
     }
 
     return (
@@ -171,7 +179,7 @@ int main() {
             >
                 <div className="flex">
                     <button
-                        className={`flex-1 p-3 text-center rounded-md  ${activeTab === "question"
+                        className={`flex-1 p-3 text-center rounded-t-2xl  ${activeTab === "question"
                             ? isDark
                                 ? "bg-neutral-700"
                                 : "bg-blue-100"
@@ -182,7 +190,7 @@ int main() {
                         Question
                     </button>
                     <button
-                        className={`flex-1 p-3 text-center rounded-md ${activeTab === "submissions"
+                        className={`flex-1 p-3 text-center rounded-t-2xl ${activeTab === "submissions"
                             ? isDark
                                 ? "bg-neutral-700"
                                 : "bg-blue-100"
@@ -225,7 +233,7 @@ int main() {
                                     className="flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded-md transition-colors"
                                     onClick={() => {
                                         handleSaveClick();
-
+                                        
                                     }
                                     }
                                 >
@@ -234,8 +242,11 @@ int main() {
                             ) : (
                                 <button
                                     className="flex items-center gap-1 bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded-md transition-colors"
-                                    onClick={() =>
-                                        setIsEditable(true)
+                                    onClick={() => {
+
+                                        setIsEditable(true);
+                                        setDisabled(true);
+                                    }
                                     }
                                 >
                                     <CiEdit size={20} />
@@ -545,7 +556,7 @@ int main() {
                         <button
                             onClick={handleRun}
                             className="bg-blue-500 text-white flex items-center gap-1 px-3 py-1 rounded-md disabled:bg-gray-400"
-                            disabled={loader}
+                            disabled={loader || disabled}
                         >
                             {loader ? (
                                 <ClipLoader size={24} color="#fff" />

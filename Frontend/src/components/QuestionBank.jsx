@@ -164,24 +164,24 @@ const QuestionBank = () => {
                <table className="min-w-full border-collapse rounded-xl overflow-hidden shadow-md">
                   <thead className="bg-blue-100 text-left text-sm font-semibold text-blue-600">
                      <tr>
-                        <th className="px-4 py-3 border-b border-blue-200">#</th>
-                        <th className="px-4 py-3 border-b border-blue-200">Title</th>
+                        <th className="px-4 py-3 border-b border-blue-200 ">#</th>
+                        <th className="px-4 py-3 border-b border-blue-200 ">Title</th>
                         <th className="px-4 py-3 border-b border-blue-200">Tags</th>
                         <th className="px-4 py-3 border-b border-blue-200">Difficulty</th>
-                        <th className="px-4 py-3 border-b border-blue-200">Action</th>
+                        <th className="px-4 py-3 border-b border-blue-200 text-center">Action</th>
                      </tr>
                   </thead>
                   <tbody className="text-sm text-gray-700">
                      {filteredQuestions.map((question, index) => (
                         <tr key={question.id} className="even:bg-gray-50 hover:bg-blue-50 transition">
                            <td className="px-4 py-3 border-b border-gray-200">{index + 1}</td>
-                           <td className="px-4 py-3 border-b border-gray-200">{question.title}</td>
+                           <td className="px-4 py-3 border-b border-gray-200 font-semibold">{question.title}</td>
                            <td className="px-4 py-3 border-b border-gray-200">
                               <div className="flex flex-wrap gap-2">
                                  {question.tags.map((tag, tagIndex) => (
                                     <span
                                        key={tagIndex}
-                                       className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs"
+                                       className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm font-semibold"
                                     >
                                        {tag}
                                     </span>
@@ -194,7 +194,7 @@ const QuestionBank = () => {
                               </span>
                            </td>
                            <td className="px-4 py-3 border-b border-gray-200">
-                              <div className="flex gap-2 min-w-[110px]">
+                              <div className="flex gap-2 min-w-[110px] justify-center">
 
                                  <button
                                     onClick={() => handleViewClick(question.id)}

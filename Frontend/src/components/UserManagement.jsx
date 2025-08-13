@@ -21,12 +21,14 @@ const UserManagement = () => {
     const [selectedUser, setSelectedUser] = useState({ index: null, id: null });
     const [isLoading, setIsLoading] = useState(false);
     const [searchInput, setSearchInput] = useState("");
+    const [searchBy, setSearchBy] = useState("name");
     const inputref = useRef(null);
     const dispatch = useDispatch();
     const usersList = useSelector((state) => state.users.usersList);
     const navigate = useNavigate();
 
     const handleSearchChange = useCallback(
+        
         debounce(async (query) => {
             if (query.trim() !== '') {
                 try {
@@ -202,7 +204,7 @@ const UserManagement = () => {
     };
 
 
-    const handleExcelUpload =async (e) => {
+    const handleExcelUpload = async (e) => {
         const file = e.target.files[0];
 
         if (!file) {
@@ -268,21 +270,6 @@ const UserManagement = () => {
         }
         e.target.value = null;
     };
-    // const handleSearch = (e) => {
-    //     const value = e.target.value;
-    //     setSearchInput(value); // update input state
-
-    //     if (value.trim() === "") {
-    //         // If search is cleared, reset to full users list from Redux
-    //         setUsers(usersList);
-    //     } else {
-    //         // Filter based on lowercase match
-    //         const filtered = usersList.filter((user) =>
-    //             user.name.toLowerCase().includes(value.toLowerCase())
-    //         );
-    //         setUsers(filtered);
-    //     }
-    // };
 
     return (
         <div className="p-4 relative">
@@ -294,14 +281,35 @@ const UserManagement = () => {
             )}
             {!isLoading && (
                 <div className="flex items-center justify-between mb-4">
-                    <input
-                        type="text"
-                        placeholder="Search user"
-                        onChange={(e) => { let value = e.target.value; setSearchInput(value); handleSearchChange(value) }}
-                        className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-100 w-1/3"
-                        value={searchInput}
+                    <div className="flex w-full md:w-1/2 items-center gap-3">
+                        <input
+                            type="text"
+                            placeholder="Search user"
+                            onChange={(e) => {
+                                let value = e.target.value;
+                                setSearchInput(value);
+                                handleSearchChange(value);
+                            }}
+                            className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400  bg-gray-100 w-full"
+                            value={searchInput}
+                        />
+                        <div className="flex items-center gap-2 shrink-0">
+                            <span className="text-sm font-medium text-blue-500">Search By</span>
+                            <select
+                                className="p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-100 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+                                value={searchBy}
+                                onChange={(e) => setSearchBy(e.target.value)}
+                            >
+                                <option value="name">Name</option>
+                                <option value="rollno">Roll No</option>
+                                <option value="course">Course</option>
+                                <option value="email">Email</option>
+                                <option value="session">Session</option>
+                                <option value="role">Role</option>
+                            </select>
 
-                    />
+                        </div>
+                    </div>
                     <div className='flex gap-2 items-center'>
                         <button
                             className="flex items-center gap-2 bg-green-600 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-green-700 transition cursor-pointer"
