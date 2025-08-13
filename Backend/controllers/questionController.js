@@ -239,4 +239,101 @@ const addQuestion = async (req, res) => {
   };
   
 
-  module.exports={addQuestion,getAllQuestions,deleteQuestion,getAssignedUsers,getUnassignedUsers,assignQuestion,unassignQuestion,getUserQuestions};
+  const updateQuestion = async (req, res) => {
+    if (!(await isAdmin(req.user.id))) {
+      return res.status(403).json({ error: 'Unauthorized Access.' });
+    }
+  
+    try {
+      const {
+        questionId,
+        title,
+        statement,
+        inputFormat,
+        outputFormat,
+        sampleInput,
+        sampleOutput,
+        tags,
+        difficulty,
+        testCases,
+      } = req.body;
+      if (!questionId || !title || !statement || !testCases || testCases.length === 0) {
+        return res.status(400).json({
+          error: 'questionId, title, statement, and at least one test case are required.',
+        });
+      }
+      const question = await Question.findById(questionId);
+  
+      if (!question) {
+        return res.status(404).json({ error: 'Question not found' });
+      }
+      question.title = title;
+      question.statement = statement;
+      question.inputFormat = inputFormat;
+      question.outputFormat = outputFormat;
+      question.sampleInput = sampleInput;
+      question.sampleOutput = sampleOutput;
+      question.tags = tags;
+      question.difficulty = difficulty;
+      question.testCases = testCases;
+      await question.save();
+      return res.status(200).json({
+        message: 'Question updated successfully',
+        question:{
+          id: question._id,
+        title: question.title,
+        statement: question.statement,
+        inputFormat: question.inputFormat,
+        outputFormat: question.outputFormat,
+        sampleInput: question.sampleInput,
+        sampleOutput: question.sampleOutput,
+        tags: question.tags,
+        difficulty: question.difficulty,
+        testCases: question.testCases
+      }
+      });
+    } catch (err) {
+      console.error('Update Question Error:', err);
+      if (err.name === 'ValidationError') {
+        const field = Object.keys(err.errors)[0];
+        const errorMessage = err.errors[field].message;
+        return res.status(400).json({ error: errorMessage });
+      }
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  };
+
+  const getQuestion = async (req, res) => {
+    if (!(await isAdmin(req.user.id))) {
+      return res.status(403).json({ error: 'Unauthorized Access.' });
+    }
+  
+    try {
+      const id=req.params.id;
+      const question = await Question.findById(id);
+      if (!question) {
+        return res.status(404).json({ error: 'Question not found' });
+      }
+      return res.status(200).json({
+        question:{
+          id: question._id,
+        title: question.title,
+        statement: question.statement,
+        inputFormat: question.inputFormat,
+        outputFormat: question.outputFormat,
+        sampleInput: question.sampleInput,
+        sampleOutput: question.sampleOutput,
+        tags: question.tags,
+        difficulty: question.difficulty,
+        testCases: question.testCases
+      }
+      });
+    } catch (err) {
+      console.error('Error:', err);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  };
+
+  
+  
+  module.exports={addQuestion,getAllQuestions,deleteQuestion,getAssignedUsers,getUnassignedUsers,assignQuestion,unassignQuestion,getUserQuestions,updateQuestion,getQuestion};
