@@ -173,7 +173,7 @@ int main() {
         console.log(question.id);
         const res = await getQuestionSubmissions(question.id);
         console.log(res);
-        // setSubmissions(res.submissions);
+        setSubmissions(res.submissions);
     }
 
     const handleSaveClick = () => {
