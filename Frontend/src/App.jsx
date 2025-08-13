@@ -11,7 +11,7 @@ import Contests from './components/Contests'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import Dashboard from './screen/Dashboard'
-// import AdminQuestionView from './screen/AdminQuestionView'
+import AdminQuestionView from './screen/AdminQuestionView'
 import QuestionView from './screen/QuestionView'
 import AssignQuestion from './screen/AssignQuestion'
 
@@ -41,6 +41,7 @@ function App() {
               <Route path='assign' element={<AssignQuestion/>} />
             </Route>
             <Route path='/question' element={<QuestionView/>} /> 
+            <Route path='/admin/question' element={<AdminQuestionView/>} /> 
           </Routes>
         </div>
       </BrowserRouter>
