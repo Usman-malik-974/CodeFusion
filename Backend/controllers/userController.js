@@ -1,4 +1,4 @@
-const { User,Batch } = require("../models/index");
+const { User, Batch } = require("../models/index");
 const isAdmin = require("../utils/isAdmin");
 const xlsx = require("xlsx");
 const bcrypt = require("bcrypt");
@@ -11,7 +11,10 @@ const getAllUsers = async (req, res) => {
       return res.status(403).json({ error: "Unauthorized Access." });
     }
 
-    const users = await User.find({}, '_id fullname email role rollno course session');
+    const users = await User.find(
+      {},
+      "_id fullname email role rollno course session"
+    );
 
     res.status(200).json({
       users: users.map((user) => ({
@@ -78,10 +81,7 @@ const deleteUser = async (req, res) => {
     if (!deletedUser) {
       return res.status(404).json({ error: "User not found" });
     }
-    await Batch.updateMany(
-      { users: id },
-      { $pull: { users: id } }
-    );
+    await Batch.updateMany({ users: id }, { $pull: { users: id } });
     return res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     console.error("Delete error:", error);
@@ -147,7 +147,14 @@ const searchUsers = async (req, res) => {
     if (query) {
       const searchRegex = new RegExp(query, "i");
       const searchBy = by === "name" ? "fullname" : by;
-      const allowedFields = ["fullname", "email", "rollno", "course", "session","role"];
+      const allowedFields = [
+        "fullname",
+        "email",
+        "rollno",
+        "course",
+        "session",
+        "role",
+      ];
       if (searchBy && allowedFields.includes(searchBy)) {
         users = await User.find(
           { [searchBy]: { $regex: searchRegex } },
@@ -180,7 +187,6 @@ const searchUsers = async (req, res) => {
   }
 };
 
-
 const uploadUsers = async (req, res) => {
   try {
     if (!(await isAdmin(req.user.id))) {
@@ -201,12 +207,11 @@ const uploadUsers = async (req, res) => {
 
     for (let index = 0; index < rows.length; index++) {
       const row = rows[index];
-      const rowNum = index + 2;
       const errors = [];
 
       const fullname = row.fullname?.toString().trim() || "";
       const email = row.email?.toString().trim().toLowerCase() || "";
-      let password = row.password?.toString().trim() || "";
+      let password = generatePassword(); // Always generate internally
       const role = row.role?.toString().trim().toLowerCase() || "";
 
       // New fields
@@ -215,7 +220,6 @@ const uploadUsers = async (req, res) => {
       const session = row.session?.toString().trim() || "";
 
       // ===== Validations =====
-
       if (!fullname) errors.push("fullname is empty");
       else if (!/^[A-Za-z ]{2,50}$/.test(fullname))
         errors.push("fullname must be 2-50 characters and letters/spaces only");
@@ -224,10 +228,6 @@ const uploadUsers = async (req, res) => {
       else if (!emailRegex.test(email)) errors.push("invalid email format");
       else if (existingEmails.has(email)) errors.push("email already exists");
       else if (emailsInFile.has(email)) errors.push("duplicate in Excel file");
-
-      if (!password) password = generatePassword();
-      else if (password.length < 8)
-        errors.push("password must be at least 8 characters");
 
       if (!role) errors.push("role is empty");
       else if (!["user", "admin"].includes(role))
@@ -247,7 +247,6 @@ const uploadUsers = async (req, res) => {
         failedUsers.push({
           fullname,
           email,
-          password,
           role,
           rollno,
           course,
@@ -267,7 +266,7 @@ const uploadUsers = async (req, res) => {
           session,
         });
 
-        // Send welcome email
+        // Send welcome email with original generated password
         sendWelcomeMail({ to: email, fullname, email, password });
 
         existingEmails.add(email);
@@ -280,7 +279,7 @@ const uploadUsers = async (req, res) => {
       await User.insertMany(validUsers);
     }
 
-    // If any failed, send back Excel sheet
+    // If any failed, send back Excel sheet (without password or batches)
     if (failedUsers.length > 0) {
       const failedWB = xlsx.utils.book_new();
       const failedSheet = xlsx.utils.json_to_sheet(failedUsers);
@@ -317,21 +316,22 @@ const getUserBatches = async (req, res) => {
   try {
     const userId = req.user.id;
     if (await isAdmin(req.user.id)) {
-      return res.status(403).json({ error: 'Unauthorized Access.' });
+      return res.status(403).json({ error: "Unauthorized Access." });
     }
-    const user = await User.findById(userId).populate('batches');
+    const user = await User.findById(userId).populate("batches");
     if (!user) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).json({ error: "User not found" });
     }
-    res.status(200).json({ batches: user.batches.map(batch => ({
-      id:batch._id,
-      name:batch.name,
-      questionCount:batch.assignedQuestions.length
-    }))
-   });
+    res.status(200).json({
+      batches: user.batches.map((batch) => ({
+        id: batch._id,
+        name: batch.name,
+        questionCount: batch.assignedQuestions.length,
+      })),
+    });
   } catch (error) {
-    console.error('Error fetching user batches:', error);
-    res.status(500).json({ error: 'Internal server error' });
+    console.error("Error fetching user batches:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 };
 
