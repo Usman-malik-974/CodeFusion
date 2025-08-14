@@ -3,10 +3,10 @@ const { runCode, runTestCases, getQuestionSubmissions } = require('../controller
 const authenticateToken = require('../middlewares/authenticateToken');
 
 module.exports = (io) => {
-        const router = express.Router();
-        router.post('/run', runCode);
-        router.post('/runtestcases',authenticateToken,runTestCases);
-        router.get('/submissions/:id',authenticateToken,getQuestionSubmissions);
+    const router = express.Router();
+    router.post('/run', runCode);
+    router.post('/runtestcases', authenticateToken, runTestCases);
+    router.get('/submissions/:id', authenticateToken, getQuestionSubmissions);
     return router;
     
 };

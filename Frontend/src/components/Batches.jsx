@@ -7,6 +7,7 @@ import { getAllBatches } from "../shared/networking/api/batchApi/getAllBatches";
 import { createBatch } from "../shared/networking/api/batchApi/createBatch";
 import { HashLoader } from "react-spinners";
 import { useNavigate } from "react-router-dom";
+import { FaQuestionCircle } from "react-icons/fa";
 
 const Batches = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -101,29 +102,35 @@ const Batches = () => {
               <div
                 key={batch.id}
                 className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm 
-                       flex flex-col items-center text-center cursor-pointer
-                       transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-blue-300"
+                 flex flex-col items-center text-center cursor-pointer
+                 transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-blue-300"
                 onClick={() => {
                   navigate("/admin/batch", {
-                    state: {
-                      // questionData: questions.find((question) => question.id == id)
-                      // questionData:id
-                      batchData:batch,
-                    }
+                    state: { batchID: batch.id },
                   });
                 }}
               >
-                <h4 className="text-lg font-semibold text-gray-800 mb-3">
+                <h4 className="text-lg font-semibold text-gray-800 mb-4">
                   {batch.batchName}
                 </h4>
 
-                <div className="flex items-center gap-2 text-gray-700 bg-blue-50 px-4 py-2 rounded-full">
-                  <FaUser className="text-blue-500" />
-                  <span className="font-medium">{batch.users.length} Users</span>
+                <div className="flex gap-3 w-full justify-center">
+                  <div className="flex items-center gap-2 text-gray-700 bg-blue-50 px-5 py-3 rounded-full">
+                    <FaUser className="text-blue-500 text-lg" />
+                    <span className="font-medium">{batch.users.length} Users</span>
+                  </div>
+
+                  <div className="flex items-center gap-2 text-gray-700 bg-green-50 px-5 py-3 rounded-full">
+                    <FaQuestionCircle className="text-green-500 text-lg" />
+                    <span className="font-medium">
+                      {batch.assignedQuestions?.length || 0} Questions
+                    </span>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
+
         ) : (
           <h3 className="text-center text-2xl text-gray-400 mt-6">No user to display</h3>
         )

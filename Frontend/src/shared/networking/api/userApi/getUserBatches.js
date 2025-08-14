@@ -1,0 +1,23 @@
+const getUserBatches = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/users/batches`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+      });
+      if (response.status >= 401 && response.status<=404) {
+        return { status: response.status};
+      }
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error:", error);
+      return {
+        error: "Something went wrong.",
+      };
+    }
+  };
+  
+  export { getUserBatches };
+  
