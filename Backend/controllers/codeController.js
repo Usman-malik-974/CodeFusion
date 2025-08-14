@@ -475,7 +475,7 @@ exports.getQuestionSubmissions = async (req, res) => {
   try {
     const userID = req.user.id;
     const questionID=req.params.id;
-    const submissions=await Submission.find({userID,questionID});
+    const submissions=await Submission.find({userID,questionID}).sort({ submittedAt: -1 });;
     res.status(200).json({
       submissions:submissions.map((s)=>{
         const formattedDate = new Intl.DateTimeFormat('en-IN', {

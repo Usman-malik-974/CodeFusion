@@ -89,27 +89,73 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// const searchUsers = async (req, res) => {
+//   try {
+//     if (!(await isAdmin(req.user.id))) {
+//       return res.status(403).json({ error: "Unauthorized Access." });
+//     }
+//     const { query,by } = req.body;
+
+//     let users;
+
+//     if (query) {
+//       const searchRegex = new RegExp(query, "i");
+
+//       users = await User.find(
+//         {
+//           $or: [
+//             { fullname: { $regex: searchRegex } },
+//             { email: { $regex: searchRegex } },
+//           ],
+//         },
+//         "_id fullname email role course session rollno"
+//       );
+//     } else {
+//       users = await User.find(
+//         {},
+//         "_id fullname email role course rollno session"
+//       );
+//     }
+
+//     res.status(200).json({
+//       users: users.map((user) => ({
+//         id: user._id,
+//         name: user.fullname,
+//         email: user.email,
+//         role: user.role,
+//         course: user.course,
+//         rollno: user.rollno,
+//         session: user.session,
+//       })),
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).json({ error: "Server error" });
+//   }
+// };
+
 const searchUsers = async (req, res) => {
   try {
     if (!(await isAdmin(req.user.id))) {
       return res.status(403).json({ error: "Unauthorized Access." });
     }
-    const { query } = req.query;
 
-    let users;
+    const { query, by } = req.body;
+
+    let users = [];
 
     if (query) {
       const searchRegex = new RegExp(query, "i");
-
-      users = await User.find(
-        {
-          $or: [
-            { fullname: { $regex: searchRegex } },
-            { email: { $regex: searchRegex } },
-          ],
-        },
-        "_id fullname email role course session rollno"
-      );
+      const searchBy = by === "name" ? "fullname" : by;
+      const allowedFields = ["fullname", "email", "rollno", "course", "session","role"];
+      if (searchBy && allowedFields.includes(searchBy)) {
+        users = await User.find(
+          { [searchBy]: { $regex: searchRegex } },
+          "_id fullname email role course session rollno"
+        );
+      } else {
+        users = [];
+      }
     } else {
       users = await User.find(
         {},
@@ -133,6 +179,7 @@ const searchUsers = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
 
 const uploadUsers = async (req, res) => {
   try {
@@ -266,10 +313,33 @@ const uploadUsers = async (req, res) => {
   }
 };
 
+const getUserBatches = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    if (await isAdmin(req.user.id)) {
+      return res.status(403).json({ error: 'Unauthorized Access.' });
+    }
+    const user = await User.findById(userId).populate('batches');
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.status(200).json({ batches: user.batches.map(batch => ({
+      id:batch._id,
+      name:batch.name,
+      questionCount:batch.assignedQuestions.length
+    }))
+   });
+  } catch (error) {
+    console.error('Error fetching user batches:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+};
+
 module.exports = {
   uploadUsers,
   getAllUsers,
   updateUser,
   deleteUser,
   searchUsers,
+  getUserBatches,
 };
