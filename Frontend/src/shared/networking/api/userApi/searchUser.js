@@ -1,13 +1,15 @@
-const searchUser = async (query) => {
+const searchUser = async (query,by) => {
     try {
       const token=localStorage.getItem('token');
       const response = await fetch(
-        `${import.meta.env.VITE_SERVER_URL}/api/users/search?query=${encodeURIComponent(query)}`,
+        `${import.meta.env.VITE_SERVER_URL}/api/users/search`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
+            "Content-Type": "application/json",
         },
-          method: "GET",
+          method: "POST",
+          body: JSON.stringify({ query,by }),
         }
       );
   
