@@ -6,7 +6,7 @@ import { getBatch } from "../shared/networking/api/batchApi/getBatch";
 import { getRemainingUsers } from "../shared/networking/api/batchApi/getRemainingUsers";
 import { getRemainingQuestions } from "../shared/networking/api/batchApi/getRemainingQuestions";
 import { assignBatch } from "../shared/networking/api/batchApi/assignBatch";
-import {toast} from "react-toastify";
+import { toast } from "react-toastify";
 import { assignQuestions } from "../shared/networking/api/batchApi/assignQuestions";
 import { unassignBatch } from "../shared/networking/api/batchApi/unassignBatch";
 import { unassignQuestiontoBatch } from "../shared/networking/api/questionApi/unassignQuestiontoBatch";
@@ -27,9 +27,9 @@ const ManageBatch = () => {
     console.log(batchID);
 
     useEffect(() => {
-        const fetchBatch=async()=>{
-            const res=await getBatch(batchID);
-            if(res.error){
+        const fetchBatch = async () => {
+            const res = await getBatch(batchID);
+            if (res.error) {
                 toast.error(res.error);
                 return;
             }
@@ -38,20 +38,20 @@ const ManageBatch = () => {
         fetchBatch();
     }, [location.state]);
 
-    const getUnassignedUsers = async() => {
+    const getUnassignedUsers = async () => {
         //api call here
-        const res=await getRemainingUsers(batchID);
-        if(res.error){
+        const res = await getRemainingUsers(batchID);
+        if (res.error) {
             toast.error(res.error);
             return;
         }
         setUnAssignedUsers(res.users);
     };
 
-    const getUnassignedQuestions = async() => {
+    const getUnassignedQuestions = async () => {
         //api call here
-        const res=await getRemainingQuestions(batchID);
-        if(res.error){
+        const res = await getRemainingQuestions(batchID);
+        if (res.error) {
             toast.error(res.error);
             return;
         }
@@ -70,31 +70,31 @@ const ManageBatch = () => {
         }
     };
 
-    const removeUser=async(id)=>{
-        const res=await unassignBatch(batch.id,id);
-        if(res.error){
+    const removeUser = async (id) => {
+        const res = await unassignBatch(batch.id, id);
+        if (res.error) {
             toast.error(res.error);
             return;
         }
         toast.success(res.message);
-        setBatch(prev =>({
+        setBatch(prev => ({
             ...prev,
-            users:prev.users.filter(u=> u.id !== id)
-        }) 
+            users: prev.users.filter(u => u.id !== id)
+        })
         )
     }
 
-    const removeQuestion=async(id)=>{
-        const res=await unassignQuestiontoBatch(id,batch.id);
-        if(res.error){
+    const removeQuestion = async (id) => {
+        const res = await unassignQuestiontoBatch(id, batch.id);
+        if (res.error) {
             toast.error(res.error);
             return;
         }
         toast.success(res.message);
-        setBatch(prev =>({
+        setBatch(prev => ({
             ...prev,
-            questions:prev.questions.filter(q=> q.id !== id)
-        }) 
+            questions: prev.questions.filter(q => q.id !== id)
+        })
         )
     }
 
@@ -115,40 +115,40 @@ const ManageBatch = () => {
     };
 
     const toggleItemSelection = (item) => {
-        const itemId=item.id;
-        setSelectedItems(prev => 
-            prev.includes(itemId) 
-                ? prev.filter(id => id !== itemId) 
+        const itemId = item.id;
+        setSelectedItems(prev =>
+            prev.includes(itemId)
+                ? prev.filter(id => id !== itemId)
                 : [...prev, itemId]
         );
     };
 
-    const assignSelectedItems = async() => {
+    const assignSelectedItems = async () => {
         if (popupType === "users") {
-            const usersToAdd = unAssignedUsers.filter(user => 
+            const usersToAdd = unAssignedUsers.filter(user =>
                 selectedItems.includes(user.id)
             );
-            const res=await assignBatch(batch.id,selectedItems);
+            const res = await assignBatch(batch.id, selectedItems);
             toast.success(res.message);
             setBatch(prev => ({
                 ...prev,
                 users: [...prev.users, ...usersToAdd]
             }));
-            setUnAssignedUsers(prev => 
+            setUnAssignedUsers(prev =>
                 prev.filter(user => !selectedItems.includes(user.id))
             );
         } else {
-            const questionsToAdd = unAssignedQuestions.filter(question => 
+            const questionsToAdd = unAssignedQuestions.filter(question =>
                 selectedItems.includes(question.id)
             );
 
-            const res=await assignQuestions(selectedItems,batch.id);
+            const res = await assignQuestions(selectedItems, batch.id);
             toast.success(res.message);
             setBatch(prev => ({
                 ...prev,
                 questions: [...prev.questions, ...questionsToAdd]
             }));
-            setUnAssignedQuestions(prev => 
+            setUnAssignedQuestions(prev =>
                 prev.filter(question => !selectedItems.includes(question.id))
             );
         }
@@ -189,6 +189,20 @@ const ManageBatch = () => {
                 return true;
         }
     };
+
+    const getDifficultyBadgeColor = (level) => {
+        switch (level) {
+            case 'Easy':
+                return 'bg-green-100 text-green-700';
+            case 'Medium':
+                return 'bg-amber-200 text-yellow-700';
+            case 'Hard':
+                return 'bg-red-100 text-red-700';
+            default:
+                return 'bg-gray-100 text-gray-700';
+        }
+    };
+
 
     const filteredUsers = batch.users?.filter(handleUserFilter) || [];
     const filteredQuestions = batch.questions?.filter(handleQuestionFilter) || [];
@@ -298,7 +312,7 @@ const ManageBatch = () => {
                                         <td className="px-4 py-3 border-b border-gray-200">{user.course}</td>
                                         <td className="px-4 py-3 border-b border-gray-200">{user.session}</td>
                                         <td className="px-4 py-3 border-b border-gray-200">
-                                            <button className={`bg-red-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-600 transition`} onClick={()=>removeUser(user.id)}>Remove</button>
+                                            <button className={`bg-red-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-600 transition`} onClick={() => removeUser(user.id)}>Remove</button>
                                         </td>
                                     </tr>
                                 ))
@@ -330,16 +344,28 @@ const ManageBatch = () => {
                                     <tr key={q.id} className="hover:bg-blue-50 transition">
                                         <td className="px-4 py-3 border-b border-gray-200">{idx + 1}</td>
                                         <td className="px-4 py-3 border-b border-gray-200">{q.title}</td>
-                                        <td className="px-4 py-3 border-b border-gray-200">{q.tags}</td>
-                                        <td className="px-4 py-3 border-b border-gray-200">{q.difficulty}</td>
                                         <td className="px-4 py-3 border-b border-gray-200">
-                                            <button className={`bg-red-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-600 transition`} onClick={()=>removeQuestion(q.id)}>Remove</button>
+                                            {q.tags.map((tag, tagIndex) => (
+                                                <span
+                                                    key={tagIndex}
+                                                    className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm font-semibold"
+                                                >
+                                                    {tag}
+                                                </span>
+                                            ))}</td>
+                                        <td className="px-4 py-3 border-b border-gray-200">
+                                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyBadgeColor(q.difficulty)}`}>
+                                                {q.difficulty}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-3 border-b border-gray-200">
+                                            <button className={`bg-red-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-600 transition`} onClick={() => removeQuestion(q.id)}>Remove</button>
                                         </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="3" className="text-center py-4 text-gray-500">No questions found.</td>
+                                    <td colSpan="7" className="text-center py-4 text-gray-500">No questions found.</td>
                                 </tr>
                             )}
                         </tbody>
@@ -392,8 +418,8 @@ const ManageBatch = () => {
                                                 const itemId = item.id;
                                                 const isSelected = selectedItems.includes(itemId);
                                                 return (
-                                                    <tr 
-                                                        key={idx} 
+                                                    <tr
+                                                        key={idx}
                                                         className={`hover:bg-blue-50 cursor-pointer ${isSelected ? 'bg-blue-100' : ''}`}
                                                     >
                                                         {popupType === "users" ? (
@@ -406,8 +432,17 @@ const ManageBatch = () => {
                                                         ) : (
                                                             <>
                                                                 <td className="p-2">{item.title}</td>
-                                                                <td className="p-2">{item.tags}</td>
-                                                                <td className="p-2">{item.difficulty}</td>
+                                                                <td className="p-2">{item.tags.map((tag, tagIndex) => (
+                                                                    <span
+                                                                        key={tagIndex}
+                                                                        className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm font-semibold"
+                                                                    >
+                                                                        {tag}
+                                                                    </span>
+                                                                ))}</td>
+                                                                <td className="p-2"><span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyBadgeColor(item.difficulty)}`}>
+                                                                    {item.difficulty}
+                                                                </span></td>
                                                             </>
                                                         )}
                                                         <td className="p-2">
@@ -421,16 +456,16 @@ const ManageBatch = () => {
                                                     </tr>
                                                 );
                                             })
-                                        ) : (
-                                            <tr>
-                                                <td
-                                                    colSpan={popupType === "users" ? 4 : 3}
-                                                    className="text-center p-4 text-gray-500"
-                                                >
-                                                    No results found.
-                                                </td>
-                                            </tr>
-                                        )}
+                                    ) : (
+                                        <tr>
+                                            <td
+                                                colSpan={popupType === "users" ? 4 : 3}
+                                                className="text-center p-4 text-gray-500"
+                                            >
+                                                No results found.
+                                            </td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
