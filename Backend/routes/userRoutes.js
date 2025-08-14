@@ -5,6 +5,7 @@ const {
   deleteUser,
   searchUsers,
   uploadUsers,
+  getUserBatches,
 } = require("../controllers/userController");
 const authenticateToken = require("../middlewares/authenticateToken");
 const multer = require("multer");
@@ -19,6 +20,8 @@ router.put("/:id", updateUser);
 
 router.delete("/:id", deleteUser);
 
-router.get("/search", searchUsers);
+router.get('/batches',getUserBatches);
+
+router.post("/search", searchUsers);
 router.post("/upload", upload.single("file"), uploadUsers);
 module.exports = router;

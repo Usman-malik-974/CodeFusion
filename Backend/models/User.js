@@ -12,7 +12,7 @@ const userSchema = new mongoose.Schema({
   },
 
   rollno: {
-    type: Number,
+    type: String,
   },
 
   course: {
