@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { BiLogOut } from "react-icons/bi";
 import { getUserQuestions } from "../shared/networking/api/questionApi/getUserQuestions";
+import { getUserBatches } from "../shared/networking/api/userApi/getUserBatches";
+import { FaQuestionCircle } from "react-icons/fa";
 import { HashLoader } from "react-spinners";
 import { toast } from "react-toastify";
 
@@ -11,6 +13,7 @@ const Dashboard = () => {
     //   const user = useSelector((state) => state.auth.user); // Example if you store logged-in user
     const [activeTab, setActiveTab] = useState("questions");
     const [questions, setQuestions] = useState([]);
+    const [userBatches, setUserBatches] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const handleLogout = () => {
         localStorage.removeItem("token");
@@ -38,8 +41,15 @@ const Dashboard = () => {
                 setQuestions(res.questions);
             }
             else if (activeTab === 'batches') {
+                const res = await getUserBatches();
                 setIsLoading(false);
-                console.log("Batches");
+                if (res.status && (res.status >= 401 && res.status <= 404)) {
+                    toast.error("Unauthorized Access");
+                    navigate("/login");
+                    return;
+                }
+                setUserBatches(res.batches);
+                // console.log("Batches");
             }
         }
         getData();
@@ -128,9 +138,9 @@ const Dashboard = () => {
                                     <tbody className="text-sm text-gray-700">
                                         {questions.map((question, index) => (
                                             <tr key={question.id} className="even:bg-gray-50 hover:bg-blue-50 transition">
-                                                <td className="px-4 py-3 border-b border-gray-200">{index + 1}</td>
-                                                <td className="px-4 py-3 border-b border-gray-200">{question.title}</td>
-                                                <td className="px-4 py-3 border-b border-gray-200">
+                                                <td className="px-4 py-3 border-b border-gray-200 font-semibold">{index + 1}</td>
+                                                <td className="px-4 py-3 border-b border-gray-200 font-semibold">{question.title}</td>
+                                                <td className="px-4 py-3 border-b border-gray-200 font-semibold">
                                                     <div className="flex flex-wrap gap-2">
                                                         {question.tags.map((tag, tagIndex) => (
                                                             <span
@@ -142,7 +152,7 @@ const Dashboard = () => {
                                                         ))}
                                                     </div>
                                                 </td>
-                                                <td className="px-4 py-3 border-b border-gray-200">
+                                                <td className="px-4 py-3 border-b border-gray-200 font-semibold">
                                                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyBadgeColor(question.difficulty)}`}>
                                                         {question.difficulty}
                                                     </span>
@@ -170,14 +180,49 @@ const Dashboard = () => {
                 )}
 
                 {activeTab === "batches" && (
-                    <div>
-                        <h2 className="text-lg font-semibold mb-3">Your Batches</h2>
-                        <p className="text-gray-600">
-                            View the batches you are enrolled in and their details.
-                        </p>
-                        {/* You can later render a batch list */}
-                    </div>
+                    isLoading ? null : (
+                        userBatches.length > 0 ? (
+                            <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                {userBatches.map((batch) => (
+                                    <div
+                                        key={batch.id}
+                                        className="bg-white rounded-xl p-6 border border-blue-100 shadow-sm 
+                       flex flex-col items-center text-center cursor-pointer
+                       transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-blue-300"
+                                        onClick={() => {
+                                            navigate("/admin/batch", {
+                                                state: { batchID: batch.id },
+                                            });
+                                        }}
+                                    >
+                                        <h4 className="text-lg font-semibold text-gray-800 mb-4">
+                                            {batch.name}
+                                        </h4>
+
+                                        <div className="flex gap-3 w-full justify-center">
+                                            {/* <div className="flex items-center gap-2 text-gray-700 bg-blue-50 px-5 py-3 rounded-full">
+                                                <FaUser className="text-blue-500 text-lg" />
+                                                <span className="font-medium">{batch.users.length} Users</span>
+                                            </div> */}
+
+                                            <div className="flex items-center gap-2 text-gray-700 bg-green-50 px-5 py-3 rounded-full">
+                                                <FaQuestionCircle className="text-green-500 text-lg" />
+                                                <span className="font-medium">
+                                                    {batch.questionCount || 0} Questions
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <h3 className="text-center text-2xl text-gray-400 mt-6">
+                                No Batches to display
+                            </h3>
+                        )
+                    )
                 )}
+
             </div>
         </div>
     );

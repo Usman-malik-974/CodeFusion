@@ -351,9 +351,9 @@ const UserManagement = () => {
                             <tbody className="text-sm text-gray-700">
                                 {users.map((user, index) => (
                                     <tr key={index} className="even:bg-gray-50 hover:bg-blue-50 transition">
-                                        <td className="px-4 py-3 border-b border-gray-200">{index + 1}</td>
+                                        <td className="px-4 py-3 border-b border-gray-200 font-semibold">{index + 1}</td>
 
-                                        <td className="px-4 py-3 border-b border-gray-200">
+                                        <td className="px-4 py-3 border-b border-gray-200 font-semibold">
                                             {editIndex === index ? (
                                                 editedUser.role === "admin" ? (
                                                     user.rollno || "NA"
@@ -372,7 +372,7 @@ const UserManagement = () => {
                                         </td>
 
 
-                                        <td className="px-4 py-3 border-b border-gray-200">
+                                        <td className="px-4 py-3 border-b border-gray-200 font-semibold">
                                             {editIndex === index ? (
                                                 <input
                                                     name="name"
@@ -385,9 +385,9 @@ const UserManagement = () => {
                                             )}
                                         </td>
 
-                                        <td className="px-4 py-3 border-b border-gray-200">{user.email}</td>
+                                        <td className="px-4 py-3 border-b border-gray-200 font-semibold">{user.email}</td>
 
-                                        <td className="px-4 py-3 border-b border-gray-200 capitalize">
+                                        <td className="px-4 py-3 border-b border-gray-200 capitalize font-semibold">
                                             {editIndex === index ? (
                                                 editedUser.role === "admin" ? (
                                                     user.course || "NA"
@@ -410,7 +410,7 @@ const UserManagement = () => {
 
 
 
-                                        <td className="px-4 py-3 border-b border-gray-200">
+                                        <td className="px-4 py-3 border-b border-gray-200 font-semibold">
                                             {editIndex === index ? (
                                                 editedUser.role === "admin" ? (
                                                     user.session || "NA"
@@ -431,7 +431,7 @@ const UserManagement = () => {
 
 
 
-                                        <td className="px-4 py-3 border-b border-gray-200 capitalize">
+                                        <td className="px-4 py-3 border-b border-gray-200 capitalize font-semibold">
                                             {editIndex === index ? (
                                                 <select
                                                     name="role"
