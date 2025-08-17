@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+// import { useSelector } from "react-redux";
 import { BiLogOut } from "react-icons/bi";
 import { getUserQuestions } from "../shared/networking/api/questionApi/getUserQuestions";
 import { getUserBatches } from "../shared/networking/api/userApi/getUserBatches";
@@ -190,7 +190,7 @@ const Dashboard = () => {
                        flex flex-col items-center text-center cursor-pointer
                        transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-blue-300"
                                         onClick={() => {
-                                            navigate("/admin/batch", {
+                                            navigate("/users/batch", {
                                                 state: { batchID: batch.id },
                                             });
                                         }}

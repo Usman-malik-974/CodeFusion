@@ -21,6 +21,7 @@ const ManageBatch = () => {
     const [popupSearch, setPopupSearch] = useState("");
     const [unAssignedUsers, setUnAssignedUsers] = useState([]);
     const [unAssignedQuestions, setUnAssignedQuestions] = useState([]);
+    const [isAssigning, setIsAssigning] = useState(false);
     const [selectedItems, setSelectedItems] = useState([]);
     const location = useLocation();
     const batchID = location.state?.batchID;
@@ -123,39 +124,115 @@ const ManageBatch = () => {
         );
     };
 
-    const assignSelectedItems = async () => {
-        if (popupType === "users") {
-            const usersToAdd = unAssignedUsers.filter(user =>
-                selectedItems.includes(user.id)
-            );
-            const res = await assignBatch(batch.id, selectedItems);
-            toast.success(res.message);
-            setBatch(prev => ({
-                ...prev,
-                users: [...prev.users, ...usersToAdd]
-            }));
-            setUnAssignedUsers(prev =>
-                prev.filter(user => !selectedItems.includes(user.id))
-            );
-        } else {
-            const questionsToAdd = unAssignedQuestions.filter(question =>
-                selectedItems.includes(question.id)
-            );
+    // const assignSelectedItems = async () => {
+    //     if (popupType === "users") {
+    //         const usersToAdd = unAssignedUsers.filter(user =>
+    //             selectedItems.includes(user.id)
+    //         );
+    //         const res = await assignBatch(batch.id, selectedItems);
+    //         toast.success(res.message);
+    //         setBatch(prev => ({
+    //             ...prev,
+    //             users: [...prev.users, ...usersToAdd]
+    //         }));
+    //         setUnAssignedUsers(prev =>
+    //             prev.filter(user => !selectedItems.includes(user.id))
+    //         );
+    //     } else {
+    //         const questionsToAdd = unAssignedQuestions.filter(question =>
+    //             selectedItems.includes(question.id)
+    //         );
 
-            const res = await assignQuestions(selectedItems, batch.id);
-            toast.success(res.message);
-            setBatch(prev => ({
-                ...prev,
-                questions: [...prev.questions, ...questionsToAdd]
-            }));
-            setUnAssignedQuestions(prev =>
-                prev.filter(question => !selectedItems.includes(question.id))
-            );
-        }
-        setShowPopup(false);
-    };
+    //         const res = await assignQuestions(selectedItems, batch.id);
+    //         toast.success(res.message);
+    //         setBatch(prev => ({
+    //             ...prev,
+    //             questions: [...prev.questions, ...questionsToAdd]
+    //         }));
+    //         setUnAssignedQuestions(prev =>
+    //             prev.filter(question => !selectedItems.includes(question.id))
+    //         );
+    //     }
+    //     setShowPopup(false);
+    // };
+
 
     // Filters for main tables
+    
+    const assignSelectedItems = async () => {
+        if (selectedItems.length === 0) return;
+        if (isAssigning || selectedItems.length === 0) return;
+        setIsAssigning(true);
+        try {
+          if (popupType === "users") {
+            const res = await assignBatch(batch.id, selectedItems);
+            const { assigned = [], notFound = [], invalidIds = [] } = res.summary;
+      
+            const assignedUsers = unAssignedUsers.filter(user =>
+              assigned.includes(user.id)
+            );
+      
+            // Update batch and user lists
+            setBatch(prev => ({
+              ...prev,
+              users: [...prev.users, ...assignedUsers]
+            }));
+      
+            setUnAssignedUsers(prev =>
+              prev.filter(user => !assigned.includes(user.id))
+            );
+      
+            // Toasts
+            if (notFound.length || invalidIds.length) {
+              toast.warn(
+                `Some users couldn't be assigned:\n` +
+                (notFound.length ? `- Not Found: ${notFound.join(", ")}\n` : "") +
+                (invalidIds.length ? `- Invalid: ${invalidIds.join(", ")}` : "")
+              );
+            } else {
+              toast.success(res.message);
+            }
+      
+          } else {
+            const res = await assignQuestions(selectedItems, batch.id);
+            const { assigned = [], notFound = [], invalidIds = [] } = res.summary;
+      
+            const assignedQuestions = unAssignedQuestions.filter(q =>
+              assigned.includes(q.id)
+            );
+      
+            // Update batch and question lists
+            setBatch(prev => ({
+              ...prev,
+              questions: [...prev.questions, ...assignedQuestions]
+            }));
+      
+            setUnAssignedQuestions(prev =>
+              prev.filter(q => !assigned.includes(q.id))
+            );
+      
+            // Toasts
+            if (notFound.length || invalidIds.length) {
+              toast.warn(
+                `Some questions couldn't be assigned:\n` +
+                (notFound.length ? `- Not Found: ${notFound.join(", ")}\n` : "") +
+                (invalidIds.length ? `- Invalid: ${invalidIds.join(", ")}` : "")
+              );
+            } else {
+              toast.success(res.message);
+            }
+          }
+        } catch (error) {
+          toast.error("Something went wrong during assignment.");
+          console.error(error);
+        } finally {
+          setSelectedItems([]);
+          setShowPopup(false);
+          setIsAssigning(false); 
+        }
+      };
+
+      
     const handleUserFilter = (user) => {
         if (!searchInput) return true;
         const value = searchInput.toLowerCase();
@@ -478,10 +555,10 @@ const ManageBatch = () => {
                             </button>
                             <button
                                 onClick={assignSelectedItems}
-                                disabled={selectedItems.length === 0}
-                                className={`px-4 py-2 rounded-md transition ${selectedItems.length > 0 ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                                disabled={isAssigning || selectedItems.length === 0}
+                                className={`px-4 py-2 rounded-md transition ${selectedItems.length > 0 && !isAssigning ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
                             >
-                                Assign Selected
+                                 {isAssigning ? "Assigning..." : "Assign Selected"}
                             </button>
                         </div>
                     </div>
