@@ -66,7 +66,18 @@ const addQuestion = async (req, res) => {
       delete questionObj.createdBy;
       return res.status(201).json({
         message: 'Question created successfully.',
-        question: questionObj
+        question: {
+          id: questionObj._id,
+          title: questionObj.title,
+          statement: questionObj.statement,
+          inputFormat: questionObj.inputFormat,
+          outputFormat: questionObj.outputFormat,
+          sampleInput: questionObj.sampleInput,
+          sampleOutput: questionObj.sampleOutput,
+          tags: questionObj.tags,
+          difficulty: questionObj.difficulty,
+          testCases: questionObj.testCases
+        }
       });
   
     } catch (err) {

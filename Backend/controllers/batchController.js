@@ -117,7 +117,8 @@ const getUsersNotInBatch = async (req, res) => {
     }
     const userIdsInBatch = batch.users;
     const usersNotInBatch = await User.find({
-      _id: { $nin: userIdsInBatch },
+      _id: {$nin: userIdsInBatch },
+      role:"user"
     }).select('_id fullname email rollno course session');
 
     return res.status(200).json({
@@ -139,10 +140,6 @@ const getUsersNotInBatch = async (req, res) => {
 };
 
 const getBatchQuestions = async (req, res) => {
-  if (!(await isAdmin(req.user.id))) {
-    return res.status(403).json({ error: 'Unauthorized Access.' });
-  }
-
   try {
     const batchId = req.params.id;
 
@@ -156,12 +153,20 @@ const getBatchQuestions = async (req, res) => {
       return res.status(404).json({ error: 'Batch not found' });
     }
 
-    const questions = batch.assignedQuestions.map((question) => ({
-      id: question._id,
-      title: question.title,
-      statement: question.statement,
-      tags: question.tags,
-      difficulty: question.difficulty
+    const questions = batch.assignedQuestions.map((q) => ({
+      id: q._id,
+      title: q.title,
+      statement: q.statement,
+      inputFormat: q.inputFormat,
+      outputFormat: q.outputFormat,
+      sampleInput: q.sampleInput,
+      sampleOutput: q.sampleOutput,
+      tags: q.tags,
+      difficulty: q.difficulty,
+      testCases: q.testCases.map((t)=>{
+        if(t.hidden) return {hidden:true};
+        else return {input:t.input,output:t.output,hidden:t.hidden};
+      }),
     }));
 
     return res.status(200).json({ questions });
@@ -248,19 +253,21 @@ const assignBatchToUser = async (req, res) => {
         continue;
       }
       if (!user.batches.includes(batchId)) {
-        user.batches.push(batchId);
-        await user.save();
+        await User.updateOne(
+          { _id: userId },
+          { $addToSet: { batches: batchId } }
+        );
       }
 
       if (!batch.users.includes(userId)) {
-        batch.users.push(userId);
+        await Batch.updateOne(
+          { _id: batchId },
+          { $addToSet: { users: userId } }
+        );        
       }
 
       result.assigned.push(userId);
     }
-
-    await batch.save();
-
     return res.status(200).json({
       message: "Batch assigned to users successfully.",
       summary: result,
@@ -441,7 +448,11 @@ const assignQuestions = async (req, res) => {
         continue;
       }
       if (!batch.assignedQuestions.includes(qid)) {
-        batch.assignedQuestions.push(qid);
+        // batch.assignedQuestions.push(qid);
+        await Batch.updateOne(
+          { _id: batchId },
+          { $addToSet: { assignedQuestions: qid} }
+        );
         result.assigned.push(qid);
       }
     }
