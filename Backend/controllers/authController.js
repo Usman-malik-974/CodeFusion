@@ -1,7 +1,7 @@
 const { User } = require("../models/index");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const sendWelcomeMail = require("../utils/sendMail");
+const {sendWelcomeMail,sendPasswordResetMail} = require("../utils/sendMail");
 const isAdmin = require("../utils/isAdmin");
 const generatePassword = require("../utils/generatePassword");
 
@@ -97,4 +97,58 @@ const signupUser = async (req, res) => {
   }
 };
 
-module.exports = { loginUser, signupUser };
+const requestPasswordReset = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: "Email is required." });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ error: "No user found with this email." });
+    }
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+    user.resetToken = token;
+    await user.save();
+
+    await sendPasswordResetMail({
+      to: email,
+      fullname: user.fullname,
+      token,
+    });
+
+    return res.status(200).json({ message: "Reset password email sent." });
+  } catch (err) {
+    console.error("Reset Password Error:", err);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  if (!token || !newPassword)
+    return res.status(400).json({ message: 'Token and new password are required' });
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId;
+    const user = await User.findOne({ _id: userId, resetToken: token });
+    if (!user)
+    {
+      return res.status(400).json({ message: 'Invalid or expired token' });
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    user.resetToken = undefined;
+    await user.save();
+    res.status(200).json({ message: 'Password has been reset successfully' });
+  } catch (err) {
+    console.error('Reset password error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+module.exports = { loginUser, signupUser,requestPasswordReset,resetPassword};

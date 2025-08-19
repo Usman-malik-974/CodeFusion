@@ -53,7 +53,11 @@ const userSchema = new mongoose.Schema({
       ref: "Batch",
     },
   ],
-
+  
+  resetToken:{
+    type:String
+  },
+  
   assignedQuestions: [
     {
       type: mongoose.Schema.Types.ObjectId,
