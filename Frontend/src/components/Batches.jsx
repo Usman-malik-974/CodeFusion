@@ -8,12 +8,15 @@ import { createBatch } from "../shared/networking/api/batchApi/createBatch";
 import { HashLoader } from "react-spinners";
 import { useNavigate } from "react-router-dom";
 import { FaQuestionCircle } from "react-icons/fa";
+import { useSelector, useDispatch } from "react-redux";
+import { setBatchesList } from "../app/slices/batchesSlice";
 
 const Batches = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [searchInput, setSearchInput] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [batches, setBatches] = useState([]);
+  const batchesList = useSelector((state) => state.batches.batchesList);
   const filteredBatches = batches.filter((batch) =>
     batch.batchName.toLowerCase().includes(searchInput.toLowerCase())
   );
@@ -24,6 +27,7 @@ const Batches = () => {
       .min(3, "Batch name must be at least 3 characters"),
   });
 
+  const dispatch=useDispatch();
   const formik = useFormik({
     initialValues: { batchName: "" },
     validationSchema,
@@ -50,17 +54,22 @@ const Batches = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsLoading(true);
         const data = await getAllBatches();
-        console.log(data);
         setBatches(data.batches);
+        dispatch(setBatchesList(data.batches));
         setIsLoading(false);
-        console.log(data);
+        // console.log(data);
       } catch (e) {
+        setIsLoading(false);
         toast.error("Something went wrong");
       }
     };
-    console.log(batches);
-    fetchData();
+    if (batchesList.length === 0) {
+      fetchData();
+    } else {
+      setBatches(batchesList); // initialize filtered view
+    }
   }, []);
 
   return (
@@ -97,7 +106,7 @@ const Batches = () => {
 
       {isLoading ? null :
         filteredBatches.length > 0 ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6">
             {filteredBatches.map((batch) => (
               <div
                 key={batch.id}
