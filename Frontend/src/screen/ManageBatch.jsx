@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
-import { FaUserPlus, FaQuestionCircle } from "react-icons/fa";
+import { useLocation, useNavigate } from "react-router-dom";
+import { FaUserPlus, FaQuestionCircle, FaLayerGroup } from "react-icons/fa";
 import { UserPlus } from "lucide-react";
 import { getBatch } from "../shared/networking/api/batchApi/getBatch";
 import { getRemainingUsers } from "../shared/networking/api/batchApi/getRemainingUsers";
@@ -10,6 +10,9 @@ import { toast } from "react-toastify";
 import { assignQuestions } from "../shared/networking/api/batchApi/assignQuestions";
 import { unassignBatch } from "../shared/networking/api/batchApi/unassignBatch";
 import { unassignQuestiontoBatch } from "../shared/networking/api/questionApi/unassignQuestiontoBatch";
+import { deleteBatch } from "../shared/networking/api/batchApi/deleteBatch";
+import { setBatchesList } from "../app/slices/batchesSlice";
+import { useSelector, useDispatch } from "react-redux";
 
 const ManageBatch = () => {
     const [batch, setBatch] = useState({});
@@ -23,6 +26,10 @@ const ManageBatch = () => {
     const [unAssignedQuestions, setUnAssignedQuestions] = useState([]);
     const [isAssigning, setIsAssigning] = useState(false);
     const [selectedItems, setSelectedItems] = useState([]);
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const batchesList = useSelector((state) => state.batches.batchesList);
+    // const [showPopUp,setShowPopUp]=useState(false);
     const location = useLocation();
     const batchID = location.state?.batchID;
     console.log(batchID);
@@ -158,81 +165,81 @@ const ManageBatch = () => {
 
 
     // Filters for main tables
-    
+
     const assignSelectedItems = async () => {
         if (selectedItems.length === 0) return;
         if (isAssigning || selectedItems.length === 0) return;
         setIsAssigning(true);
         try {
-          if (popupType === "users") {
-            const res = await assignBatch(batch.id, selectedItems);
-            const { assigned = [], notFound = [], invalidIds = [] } = res.summary;
-      
-            const assignedUsers = unAssignedUsers.filter(user =>
-              assigned.includes(user.id)
-            );
-      
-            // Update batch and user lists
-            setBatch(prev => ({
-              ...prev,
-              users: [...prev.users, ...assignedUsers]
-            }));
-      
-            setUnAssignedUsers(prev =>
-              prev.filter(user => !assigned.includes(user.id))
-            );
-      
-            // Toasts
-            if (notFound.length || invalidIds.length) {
-              toast.warn(
-                `Some users couldn't be assigned:\n` +
-                (notFound.length ? `- Not Found: ${notFound.join(", ")}\n` : "") +
-                (invalidIds.length ? `- Invalid: ${invalidIds.join(", ")}` : "")
-              );
-            } else {
-              toast.success(res.message);
-            }
-      
-          } else {
-            const res = await assignQuestions(selectedItems, batch.id);
-            const { assigned = [], notFound = [], invalidIds = [] } = res.summary;
-      
-            const assignedQuestions = unAssignedQuestions.filter(q =>
-              assigned.includes(q.id)
-            );
-      
-            // Update batch and question lists
-            setBatch(prev => ({
-              ...prev,
-              questions: [...prev.questions, ...assignedQuestions]
-            }));
-      
-            setUnAssignedQuestions(prev =>
-              prev.filter(q => !assigned.includes(q.id))
-            );
-      
-            // Toasts
-            if (notFound.length || invalidIds.length) {
-              toast.warn(
-                `Some questions couldn't be assigned:\n` +
-                (notFound.length ? `- Not Found: ${notFound.join(", ")}\n` : "") +
-                (invalidIds.length ? `- Invalid: ${invalidIds.join(", ")}` : "")
-              );
-            } else {
-              toast.success(res.message);
-            }
-          }
-        } catch (error) {
-          toast.error("Something went wrong during assignment.");
-          console.error(error);
-        } finally {
-          setSelectedItems([]);
-          setShowPopup(false);
-          setIsAssigning(false); 
-        }
-      };
+            if (popupType === "users") {
+                const res = await assignBatch(batch.id, selectedItems);
+                const { assigned = [], notFound = [], invalidIds = [] } = res.summary;
 
-      
+                const assignedUsers = unAssignedUsers.filter(user =>
+                    assigned.includes(user.id)
+                );
+
+                // Update batch and user lists
+                setBatch(prev => ({
+                    ...prev,
+                    users: [...prev.users, ...assignedUsers]
+                }));
+
+                setUnAssignedUsers(prev =>
+                    prev.filter(user => !assigned.includes(user.id))
+                );
+
+                // Toasts
+                if (notFound.length || invalidIds.length) {
+                    toast.warn(
+                        `Some users couldn't be assigned:\n` +
+                        (notFound.length ? `- Not Found: ${notFound.join(", ")}\n` : "") +
+                        (invalidIds.length ? `- Invalid: ${invalidIds.join(", ")}` : "")
+                    );
+                } else {
+                    toast.success(res.message);
+                }
+
+            } else {
+                const res = await assignQuestions(selectedItems, batch.id);
+                const { assigned = [], notFound = [], invalidIds = [] } = res.summary;
+
+                const assignedQuestions = unAssignedQuestions.filter(q =>
+                    assigned.includes(q.id)
+                );
+
+                // Update batch and question lists
+                setBatch(prev => ({
+                    ...prev,
+                    questions: [...prev.questions, ...assignedQuestions]
+                }));
+
+                setUnAssignedQuestions(prev =>
+                    prev.filter(q => !assigned.includes(q.id))
+                );
+
+                // Toasts
+                if (notFound.length || invalidIds.length) {
+                    toast.warn(
+                        `Some questions couldn't be assigned:\n` +
+                        (notFound.length ? `- Not Found: ${notFound.join(", ")}\n` : "") +
+                        (invalidIds.length ? `- Invalid: ${invalidIds.join(", ")}` : "")
+                    );
+                } else {
+                    toast.success(res.message);
+                }
+            }
+        } catch (error) {
+            toast.error("Something went wrong during assignment.");
+            console.error(error);
+        } finally {
+            setSelectedItems([]);
+            setShowPopup(false);
+            setIsAssigning(false);
+        }
+    };
+
+
     const handleUserFilter = (user) => {
         if (!searchInput) return true;
         const value = searchInput.toLowerCase();
@@ -281,12 +288,39 @@ const ManageBatch = () => {
     };
 
 
+    const handleDeleteBatch = async () => {
+        if (window.confirm("Are you sure you want to delete?")) {
+            try {
+
+                const res = await deleteBatch(batch.id);
+                if (res.error) {
+                    toast.error(res.error);
+                    return;
+                }
+                toast.success(res.message);
+                // const batchesList = useSelector((state) => state.batches.bacthesList);
+                dispatch(
+                    setBatchesList(batchesList.filter((a) => a.id !== batch.id))
+                );
+                navigate(-1);
+                return;
+            }
+            catch {
+                toast.error("Something went wrong");
+            }
+        }
+        console.log("Aborted");
+    }
+
     const filteredUsers = batch.users?.filter(handleUserFilter) || [];
     const filteredQuestions = batch.questions?.filter(handleQuestionFilter) || [];
 
     return (
         <div className="p-6">
-            <h3 className="text-2xl font-bold mb-6">{batch.batchName || "Batch Details"}</h3>
+            <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-bold">{batch.name || "Batch Details"}</h3>
+
+            </div>
 
             {/* Tabs */}
             <div className="flex border-b border-gray-300 mb-4">
@@ -341,28 +375,37 @@ const ManageBatch = () => {
                 </div>
 
                 {/* Right Buttons */}
-                <div className="flex gap-2 items-center">
-                    {activeTab === "users" && (
-                        <button
-                            onClick={() => openPopup("users")}
-                            className="flex items-center gap-2 bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-blue-600 transition cursor-pointer"
-                        >
-                            <UserPlus size={16} />
-                            Add User
-                        </button>
-                    )}
-                    {activeTab === "questions" && (
-                        <button
-                            onClick={() => openPopup("questions")}
-                            className="flex items-center gap-2 bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-blue-600 transition cursor-pointer"
-                        >
-                            <FaQuestionCircle />
-                            Add Question
-                        </button>
-                    )}
+                <div className="flex items-center gap-2">
+
+                    <div className="flex gap-2 items-center">
+                        {activeTab === "users" && (
+                            <button
+                                onClick={() => openPopup("users")}
+                                className="flex items-center gap-2 bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-blue-600 transition cursor-pointer"
+                            >
+                                <UserPlus size={16} />
+                                Add User
+                            </button>
+                        )}
+                        {activeTab === "questions" && (
+                            <button
+                                onClick={() => openPopup("questions")}
+                                className="flex items-center gap-2 bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-blue-600 transition cursor-pointer"
+                            >
+                                <FaQuestionCircle />
+                                Add Question
+                            </button>
+                        )}
+                    </div>
+                    <button
+                        className="flex items-center gap-2 bg-red-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-red-600 transition cursor-pointer"
+                        onClick={handleDeleteBatch}
+                    >
+                        <FaLayerGroup size={16} />
+                        Delete Batch
+                    </button>
                 </div>
             </div>
-
             {/* Tables */}
             {activeTab === "users" && (
                 <div className="overflow-x-auto">
@@ -453,7 +496,7 @@ const ManageBatch = () => {
             {/* Popup */}
             {showPopup && (
                 <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg shadow-lg w-full max-w-lg p-6">
+                    <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6">
                         <h2 className="text-lg font-semibold mb-4">
                             {popupType === "users" ? "Add User" : "Add Question"}
                         </h2>
@@ -558,7 +601,7 @@ const ManageBatch = () => {
                                 disabled={isAssigning || selectedItems.length === 0}
                                 className={`px-4 py-2 rounded-md transition ${selectedItems.length > 0 && !isAssigning ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
                             >
-                                 {isAssigning ? "Assigning..." : "Assign Selected"}
+                                {isAssigning ? "Assigning..." : "Assign Selected"}
                             </button>
                         </div>
                     </div>

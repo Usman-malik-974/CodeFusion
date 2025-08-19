@@ -27,7 +27,14 @@ const Batches = () => {
       .min(3, "Batch name must be at least 3 characters"),
   });
 
-  const dispatch=useDispatch();
+  // const onBatchDelete = (deletedBatch) => {
+  //   setBatches((prev) =>
+  //     prev.filter((batch) => batch.id !== deletedBatch.id)
+  //   );
+  // };
+
+
+  const dispatch = useDispatch();
   const formik = useFormik({
     initialValues: { batchName: "" },
     validationSchema,
@@ -43,6 +50,7 @@ const Batches = () => {
         }
 
         setBatches([...batches, res.batch]);
+        dispatch(setBatchesList([...batches, res.batch]));
         toast.success(res.message);
         resetForm();
         setShowForm(false);
@@ -59,7 +67,6 @@ const Batches = () => {
         setBatches(data.batches);
         dispatch(setBatchesList(data.batches));
         setIsLoading(false);
-        // console.log(data);
       } catch (e) {
         setIsLoading(false);
         toast.error("Something went wrong");
@@ -115,7 +122,7 @@ const Batches = () => {
                  transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-blue-300"
                 onClick={() => {
                   navigate("/admin/batch", {
-                    state: { batchID: batch.id },
+                    state: { batchID: batch.id ,},
                   });
                 }}
               >
