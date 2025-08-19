@@ -275,36 +275,48 @@ const uploadUsers = async (req, res) => {
     }
 
     // Insert valid users
+    let insertedDocs = [];
     if (validUsers.length > 0) {
-      await User.insertMany(validUsers);
+      insertedDocs = await User.insertMany(validUsers);
     }
 
-    // If any failed, send back Excel sheet (without password or batches)
+    // If any failed, send back Excel as Base64
     if (failedUsers.length > 0) {
       const failedWB = xlsx.utils.book_new();
       const failedSheet = xlsx.utils.json_to_sheet(failedUsers);
       xlsx.utils.book_append_sheet(failedWB, failedSheet, "Failed");
 
-      const buffer = xlsx.write(failedWB, {
-        type: "buffer",
-        bookType: "xlsx",
-      });
+      const buffer = xlsx.write(failedWB, { type: "buffer", bookType: "xlsx" });
+      const base64Excel = buffer.toString("base64");
 
-      res.set({
-        "Content-Type":
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        "Content-Disposition": `attachment; filename="failed-users.xlsx"`,
-        "X-Inserted-Count": validUsers.length,
-        "X-Failed-Count": failedUsers.length,
-        "Access-Control-Expose-Headers": "X-Inserted-Count, X-Failed-Count",
+      return res.status(400).json({
+        insertedCount: insertedDocs.length,
+        failedCount: failedUsers.length,
+        validUsers: insertedDocs.map((user) => ({
+          id: user._id,
+          name: user.fullname,
+          email: user.email,
+          role: user.role,
+          course: user.course,
+          rollno: user.rollno,
+          session: user.session,
+        })),
+        failedFile: base64Excel,
       });
-
-      return res.status(400).send(buffer);
     }
 
     return res.status(200).json({
       message: "All users inserted successfully",
-      inserted: validUsers.length,
+      inserted: insertedDocs.length,
+      validUsers: insertedDocs.map((user) => ({
+        id: user._id,
+        name: user.fullname,
+        email: user.email,
+        role: user.role,
+        course: user.course,
+        rollno: user.rollno,
+        session: user.session,
+      })),
     });
   } catch (err) {
     console.error("Upload error:", err);
