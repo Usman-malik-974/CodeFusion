@@ -62,7 +62,7 @@ const QuestionBank = () => {
       navigate(`/admin/question`, {
          state: {
             // questionData: questions.find((question) => question.id == id)
-            questionId:id
+            questionId: id
          }
       });
    };
@@ -122,6 +122,7 @@ const QuestionBank = () => {
                            }
                            setShowAddForm(false);
                            setQuestions((prev) => [...prev, res.question]);
+                           dispatch(setQuestionsList([...questions, res.question]));
                            toast.success(res.message);
                         }
                         catch (e) {
@@ -207,9 +208,11 @@ const QuestionBank = () => {
                                     //    setShowPopUp(true);
                                     //    setSelectedQuestion({ index, id: question.id });
                                     // }}
-                                    onClick={()=>navigate("assign",{state:{
-                                       questionID:question.id
-                                    }})}
+                                    onClick={() => navigate("assign", {
+                                       state: {
+                                          questionID: question.id
+                                       }
+                                    })}
                                     className="bg-blue-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-blue-600 transition cursor-pointer"
                                  >
                                     Assign
