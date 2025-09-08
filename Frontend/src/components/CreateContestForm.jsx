@@ -1,13 +1,19 @@
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useState } from "react";
+import { toast } from "react-toastify";
 import CustomDropdown from "./CustomDropDown";
+import { createContest } from "../shared/networking/api/contestApi/createContest";
 
 const validationSchema = Yup.object({
     contestName: Yup.string()
         .trim()
         .required("Contest Name is required")
         .min(3, "Contest Name must be at least 3 characters"),
+
+    code:Yup.string()
+    .trim()
+    .required("Contest Code is required"),
 
     startTime: Yup.date()
         .required("Start Time is required")
@@ -33,16 +39,30 @@ const CreateContestForm = ({ onClose, questions }) => {
     const formik = useFormik({
         initialValues: {
             contestName: "",
+            code:"",
             startTime: "",
             endTime: "",
             duration: "",
         },
         validationSchema,
-        onSubmit: (values) => {
+        onSubmit: async(values) => {
             console.log({
                 ...values,
                 selectedQuestions,
             });
+
+            const res=await createContest({
+                ...values,
+                selectedQuestions,
+            });
+            if(res.error){
+                toast.error(res.error);
+            }
+            else{
+                toast.success(res.message);
+            }
+            //from here res.contest will be set to the Contest Component
+            onClose();
         },
     });
 
@@ -78,6 +98,27 @@ const CreateContestForm = ({ onClose, questions }) => {
                     {formik.touched.contestName && formik.errors.contestName && (
                         <p className="text-red-500 text-sm mt-1">
                             {formik.errors.contestName}
+                        </p>
+                    )}
+                </div>
+
+
+                <div>
+                    <label className="block text-gray-700 font-medium mb-1">
+                        Contest Code
+                    </label>
+                    <input
+                        {...formik.getFieldProps("code")}
+                        type="text"
+                        placeholder="Enter contest Code"
+                        className={`w-full px-3 py-2 border ${formik.touched.code && formik.errors.code
+                            ? "border-red-500"
+                            : "border-gray-300"
+                            } rounded-md focus:ring-2 focus:ring-blue-500`}
+                    />
+                    {formik.touched.code && formik.errors.code && (
+                        <p className="text-red-500 text-sm mt-1">
+                            {formik.errors.code}
                         </p>
                     )}
                 </div>

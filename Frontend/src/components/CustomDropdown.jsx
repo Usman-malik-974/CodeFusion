@@ -20,6 +20,7 @@ const CustomDropdown = ({ questions, selectedQuestions, onAdd }) => {
     <div className="relative w-full">
       {/* Dropdown button */}
       <button
+       type="button"
         onClick={() => setOpen(!open)}
         className="w-full flex justify-between items-center border px-4 py-2 rounded-md bg-white shadow-sm hover:ring-2 hover:ring-blue-400"
       >
