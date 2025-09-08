@@ -21,6 +21,8 @@ const authRouter = require("./routes/authRoutes");
 const userRouter = require("./routes/userRoutes");
 const questionRouter = require("./routes/questionRoutes");
 const batchRouter = require("./routes/batchRoutes");
+const contestRouter = require("./routes/contestRoutes")(io);
+
 io.on("connection", (socket) => {
   console.log(`📡 Client connected: ${socket.id}`);
   socket.on("disconnect", () => {
@@ -32,6 +34,8 @@ app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/questions", questionRouter);
 app.use("/api/batches", batchRouter);
+app.use("/api/contests",contestRouter);
+
 server.listen(process.env.PORT, () => {
   console.log(`Server running at http://localhost:${process.env.PORT}`);
   try {
