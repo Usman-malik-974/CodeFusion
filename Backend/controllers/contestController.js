@@ -40,4 +40,28 @@ const createContest = async (req, res) => {
       }    
 };
 
-module.exports={createContest}
+
+const getUpcomingContests= async (req, res) => {
+  try {
+    const now = new Date();
+    let contests;
+    if (await isAdmin(req.user.id)) {
+      contests = await Contest.find({ startTime: { $gt: now } })
+        .sort({ startTime: 1 })
+        .populate("questions"); 
+    } else {
+      contests = await Contest.find({ startTime: { $gt: now } })
+        .sort({ startTime: 1 })
+        .select("-questions"); 
+    }
+    if (!contests.length) {
+      return res.status(200).json({ contests: [] });
+    }
+    res.status(200).json({ contests });
+  } catch (error) {
+    console.error("Error fetching upcoming contests:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+module.exports={createContest,getUpcomingContests}
