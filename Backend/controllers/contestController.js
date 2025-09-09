@@ -44,24 +44,51 @@ const createContest = async (req, res) => {
 const getUpcomingContests= async (req, res) => {
   try {
     const now = new Date();
-    let contests;
-    if (await isAdmin(req.user.id)) {
-      contests = await Contest.find({ startTime: { $gt: now } })
-        .sort({ startTime: 1 })
-        .populate("questions"); 
-    } else {
-      contests = await Contest.find({ startTime: { $gt: now } })
-        .sort({ startTime: 1 })
-        .select("-questions"); 
-    }
+    const contests = await Contest.find({ startTime: { $gt: now } }).sort({ startTime: 1 })
     if (!contests.length) {
       return res.status(200).json({ contests: [] });
     }
     res.status(200).json({ contests });
   } catch (error) {
     console.error("Error fetching upcoming contests:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).json({ error:"Something Went Wrong"});
   }
 };
 
-module.exports={createContest,getUpcomingContests}
+const getLiveContests = async (req, res) => {
+  try {
+    const now = new Date();
+    const contests = await Contest.find({
+      startTime: { $lte: now },
+      endTime: { $gte: now }
+    }).sort({ startTime: 1 });
+
+    if (!contests.length) {
+      return res.status(200).json({ contests: [] });
+    }
+    res.status(200).json({ contests });
+  } catch (error) {
+    console.error("Error fetching live contests:", error);
+    res.status(500).json({ error:"Something Went Wrong" });
+  }
+};
+
+
+const getRecentContests = async (req, res) => {
+  try {
+    const now = new Date();
+    const contests = await Contest.find({ endTime: { $lt: now } })
+      .sort({ endTime: -1 }); 
+
+    if (!contests.length) {
+      return res.status(200).json({ contests: [] });
+    }
+    res.status(200).json({ contests });
+  } catch (error) {
+    console.error("Error fetching recent contests:", error);
+    res.status(500).json({ error:"Something Went Wrong" });
+  }
+};
+
+
+module.exports={createContest,getUpcomingContests,getLiveContests,getRecentContests}
