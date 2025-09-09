@@ -11,6 +11,10 @@ import { debounce } from "lodash";
 import HashLoader from "react-spinners/HashLoader";
 import { searchUser } from "../shared/networking/api/userApi/searchUser";
 import { useNavigate } from "react-router-dom";
+import { Save, XCircle, Pencil, Trash2 } from "lucide-react";
+import {  AlertTriangle } from "lucide-react";
+
+
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -463,47 +467,64 @@ const UserManagement = () => {
                     )}
                   </td>
 
+
+
                   <td className="px-2 py-3 border-b border-gray-200">
-                    <div className="flex gap-2 min-w-[110px]">
+                    <div className="flex gap-2 min-w-[130px]">
                       {editIndex === index ? (
                         <>
+                          {/* Save Button */}
                           <button
                             onClick={handleSaveClick}
-                            className="bg-green-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-green-600 transition cursor-pointer"
+                            className="flex items-center gap-1 bg-green-500 text-white px-3 py-2 font-medium rounded-lg text-xs 
+                     hover:bg-green-600 transition shadow-sm"
                           >
+                            <Save size={14} />
                             Save
                           </button>
+
+                          {/* Cancel Button */}
                           <button
                             onClick={() => {
                               setEditIndex(null);
                               setEditedUser({});
                             }}
-                            className="bg-red-100 text-red-600 px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-200 transition border border-red-200 cursor-pointer"
+                            className="flex items-center gap-1 bg-red-100 text-red-600 px-3 py-2 font-medium rounded-lg text-xs 
+                     hover:bg-red-200 transition border border-red-200 shadow-sm"
                           >
+                            <XCircle size={14} />
                             Cancel
                           </button>
                         </>
                       ) : (
                         <>
+                          {/* Edit Button */}
                           <button
                             onClick={() => handleEditClick(index)}
-                            className="bg-blue-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-blue-600 transition cursor-pointer"
+                            className="flex items-center gap-1 bg-blue-500 text-white px-3 py-2 font-medium rounded-lg text-xs 
+                     hover:bg-blue-600 transition shadow-sm"
                           >
+                            <Pencil size={14} />
                             Edit
                           </button>
+
+                          {/* Delete Button */}
                           <button
                             onClick={() => {
                               setShowPopUp(true);
                               setSelectedUser({ index, id: user.id });
                             }}
-                            className="bg-red-200 text-red-600 px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-300 transition border border-red-200 cursor-pointer"
+                            className="flex items-center gap-1 bg-red-100 text-red-600 px-3 py-2 font-medium rounded-lg text-xs 
+                     hover:bg-red-200 transition border border-red-200 shadow-sm"
                           >
+                            <Trash2 size={14} />
                             Delete
                           </button>
                         </>
                       )}
                     </div>
                   </td>
+
                 </tr>
               ))}
             </tbody>
@@ -523,41 +544,52 @@ const UserManagement = () => {
         </div>
       )}
       {showPopUp && (
-        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white p-6 rounded-md shadow-lg w-full max-w-md">
-            <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-md relative">
-              <button
-                onClick={() => {
-                  setShowPopUp(false);
-                }}
-                className="absolute top-3 right-3 text-gray-500 hover:text-red-500 transition "
-                aria-label="Close"
-              >
-                <X className="w-5 h-5" />
-              </button>
-              <h2 className="text-xl font-semibold text-red-400 mb-4 text-center">
-                Are you Sure?
-              </h2>
-              <div className="flex gap-2 justify-center">
-                <button
-                  className="bg-red-400 text-white px-3 py-1 rounded-md cursor-pointer"
-                  onClick={() => setShowPopUp(false)}
-                >
-                  No
-                </button>
-                <button
-                  className="bg-blue-500 text-white px-3 py-1 rounded-md cursor-pointer"
-                  onClick={() => {
-                    handleDelete(selectedUser.index, selectedUser.id);
-                    setShowPopUp(false);
-                  }}
-                >
-                  Yes
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+  
+<div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-40 z-50">
+  <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-md relative animate-fadeIn">
+    {/* Close Button */}
+    <button
+      onClick={() => setShowPopUp(false)}
+      className="absolute top-3 right-3 text-gray-400 hover:text-red-500 transition"
+      aria-label="Close"
+    >
+      <X className="w-5 h-5" />
+    </button>
+
+    {/* Header */}
+    <div className="flex flex-col items-center text-center">
+      <AlertTriangle className="w-10 h-10 text-red-400 mb-3" />
+      <h2 className="text-xl font-semibold text-gray-800 mb-2">
+        Are you sure?
+      </h2>
+      <p className="text-sm text-gray-500 mb-6">
+        This action cannot be undone. Do you really want to delete this item?
+      </p>
+    </div>
+
+    {/* Action Buttons */}
+    <div className="flex gap-3 justify-center">
+      <button
+        className="flex items-center justify-center gap-1 bg-gray-100 text-gray-600 px-4 py-2 rounded-lg 
+                   font-medium text-sm hover:bg-gray-200 transition"
+        onClick={() => setShowPopUp(false)}
+      >
+        No, Cancel
+      </button>
+      <button
+        className="flex items-center justify-center gap-1 bg-red-500 text-white px-4 py-2 rounded-lg 
+                   font-medium text-sm hover:bg-red-600 transition shadow-sm"
+        onClick={() => {
+          handleDelete(selectedUser.index, selectedUser.id);
+          setShowPopUp(false);
+        }}
+      >
+        Yes, Delete
+      </button>
+    </div>
+  </div>
+</div>
+
       )}
       <input type="file" hidden ref={inputref} onChange={handleExcelUpload} />
     </div>

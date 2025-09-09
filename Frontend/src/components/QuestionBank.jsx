@@ -11,6 +11,7 @@ import { setQuestionsList } from '../app/slices/questionsSlice';
 import { deleteQuestion } from '../shared/networking/api/questionApi/deleteQuestion';
 
 import { useNavigate } from 'react-router-dom';
+import { Eye, UserPlus, Trash2 } from "lucide-react";
 
 const QuestionBank = () => {
    const [questions, setQuestions] = useState([]);
@@ -194,41 +195,51 @@ const QuestionBank = () => {
                                  {question.difficulty}
                               </span>
                            </td>
-                           <td className="px-4 py-3 border-b border-gray-200">
-                              <div className="flex gap-2 min-w-[110px] justify-center">
 
+
+                           <td className="px-4 py-3 border-b border-gray-200">
+                              <div className="flex gap-2 min-w-[130px] justify-center">
+
+                                 {/* View Button */}
                                  <button
                                     onClick={() => handleViewClick(question.id)}
-                                    className="bg-blue-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-blue-600 transition cursor-pointer"
+                                    className="flex items-center gap-1 bg-blue-500 text-white px-3 py-2 font-medium rounded-lg text-xs 
+                 hover:bg-blue-600 transition shadow-sm"
                                  >
+                                    <Eye size={14} />
                                     View
                                  </button>
+
+                                 {/* Assign Button */}
                                  <button
-                                    // onClick={() => {
-                                    //    setShowPopUp(true);
-                                    //    setSelectedQuestion({ index, id: question.id });
-                                    // }}
-                                    onClick={() => navigate("assign", {
-                                       state: {
-                                          questionID: question.id
-                                       }
-                                    })}
-                                    className="bg-blue-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-blue-600 transition cursor-pointer"
+                                    onClick={() =>
+                                       navigate("assign", {
+                                          state: { questionID: question.id },
+                                       })
+                                    }
+                                    className="flex items-center gap-1 bg-green-500 text-white px-3 py-2 font-medium rounded-lg text-xs 
+                 hover:bg-green-600 transition shadow-sm"
                                  >
+                                    <UserPlus size={14} />
                                     Assign
                                  </button>
+
+                                 {/* Delete Button */}
                                  <button
                                     onClick={() => {
                                        setShowPopUp(true);
                                        setSelectedQuestion({ index, id: question.id });
                                     }}
-                                    className="bg-red-200 text-red-600 px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-300 transition border border-red-200 cursor-pointer"
+                                    className="flex items-center gap-1 bg-red-100 text-red-600 px-3 py-2 font-medium rounded-lg text-xs 
+                 hover:bg-red-200 transition border border-red-200 shadow-sm"
                                  >
+                                    <Trash2 size={14} />
                                     Delete
                                  </button>
 
                               </div>
                            </td>
+
                         </tr>
                      ))}
                   </tbody>
