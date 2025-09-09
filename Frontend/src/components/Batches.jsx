@@ -122,7 +122,7 @@ const Batches = () => {
                  transition-all duration-300 hover:scale-105 hover:shadow-lg hover:border-blue-300"
                 onClick={() => {
                   navigate("/admin/batch", {
-                    state: { batchID: batch.id ,},
+                    state: { batchID: batch.id, },
                   });
                 }}
               >

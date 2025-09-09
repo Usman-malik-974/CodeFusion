@@ -1,419 +1,283 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { FaUserPlus, FaQuestionCircle, FaLayerGroup } from "react-icons/fa";
 import { UserPlus } from "lucide-react";
+import { FaQuestionCircle, FaLayerGroup } from "react-icons/fa";
+import { toast } from "react-toastify";
+import { useSelector, useDispatch } from "react-redux";
+
 import { getBatch } from "../shared/networking/api/batchApi/getBatch";
 import { getRemainingUsers } from "../shared/networking/api/batchApi/getRemainingUsers";
 import { getRemainingQuestions } from "../shared/networking/api/batchApi/getRemainingQuestions";
 import { assignBatch } from "../shared/networking/api/batchApi/assignBatch";
-import { toast } from "react-toastify";
 import { assignQuestions } from "../shared/networking/api/batchApi/assignQuestions";
 import { unassignBatch } from "../shared/networking/api/batchApi/unassignBatch";
 import { unassignQuestiontoBatch } from "../shared/networking/api/questionApi/unassignQuestiontoBatch";
 import { deleteBatch } from "../shared/networking/api/batchApi/deleteBatch";
 import { setBatchesList } from "../app/slices/batchesSlice";
-import { useSelector, useDispatch } from "react-redux";
 
 const ManageBatch = () => {
     const [batch, setBatch] = useState({});
     const [activeTab, setActiveTab] = useState("users");
     const [searchInput, setSearchInput] = useState("");
     const [searchBy, setSearchBy] = useState("name");
-    const [showPopup, setShowPopup] = useState(false);
+
+    const [popupVisible, setPopupVisible] = useState(false);
     const [popupType, setPopupType] = useState(""); // "users" or "questions"
     const [popupSearch, setPopupSearch] = useState("");
     const [unAssignedUsers, setUnAssignedUsers] = useState([]);
     const [unAssignedQuestions, setUnAssignedQuestions] = useState([]);
-    const [isAssigning, setIsAssigning] = useState(false);
     const [selectedItems, setSelectedItems] = useState([]);
+    const [isAssigning, setIsAssigning] = useState(false);
+    const [removingId, setRemovingId] = useState(null); // disables remove button
+
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const batchesList = useSelector((state) => state.batches.batchesList);
-    // const [showPopUp,setShowPopUp]=useState(false);
     const location = useLocation();
     const batchID = location.state?.batchID;
-    console.log(batchID);
+    const batchesList = useSelector((state) => state.batches.batchesList);
 
+    // Fetch batch details
     useEffect(() => {
-        const fetchBatch = async () => {
+        if (!batchID) return;
+        (async () => {
             const res = await getBatch(batchID);
-            if (res.error) {
-                toast.error(res.error);
-                return;
-            }
+            if (res.error) return toast.error(res.error);
             setBatch(res.batch);
-        }
-        fetchBatch();
-    }, [location.state]);
+        })();
+    }, [batchID]);
 
-    const getUnassignedUsers = async () => {
-        //api call here
-        const res = await getRemainingUsers(batchID);
-        if (res.error) {
-            toast.error(res.error);
-            return;
+    // Fetch unassigned users/questions
+    const fetchUnassigned = async (type) => {
+        try {
+            if (type === "users") {
+                const res = await getRemainingUsers(batchID);
+                if (res.error) return toast.error(res.error);
+                setUnAssignedUsers(res.users);
+            } else {
+                const res = await getRemainingQuestions(batchID);
+                if (res.error) return toast.error(res.error);
+                setUnAssignedQuestions(res.questions);
+            }
+        } catch (err) {
+            toast.error("Error fetching unassigned items.");
         }
-        setUnAssignedUsers(res.users);
     };
 
-    const getUnassignedQuestions = async () => {
-        //api call here
-        const res = await getRemainingQuestions(batchID);
-        if (res.error) {
-            toast.error(res.error);
-            return;
-        }
-        setUnAssignedQuestions(res.questions);
-    };
-
-    const openPopup = (type) => {
+    // Open popup
+    const openPopup = async (type) => {
         setPopupType(type);
-        setShowPopup(true);
+        setPopupVisible(true);
         setPopupSearch("");
         setSelectedItems([]);
-        if (type === "users") {
-            getUnassignedUsers();
-        } else {
-            getUnassignedQuestions();
-        }
+        await fetchUnassigned(type);
     };
 
-    const removeUser = async (id) => {
-        const res = await unassignBatch(batch.id, id);
-        if (res.error) {
-            toast.error(res.error);
-            return;
-        }
-        toast.success(res.message);
-        setBatch(prev => ({
-            ...prev,
-            users: prev.users.filter(u => u.id !== id)
-        })
-        )
-    }
-
-    const removeQuestion = async (id) => {
-        const res = await unassignQuestiontoBatch(id, batch.id);
-        if (res.error) {
-            toast.error(res.error);
-            return;
-        }
-        toast.success(res.message);
-        setBatch(prev => ({
-            ...prev,
-            questions: prev.questions.filter(q => q.id !== id)
-        })
-        )
-    }
-
-    const handlePopupSearch = (item) => {
-        const value = popupSearch.toLowerCase();
-        if (!value) return true;
-        if (popupType === "users") {
-            return (
-                item.name.toLowerCase().includes(value) ||
-                item.email.toLowerCase().includes(value)
-            );
-        } else {
-            return (
-                item.title.toLowerCase().includes(value) ||
-                item.difficulty.toLowerCase().includes(value)
-            );
-        }
-    };
-
-    const toggleItemSelection = (item) => {
-        const itemId = item.id;
-        setSelectedItems(prev =>
-            prev.includes(itemId)
-                ? prev.filter(id => id !== itemId)
-                : [...prev, itemId]
-        );
-    };
-
-    // const assignSelectedItems = async () => {
-    //     if (popupType === "users") {
-    //         const usersToAdd = unAssignedUsers.filter(user =>
-    //             selectedItems.includes(user.id)
-    //         );
-    //         const res = await assignBatch(batch.id, selectedItems);
-    //         toast.success(res.message);
-    //         setBatch(prev => ({
-    //             ...prev,
-    //             users: [...prev.users, ...usersToAdd]
-    //         }));
-    //         setUnAssignedUsers(prev =>
-    //             prev.filter(user => !selectedItems.includes(user.id))
-    //         );
-    //     } else {
-    //         const questionsToAdd = unAssignedQuestions.filter(question =>
-    //             selectedItems.includes(question.id)
-    //         );
-
-    //         const res = await assignQuestions(selectedItems, batch.id);
-    //         toast.success(res.message);
-    //         setBatch(prev => ({
-    //             ...prev,
-    //             questions: [...prev.questions, ...questionsToAdd]
-    //         }));
-    //         setUnAssignedQuestions(prev =>
-    //             prev.filter(question => !selectedItems.includes(question.id))
-    //         );
-    //     }
-    //     setShowPopup(false);
-    // };
-
-
-    // Filters for main tables
-
+    // Assign selected items
     const assignSelectedItems = async () => {
-        if (selectedItems.length === 0) return;
-        if (isAssigning || selectedItems.length === 0) return;
+        if (selectedItems.length === 0 || isAssigning) return;
         setIsAssigning(true);
         try {
             if (popupType === "users") {
                 const res = await assignBatch(batch.id, selectedItems);
-                const { assigned = [], notFound = [], invalidIds = [] } = res.summary;
-
-                const assignedUsers = unAssignedUsers.filter(user =>
-                    assigned.includes(user.id)
+                const assignedUsers = unAssignedUsers.filter((u) =>
+                    res.summary.assigned.includes(u.id)
                 );
-
-                // Update batch and user lists
-                setBatch(prev => ({
+                setBatch((prev) => ({
                     ...prev,
                     users: [...prev.users, ...assignedUsers]
                 }));
-
-                setUnAssignedUsers(prev =>
-                    prev.filter(user => !assigned.includes(user.id))
+                setUnAssignedUsers((prev) =>
+                    prev.filter((u) => !res.summary.assigned.includes(u.id))
                 );
-
-                // Toasts
-                if (notFound.length || invalidIds.length) {
-                    toast.warn(
-                        `Some users couldn't be assigned:\n` +
-                        (notFound.length ? `- Not Found: ${notFound.join(", ")}\n` : "") +
-                        (invalidIds.length ? `- Invalid: ${invalidIds.join(", ")}` : "")
-                    );
-                } else {
-                    toast.success(res.message);
-                }
-
+                toast.success(res.message);
             } else {
                 const res = await assignQuestions(selectedItems, batch.id);
-                const { assigned = [], notFound = [], invalidIds = [] } = res.summary;
-
-                const assignedQuestions = unAssignedQuestions.filter(q =>
-                    assigned.includes(q.id)
+                const assignedQuestions = unAssignedQuestions.filter((q) =>
+                    res.summary.assigned.includes(q.id)
                 );
-
-                // Update batch and question lists
-                setBatch(prev => ({
+                setBatch((prev) => ({
                     ...prev,
                     questions: [...prev.questions, ...assignedQuestions]
                 }));
-
-                setUnAssignedQuestions(prev =>
-                    prev.filter(q => !assigned.includes(q.id))
+                setUnAssignedQuestions((prev) =>
+                    prev.filter((q) => !res.summary.assigned.includes(q.id))
                 );
-
-                // Toasts
-                if (notFound.length || invalidIds.length) {
-                    toast.warn(
-                        `Some questions couldn't be assigned:\n` +
-                        (notFound.length ? `- Not Found: ${notFound.join(", ")}\n` : "") +
-                        (invalidIds.length ? `- Invalid: ${invalidIds.join(", ")}` : "")
-                    );
-                } else {
-                    toast.success(res.message);
-                }
+                toast.success(res.message);
             }
-        } catch (error) {
-            toast.error("Something went wrong during assignment.");
-            console.error(error);
+        } catch (err) {
+            toast.error("Assignment failed.");
         } finally {
             setSelectedItems([]);
-            setShowPopup(false);
+            setPopupVisible(false);
             setIsAssigning(false);
         }
     };
 
-
-    const handleUserFilter = (user) => {
-        if (!searchInput) return true;
-        const value = searchInput.toLowerCase();
-        switch (searchBy) {
-            case "name":
-                return user.name.toLowerCase().includes(value);
-            case "rollno":
-                return user.rollno.toLowerCase().includes(value);
-            case "course":
-                return user.course.toLowerCase().includes(value);
-            case "email":
-                return user.email.toLowerCase().includes(value);
-            case "session":
-                return user.session.toLowerCase().includes(value);
-            case "role":
-                return user.role?.toLowerCase().includes(value);
-            default:
-                return true;
+    // Remove user/question
+    const removeItem = async (id, type) => {
+        setRemovingId(id);
+        try {
+            if (type === "users") {
+                const res = await unassignBatch(batch.id, id);
+                if (res.error) return toast.error(res.error);
+                setBatch((prev) => ({
+                    ...prev,
+                    users: prev.users.filter((u) => u.id !== id)
+                }));
+            } else {
+                const res = await unassignQuestiontoBatch(id, batch.id);
+                if (res.error) return toast.error(res.error);
+                setBatch((prev) => ({
+                    ...prev,
+                    questions: prev.questions.filter((q) => q.id !== id)
+                }));
+            }
+            toast.success("Removed successfully");
+        } catch (err) {
+            toast.error("Failed to remove");
+        } finally {
+            setRemovingId(null);
         }
     };
 
-    const handleQuestionFilter = (q) => {
-        if (!searchInput) return true;
-        const value = searchInput.toLowerCase();
-        switch (searchBy) {
-            case "title":
-                return q.title.toLowerCase().includes(value);
-            case "difficulty":
-                return q.difficulty.toLowerCase().includes(value);
-            default:
-                return true;
+    // Delete batch
+    const handleDeleteBatch = async () => {
+        if (!window.confirm("Are you sure you want to delete?")) return;
+        try {
+            const res = await deleteBatch(batch.id);
+            if (res.error) return toast.error(res.error);
+            dispatch(setBatchesList(batchesList.filter((b) => b.id !== batch.id)));
+            toast.success(res.message);
+            navigate(-1);
+        } catch {
+            toast.error("Something went wrong.");
         }
     };
 
+    // Toggle selection in popup
+    const toggleSelection = (id) => {
+        setSelectedItems((prev) =>
+            prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+        );
+    };
+
+    // Filter helpers
+    const handleSearch = (item) => {
+        if (!searchInput) return true;
+        const val = searchInput.toLowerCase();
+        if (activeTab === "users") {
+            return (
+                item.name.toLowerCase().includes(val) ||
+                item.rollno?.toLowerCase().includes(val) ||
+                item.email?.toLowerCase().includes(val) ||
+                item.course?.toLowerCase().includes(val) ||
+                item.session?.toLowerCase().includes(val) ||
+                item.role?.toLowerCase().includes(val)
+            );
+        } else {
+            return (
+                item.title.toLowerCase().includes(val) ||
+                item.difficulty.toLowerCase().includes(val)
+            );
+        }
+    };
+
+    // Difficulty badge color
     const getDifficultyBadgeColor = (level) => {
         switch (level) {
-            case 'Easy':
-                return 'bg-green-100 text-green-700';
-            case 'Medium':
-                return 'bg-amber-200 text-yellow-700';
-            case 'Hard':
-                return 'bg-red-100 text-red-700';
+            case "Easy":
+                return "bg-green-100 text-green-700";
+            case "Medium":
+                return "bg-amber-200 text-yellow-700";
+            case "Hard":
+                return "bg-red-100 text-red-700";
             default:
-                return 'bg-gray-100 text-gray-700';
+                return "bg-gray-100 text-gray-700";
         }
     };
 
-
-    const handleDeleteBatch = async () => {
-        if (window.confirm("Are you sure you want to delete?")) {
-            try {
-
-                const res = await deleteBatch(batch.id);
-                if (res.error) {
-                    toast.error(res.error);
-                    return;
-                }
-                toast.success(res.message);
-                // const batchesList = useSelector((state) => state.batches.bacthesList);
-                dispatch(
-                    setBatchesList(batchesList.filter((a) => a.id !== batch.id))
-                );
-                navigate(-1);
-                return;
-            }
-            catch {
-                toast.error("Something went wrong");
-            }
-        }
-        console.log("Aborted");
-    }
-
-    const filteredUsers = batch.users?.filter(handleUserFilter) || [];
-    const filteredQuestions = batch.questions?.filter(handleQuestionFilter) || [];
+    // Filtered lists
+    const filteredUsers = batch.users?.filter(handleSearch) || [];
+    const filteredQuestions = batch.questions?.filter(handleSearch) || [];
 
     return (
         <div className="p-6">
+            {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-bold">{batch.name || "Batch Details"}</h3>
-
             </div>
 
             {/* Tabs */}
             <div className="flex border-b border-gray-300 mb-4">
                 <button
-                    onClick={() => { setActiveTab("users"); setSearchInput(""); setSearchBy("name"); }}
-                    className={`px-4 py-2 font-medium transition-colors ${activeTab === "users" ? "border-b-2 border-blue-500 text-blue-500" : "text-gray-500 hover:text-blue-500"}`}
+                    onClick={() => {
+                        setActiveTab("users");
+                        setSearchInput("");
+                    }}
+                    className={`px-4 py-2 font-medium transition-colors ${activeTab === "users"
+                            ? "border-b-2 border-blue-500 text-blue-500"
+                            : "text-gray-500 hover:text-blue-500"
+                        }`}
                 >
                     Users
                 </button>
                 <button
-                    onClick={() => { setActiveTab("questions"); setSearchInput(""); setSearchBy("title"); }}
-                    className={`px-4 py-2 font-medium transition-colors ${activeTab === "questions" ? "border-b-2 border-blue-500 text-blue-500" : "text-gray-500 hover:text-blue-500"}`}
+                    onClick={() => {
+                        setActiveTab("questions");
+                        setSearchInput("");
+                    }}
+                    className={`px-4 py-2 font-medium transition-colors ${activeTab === "questions"
+                            ? "border-b-2 border-blue-500 text-blue-500"
+                            : "text-gray-500 hover:text-blue-500"
+                        }`}
                 >
                     Questions
                 </button>
             </div>
 
-            {/* Search bar + Search By + Buttons */}
+            {/* Search + Buttons */}
             <div className="flex items-center justify-between mb-4">
-                <div className="flex w-full md:w-1/2 items-center gap-3">
-                    <input
-                        type="text"
-                        placeholder={`Search ${activeTab === "users" ? "user" : "question"}`}
-                        onChange={(e) => setSearchInput(e.target.value)}
-                        className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-100 w-full"
-                        value={searchInput}
-                    />
-                    <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-sm font-medium text-blue-500">Search By</span>
-                        <select
-                            className="p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-100 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
-                            value={searchBy}
-                            onChange={(e) => setSearchBy(e.target.value)}
-                        >
-                            {activeTab === "users" ? (
-                                <>
-                                    <option value="name">Name</option>
-                                    <option value="rollno">Roll No</option>
-                                    <option value="course">Course</option>
-                                    <option value="email">Email</option>
-                                    <option value="session">Session</option>
-                                    <option value="role">Role</option>
-                                </>
-                            ) : (
-                                <>
-                                    <option value="title">Title</option>
-                                    <option value="difficulty">Difficulty</option>
-                                </>
-                            )}
-                        </select>
-                    </div>
-                </div>
-
-                {/* Right Buttons */}
+                <input
+                    type="text"
+                    placeholder={`Search ${activeTab}`}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    className="p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 w-full md:w-1/2"
+                />
                 <div className="flex items-center gap-2">
-
-                    <div className="flex gap-2 items-center">
-                        {activeTab === "users" && (
-                            <button
-                                onClick={() => openPopup("users")}
-                                className="flex items-center gap-2 bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-blue-600 transition cursor-pointer"
-                            >
-                                <UserPlus size={16} />
-                                Add User
-                            </button>
-                        )}
-                        {activeTab === "questions" && (
-                            <button
-                                onClick={() => openPopup("questions")}
-                                className="flex items-center gap-2 bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-blue-600 transition cursor-pointer"
-                            >
-                                <FaQuestionCircle />
-                                Add Question
-                            </button>
-                        )}
-                    </div>
+                    {activeTab === "users" && (
+                        <button
+                            onClick={() => openPopup("users")}
+                            className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition"
+                        >
+                            <UserPlus size={16} /> Add User
+                        </button>
+                    )}
+                    {activeTab === "questions" && (
+                        <button
+                            onClick={() => openPopup("questions")}
+                            className="flex items-center gap-2 bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition"
+                        >
+                            <FaQuestionCircle /> Add Question
+                        </button>
+                    )}
                     <button
-                        className="flex items-center gap-2 bg-red-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-red-600 transition cursor-pointer"
                         onClick={handleDeleteBatch}
+                        className="flex items-center gap-2 bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition"
                     >
-                        <FaLayerGroup size={16} />
-                        Delete Batch
+                        <FaLayerGroup /> Delete Batch
                     </button>
                 </div>
             </div>
+
             {/* Tables */}
-            {activeTab === "users" && (
-                <div className="overflow-x-auto">
-                    <table className="min-w-full border-collapse rounded-xl overflow-hidden shadow-md">
+            <div className="overflow-x-auto">
+                {activeTab === "users" && (
+                    <table className="min-w-full border-collapse rounded-xl shadow-md">
                         <thead className="bg-blue-100 text-left text-sm font-semibold text-blue-600">
                             <tr>
                                 <th className="px-4 py-3 border-b border-blue-200">#</th>
-                                <th className="px-4 py-3 border-b border-blue-200">Roll Number</th>
+                                <th className="px-4 py-3 border-b border-blue-200">Roll No</th>
                                 <th className="px-4 py-3 border-b border-blue-200">Name</th>
                                 <th className="px-4 py-3 border-b border-blue-200">Email</th>
                                 <th className="px-4 py-3 border-b border-blue-200">Course</th>
@@ -424,7 +288,10 @@ const ManageBatch = () => {
                         <tbody>
                             {filteredUsers.length > 0 ? (
                                 filteredUsers.map((user, idx) => (
-                                    <tr key={idx} className="hover:bg-blue-50 transition">
+                                    <tr
+                                        key={user.id}
+                                        className="hover:bg-blue-50 transition"
+                                    >
                                         <td className="px-4 py-3 border-b border-gray-200">{idx + 1}</td>
                                         <td className="px-4 py-3 border-b border-gray-200">{user.rollno}</td>
                                         <td className="px-4 py-3 border-b border-gray-200">{user.name}</td>
@@ -432,30 +299,36 @@ const ManageBatch = () => {
                                         <td className="px-4 py-3 border-b border-gray-200">{user.course}</td>
                                         <td className="px-4 py-3 border-b border-gray-200">{user.session}</td>
                                         <td className="px-4 py-3 border-b border-gray-200">
-                                            <button className={`bg-red-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-600 transition`} onClick={() => removeUser(user.id)}>Remove</button>
+                                            <button
+                                                onClick={() => removeItem(user.id, "users")}
+                                                disabled={removingId === user.id}
+                                                className={`px-3 py-1.5 rounded-md text-xs font-semibold text-white transition ${removingId === user.id ? "bg-red-400 cursor-not-allowed" : "bg-red-500 hover:bg-red-600"
+                                                    }`}
+                                            >
+                                                {removingId === user.id ? "Removing..." : "Remove"}
+                                            </button>
                                         </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="7" className="text-center py-4 text-gray-500">No users found.</td>
+                                    <td colSpan="7" className="text-center py-4 text-gray-500">
+                                        No users found.
+                                    </td>
                                 </tr>
                             )}
                         </tbody>
                     </table>
-                </div>
-            )}
-
-            {activeTab === "questions" && (
-                <div className="overflow-x-auto">
-                    <table className="min-w-full border-collapse rounded-xl overflow-hidden shadow-md">
+                )}
+                {activeTab === "questions" && (
+                    <table className="min-w-full border-collapse rounded-xl shadow-md">
                         <thead className="bg-blue-100 text-left text-sm font-semibold text-blue-600">
                             <tr>
                                 <th className="px-4 py-3 border-b border-blue-200">#</th>
-                                <th className="px-4 py-3 border-b border-blue-200">Question Title</th>
+                                <th className="px-4 py-3 border-b border-blue-200">Title</th>
                                 <th className="px-4 py-3 border-b border-blue-200">Tags</th>
                                 <th className="px-4 py-3 border-b border-blue-200">Difficulty</th>
-                                <th className="px-4 py-3 border-b border-blue-200">Actions</th>
+                                <th className="px-4 py-3 border-b border-blue-200">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -465,41 +338,46 @@ const ManageBatch = () => {
                                         <td className="px-4 py-3 border-b border-gray-200">{idx + 1}</td>
                                         <td className="px-4 py-3 border-b border-gray-200">{q.title}</td>
                                         <td className="px-4 py-3 border-b border-gray-200">
-                                            {q.tags.map((tag, tagIndex) => (
-                                                <span
-                                                    key={tagIndex}
-                                                    className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm font-semibold"
-                                                >
+                                            {q.tags.map((tag, i) => (
+                                                <span key={i} className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm font-semibold mr-1">
                                                     {tag}
                                                 </span>
-                                            ))}</td>
+                                            ))}
+                                        </td>
                                         <td className="px-4 py-3 border-b border-gray-200">
                                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyBadgeColor(q.difficulty)}`}>
                                                 {q.difficulty}
                                             </span>
                                         </td>
                                         <td className="px-4 py-3 border-b border-gray-200">
-                                            <button className={`bg-red-500 text-white px-3 py-1.5 font-semibold rounded-md text-xs hover:bg-red-600 transition`} onClick={() => removeQuestion(q.id)}>Remove</button>
+                                            <button
+                                                onClick={() => removeItem(q.id, "questions")}
+                                                disabled={removingId === q.id}
+                                                className={`px-3 py-1.5 rounded-md text-xs font-semibold text-white transition ${removingId === q.id ? "bg-red-400 cursor-not-allowed" : "bg-red-500 hover:bg-red-600"
+                                                    }`}
+                                            >
+                                                {removingId === q.id ? "Removing..." : "Remove"}
+                                            </button>
                                         </td>
                                     </tr>
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan="7" className="text-center py-4 text-gray-500">No questions found.</td>
+                                    <td colSpan="5" className="text-center py-4 text-gray-500">
+                                        No questions found.
+                                    </td>
                                 </tr>
                             )}
                         </tbody>
                     </table>
-                </div>
-            )}
+                )}
+            </div>
 
-            {/* Popup */}
-            {showPopup && (
+            {/* Popup for adding users/questions */}
+            {popupVisible && (
                 <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6">
-                        <h2 className="text-lg font-semibold mb-4">
-                            {popupType === "users" ? "Add User" : "Add Question"}
-                        </h2>
+                        <h2 className="text-lg font-semibold mb-4">{popupType === "users" ? "Add User" : "Add Question"}</h2>
                         <input
                             type="text"
                             placeholder="Search..."
@@ -509,8 +387,8 @@ const ManageBatch = () => {
                         />
                         <div className="max-h-60 overflow-y-auto">
                             <table className="w-full text-sm">
-                                <thead>
-                                    <tr className="bg-gray-100">
+                                <thead className="bg-gray-100">
+                                    <tr>
                                         {popupType === "users" ? (
                                             <>
                                                 <th className="p-2 text-left">Roll No</th>
@@ -531,75 +409,56 @@ const ManageBatch = () => {
                                 </thead>
                                 <tbody>
                                     {(popupType === "users" ? unAssignedUsers : unAssignedQuestions)
-                                        .filter(handlePopupSearch).length > 0 ? (
-                                        (popupType === "users" ? unAssignedUsers : unAssignedQuestions)
-                                            .filter(handlePopupSearch)
-                                            .map((item, idx) => {
-                                                const itemId = item.id;
-                                                const isSelected = selectedItems.includes(itemId);
-                                                return (
-                                                    <tr
-                                                        key={idx}
-                                                        className={`hover:bg-blue-50 cursor-pointer ${isSelected ? 'bg-blue-100' : ''}`}
-                                                    >
-                                                        {popupType === "users" ? (
-                                                            <>
-                                                                <td className="p-2">{item.rollno}</td>
-                                                                <td className="p-2">{item.name}</td>
-                                                                <td className="p-2">{item.email}</td>
-                                                                <td className="p-2">{item.course}</td>
-                                                            </>
-                                                        ) : (
-                                                            <>
-                                                                <td className="p-2">{item.title}</td>
-                                                                <td className="p-2">{item.tags.map((tag, tagIndex) => (
-                                                                    <span
-                                                                        key={tagIndex}
-                                                                        className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm font-semibold"
-                                                                    >
-                                                                        {tag}
-                                                                    </span>
-                                                                ))}</td>
-                                                                <td className="p-2"><span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyBadgeColor(item.difficulty)}`}>
-                                                                    {item.difficulty}
-                                                                </span></td>
-                                                            </>
-                                                        )}
-                                                        <td className="p-2">
-                                                            <button
-                                                                onClick={() => toggleItemSelection(item)}
-                                                                className={`px-2 py-1 rounded text-sm ${isSelected ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}
-                                                            >
-                                                                {isSelected ? 'Remove' : 'Add'}
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                );
-                                            })
-                                    ) : (
-                                        <tr>
-                                            <td
-                                                colSpan={popupType === "users" ? 4 : 3}
-                                                className="text-center p-4 text-gray-500"
-                                            >
-                                                No results found.
-                                            </td>
-                                        </tr>
-                                    )}
+                                        .filter((item) =>
+                                            popupSearch
+                                                ? popupType === "users"
+                                                    ? item.name.toLowerCase().includes(popupSearch.toLowerCase()) ||
+                                                    item.email.toLowerCase().includes(popupSearch.toLowerCase())
+                                                    : item.title.toLowerCase().includes(popupSearch.toLowerCase())
+                                                : true
+                                        )
+                                        .map((item) => {
+                                            const isSelected = selectedItems.includes(item.id);
+                                            return (
+                                                <tr key={item.id} className={`hover:bg-blue-50 cursor-pointer ${isSelected ? "bg-blue-100" : ""}`}>
+                                                    {popupType === "users" ? (
+                                                        <>
+                                                            <td className="p-2">{item.rollno}</td>
+                                                            <td className="p-2">{item.name}</td>
+                                                            <td className="p-2">{item.email}</td>
+                                                            <td className="p-2">{item.course}</td>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <td className="p-2">{item.title}</td>
+                                                            <td className="p-2">{item.tags.map((t, i) => (
+                                                                <span key={i} className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm font-semibold mr-1">{t}</span>
+                                                            ))}</td>
+                                                            <td className="p-2">
+                                                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getDifficultyBadgeColor(item.difficulty)}`}>{item.difficulty}</span>
+                                                            </td>
+                                                        </>
+                                                    )}
+                                                    <td className="p-2">
+                                                        <button
+                                                            onClick={() => toggleSelection(item.id)}
+                                                            className={`px-2 py-1 rounded text-sm ${isSelected ? "bg-red-100 text-red-600" : "bg-blue-100 text-blue-600"}`}
+                                                        >
+                                                            {isSelected ? "Remove" : "Add"}
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
                                 </tbody>
                             </table>
                         </div>
                         <div className="mt-4 flex justify-end gap-2">
-                            <button
-                                onClick={() => setShowPopup(false)}
-                                className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400 transition"
-                            >
-                                Close
-                            </button>
+                            <button onClick={() => setPopupVisible(false)} className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400">Close</button>
                             <button
                                 onClick={assignSelectedItems}
-                                disabled={isAssigning || selectedItems.length === 0}
-                                className={`px-4 py-2 rounded-md transition ${selectedItems.length > 0 && !isAssigning ? 'bg-blue-500 text-white hover:bg-blue-600' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}
+                                disabled={selectedItems.length === 0 || isAssigning}
+                                className={`px-4 py-2 rounded-md transition ${selectedItems.length > 0 && !isAssigning ? "bg-blue-500 text-white hover:bg-blue-600" : "bg-gray-300 text-gray-500 cursor-not-allowed"}`}
                             >
                                 {isAssigning ? "Assigning..." : "Assign Selected"}
                             </button>
