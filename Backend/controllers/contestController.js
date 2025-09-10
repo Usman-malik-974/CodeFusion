@@ -29,10 +29,16 @@ const createContest = async (req, res) => {
     });
 
     await contest.save();
-
+    console.log("Creatd succes");
     res.status(201).json({
       message: "Contest created successfully",
-      contest
+      contest:{
+        id: contest._id,
+        name: contest.name,
+        startTime: contest.startTime,
+        endTime: contest.endTime,
+        duration: contest.duration,
+      }
     });
   } catch (error) {
     console.error("Error creating contest:", error);

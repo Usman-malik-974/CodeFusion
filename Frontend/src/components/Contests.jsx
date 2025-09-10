@@ -4,6 +4,10 @@ import { getAllQuestions } from "../shared/networking/api/questionApi/getAllQues
 import CreateContestForm from "./CreateContestForm";
 import { Clock, PlayCircle, History } from "lucide-react"; // Icons
 import { setQuestionsList } from '../app/slices/questionsSlice';
+import { getUpcomingContests } from '../shared/networking/api/contestApi/getUpcomingContests'
+import { getRecentContests } from '../shared/networking/api/contestApi/getRecentContests'
+import { getLiveContests } from '../shared/networking/api/contestApi/getLiveContests'
+import AdminContestCard from "./AdminContestCard";
 
 const Contests = () => {
   const [activeTab, setActiveTab] = useState("live");
@@ -37,108 +41,191 @@ const Contests = () => {
     }
   }, []);
 
+  useEffect(() => {
+    async function getContests() {
+      if (activeTab == "upcoming") {
+        const res = await getUpcomingContests();
+        setUpcomingContests(res.contests);
+      }
+      else if (activeTab == "live") {
+        const res = await getLiveContests();
+        setLiveContests(res.contests);
+      }
+      else if (activeTab == "previous") {
+        const res = await getRecentContests();
+        setPreviousContests(res.contests);
+      }
+    }
+    getContests();
+  }, [activeTab]);
+
+
+  useEffect(() => {
+    const formatDiff = (ms) => {
+      const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+
+      return `${days > 0 ? days + "d " : ""}${hours}h ${minutes}m ${seconds}s`;
+    };
+
+    const updateTimers = () => {
+      const now = Date.now();
+
+      // Handle upcoming contests
+      setUpcomingContests((prev) =>
+        prev
+          .map((contest) => {
+            const startMs = new Date(contest.startTime).getTime();
+            const diff = startMs - now;
+
+            if (diff <= 0) {
+              // move contest to live
+              setLiveContests((live) => [
+                ...live,
+                { ...contest, timeLeft: "" },
+              ]);
+              return null; // remove from upcoming
+            }
+
+            return {
+              ...contest,
+              timeLeft: formatDiff(diff),
+            };
+          })
+          .filter(Boolean)
+      );
+
+      // Handle live contests
+      setLiveContests((prev) =>
+        prev
+          .map((contest) => {
+            const endMs = new Date(contest.endTime).getTime();
+            const diff = endMs - now;
+
+            if (diff <= 0) {
+              setPreviousContests((prevPrev) => [contest, ...prevPrev]);
+              return null; // remove from live
+            }
+
+            return {
+              ...contest,
+              timeLeft: formatDiff(diff),
+            };
+          })
+          .filter(Boolean)
+      );
+    };
+
+    // 🔹 Run once immediately (so no flicker)
+    updateTimers();
+
+    // 🔹 Then keep updating every second
+    const interval = setInterval(updateTimers, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+
+
+
+
+
   return (
     <div className="p-4 relative">
-      {/* Modal Overlay for Create Contest */}
       {showCreateContestForm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
           <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-3xl max-h-[90vh] overflow-y-auto relative no-scrollbar animate-fadeIn">
             <CreateContestForm
               onClose={() => setShowCreateContestForm(false)}
+              onCreate={(contest) => {
+                setUpcomingContests([...upcomingContests, contest]);
+              }}
               questions={questions}
             />
           </div>
         </div>
       )}
-
       {/* Heading */}
-      <h3 className="text-3xl text-blue-500 font-semibold text-center mb-6 tracking-wide">
+      <h3 className="text-3xl text-blue-500 font-bold text-center mb-8 tracking-wide">
         Contest Management
       </h3>
 
       {/* Create button */}
-      <div className="flex items-center justify-end mb-4">
+      <div className="flex items-center justify-end mb-6">
         <button
-          className="bg-blue-500 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-blue-600 hover:scale-105 transition transform"
+          className="bg-blue-500 text-white text-sm px-5 py-2.5 rounded-lg shadow hover:bg-blue-600 hover:scale-105 transition-all"
           onClick={() => setShowCreateContestForm(true)}
         >
-          Create Contest +
+          + Create Contest
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center justify-center gap-8 pb-2 border-b border-gray-200">
-        {[
-          { key: "previous", label: "Previous", color: "rose", icon: History },
-          { key: "live", label: "Live", color: "green", icon: PlayCircle },
-          { key: "upcoming", label: "Upcoming", color: "blue", icon: Clock },
-        ].map(({ key, label, color, icon: Icon }) => (
-          <button
-            key={key}
-            className={`flex items-center gap-2 font-semibold pb-2 transition-all ${
-              activeTab === key
-                ? `text-${color}-500 border-b-2 border-${color}-500`
-                : `text-${color}-400 hover:text-${color}-500`
-            }`}
-            onClick={() => setActiveTab(key)}
-          >
-            <Icon size={18} />
-            {label}
-          </button>
-        ))}
+      <div className="flex justify-center mb-8">
+        <div className="flex bg-gray-100 rounded-xl p-1">
+          {[
+            { key: "previous", label: "Previous", icon: History, color: "red" },
+            { key: "live", label: "Live", icon: PlayCircle, color: "green" },
+            { key: "upcoming", label: "Upcoming", icon: Clock, color: "blue" },
+          ].map(({ key, label, icon: Icon, color }) => {
+            const active = activeTab === key;
+            return (
+              <button
+                key={key}
+                className={`flex items-center gap-2 px-5 py-2 rounded-lg font-medium text-sm transition-all cursor-pointer
+              ${active
+                    ? `bg-${color}-100 text-${color}-600 shadow-sm border border-${color}-200`
+                    : "text-gray-500 hover:text-gray-700"
+                  }`}
+                onClick={() => setActiveTab(key)}
+              >
+                <Icon size={16} className={active ? "text-blue-500" : "text-gray-400"} />
+                {label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Tab Content */}
-      <div className="mt-6 space-y-3">
+      <div className="space-y-4">
         {activeTab === "previous" &&
           (previousContests.length > 0 ? (
-            previousContests.map((contest, idx) => (
-              <div
-                key={idx}
-                className="p-4 border rounded-lg shadow-sm bg-gray-50 hover:shadow-md transition cursor-pointer"
-              >
-                <h1 className="font-semibold text-gray-700">{contest.name}</h1>
-              </div>
-            ))
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {previousContests.map((contest) => (
+                <AdminContestCard key={contest.id} contest={contest} type="previous" />
+              ))}
+            </div>
           ) : (
             <p className="text-gray-500 text-center">No previous contests</p>
           ))}
 
         {activeTab === "live" &&
           (liveContests.length > 0 ? (
-            liveContests.map((contest, idx) => (
-              <div
-                key={idx}
-                className="p-4 border rounded-lg shadow-sm bg-green-50 hover:shadow-md transition cursor-pointer flex justify-between items-center"
-              >
-                <h1 className="font-semibold text-green-700">{contest.name}</h1>
-                <span className="text-xs px-2 py-1 bg-green-200 text-green-700 rounded-full animate-pulse">
-                  🔴 Live
-                </span>
-              </div>
-            ))
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {liveContests.map((contest) => (
+                <AdminContestCard key={contest.id} contest={contest} type="live" />
+              ))}
+            </div>
           ) : (
-            <p className="text-gray-500 text-center">No live contests</p>
+            <p className="text-gray-500 text-center">No Live contests</p>
           ))}
 
         {activeTab === "upcoming" &&
           (upcomingContests.length > 0 ? (
-            upcomingContests.map((contest, idx) => (
-              <div
-                key={idx}
-                className="p-4 border rounded-lg shadow-sm bg-blue-50 hover:shadow-md transition cursor-pointer flex justify-between items-center"
-              >
-                <h1 className="font-semibold text-blue-700">{contest.name}</h1>
-                <span className="text-xs px-2 py-1 bg-blue-200 text-blue-700 rounded-full">
-                  ⏳ Starts Soon
-                </span>
-              </div>
-            ))
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {upcomingContests.map((contest) => (
+                <AdminContestCard key={contest.id} contest={contest} type="upcoming" timeLeft={contest.timeLeft} />
+              ))}
+            </div>
           ) : (
             <p className="text-gray-500 text-center">No upcoming contests</p>
           ))}
       </div>
     </div>
+
   );
 };
 
