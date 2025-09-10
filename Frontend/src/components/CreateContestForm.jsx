@@ -11,9 +11,9 @@ const validationSchema = Yup.object({
         .required("Contest Name is required")
         .min(3, "Contest Name must be at least 3 characters"),
 
-    code:Yup.string()
-    .trim()
-    .required("Contest Code is required"),
+    code: Yup.string()
+        .trim()
+        .required("Contest Code is required"),
 
     startTime: Yup.date()
         .required("Start Time is required")
@@ -33,32 +33,34 @@ const validationSchema = Yup.object({
         .max(360, "Duration cannot exceed 6 hours"),
 });
 
-const CreateContestForm = ({ onClose, questions }) => {
+const CreateContestForm = ({ onClose, questions, onCreate }) => {
     const [selectedQuestions, setSelectedQuestions] = useState([]);
 
     const formik = useFormik({
         initialValues: {
             contestName: "",
-            code:"",
+            code: "",
             startTime: "",
             endTime: "",
             duration: "",
         },
         validationSchema,
-        onSubmit: async(values) => {
-            console.log({
-                ...values,
-                selectedQuestions,
-            });
+        onSubmit: async (values) => {
+            // console.log({
+            //     ...values,
+            //     selectedQuestions,
+            // });
 
-            const res=await createContest({
+            const res = await createContest({
                 ...values,
                 selectedQuestions,
             });
-            if(res.error){
+            if (res.error) {
                 toast.error(res.error);
             }
-            else{
+            else {
+                console.log(res.contest);
+                onCreate(res.contest);
                 toast.success(res.message);
             }
             //from here res.contest will be set to the Contest Component
