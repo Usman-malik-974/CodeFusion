@@ -1,13 +1,15 @@
 const express = require('express');
 const authenticateToken = require('../middlewares/authenticateToken');
-const { createContest, getUpcomingContests, getLiveContests, getRecentContests, getContestQuestions } = require('../controllers/contestController');
+const { createContest, getUpcomingContests, getLiveContests, getRecentContests, getContestQuestions, deleteContest, updateContest } = require('../controllers/contestController');
 
 module.exports = (io) => {
     const router = express.Router();
     router.post('/create',authenticateToken,createContest);
+    router.post('/update',authenticateToken,updateContest);
     router.get('/getupcomingcontests',authenticateToken,getUpcomingContests);
     router.get('/getlivecontests',authenticateToken,getLiveContests);
     router.get('/getrecentcontests',authenticateToken,getRecentContests);
     router.get('/getcontestquestions/:id',authenticateToken,getContestQuestions);
+    router.delete('/:id',authenticateToken,deleteContest);
     return router;
 };
