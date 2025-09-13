@@ -10,6 +10,7 @@ const updateContest=async(contestData)=> {
             body: JSON.stringify(contestData)
         });
         const result = await response.json();
+        // console.log("Api res", result);
         if (!response.ok) {
             return { error: result.error || 'Failed to update Contest' };
         }

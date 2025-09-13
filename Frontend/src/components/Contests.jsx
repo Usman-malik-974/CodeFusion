@@ -9,6 +9,8 @@ import { getRecentContests } from '../shared/networking/api/contestApi/getRecent
 import { getLiveContests } from '../shared/networking/api/contestApi/getLiveContests'
 import AdminContestCard from "./AdminContestCard";
 import UpdateContestForm from "./updateContestForm";
+import { deleteContest } from "../shared/networking/api/contestApi/deleteContest";
+import { toast } from "react-toastify";
 
 const Contests = () => {
   const [activeTab, setActiveTab] = useState("live");
@@ -172,6 +174,25 @@ const Contests = () => {
     setShowUpdateContestForm(false);
   }, []);
 
+  const handleUpdateUpcomingContest = useCallback((contest) => {
+    setUpcomingContests((prev) => {
+      return prev.map((c) => (c.id === contest.id ? contest : c));
+    });
+  }, []);
+
+  const handleDeleteClick = async (id) => {
+    if (window.confirm("Are you sure you want to Delete")) {
+      const res = await deleteContest(id);
+      if (res.error) {
+        toast.error(res.error);
+        return;
+      }
+      setUpcomingContests((prev) => {
+        return prev.filter((c) => c.id != id);
+      })
+      toast.success(res.message);
+    }
+  }
 
   return (
     <div className="p-4 relative">
@@ -193,6 +214,7 @@ const Contests = () => {
           <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-3xl max-h-[90vh] overflow-y-auto relative no-scrollbar animate-fadeIn">
             <UpdateContestForm
               onClose={handleUpdateFormClose}
+              onUpdate={handleUpdateUpcomingContest}
               // onCreate={(contest) => {
               //   setUpcomingContests([...upcomingContests, contest]);
               // }}
@@ -275,6 +297,7 @@ const Contests = () => {
                 <AdminContestCard key={contest.id}
                   contest={contest}
                   onEditClick={() => handleEditClick(contest)} // okay
+                  onDeleteClick={handleDeleteClick}
                   type="upcoming"
                 // timeLeft={contest.timeLeft}
                 />

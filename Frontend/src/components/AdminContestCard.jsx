@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Trash2, Edit, Edit2, Edit2Icon, EditIcon } from "lucide-react";
 import React from "react";
 
-const AdminContestCard = React.memo(({ contest, type, onEditClick }) => {
+const AdminContestCard = React.memo(({ contest, type, onEditClick,onDeleteClick }) => {
   // useEffect(()=>{
   //    console.log("Admin card re rebderd");
   // },[contest])
@@ -69,7 +69,7 @@ const AdminContestCard = React.memo(({ contest, type, onEditClick }) => {
           <button
             title="Delete"
             className="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition"
-            onClick={() => console.log("Delete contest:", contest.id)}
+            onClick={()=>onDeleteClick(contest.id)}
           >
             <Trash2 size={18} />
           </button>

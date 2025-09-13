@@ -6,9 +6,10 @@ import CustomDropdown from "./CustomDropDown";
 import { createContest } from "../shared/networking/api/contestApi/createContest";
 import { getContestQuestions } from "../shared/networking/api/contestApi/getContestQuestions";
 import React from "react";
+import { updateContest } from "../shared/networking/api/contestApi/updateContest";
 
 const validationSchema = Yup.object({
-    contestName: Yup.string()
+    name: Yup.string()
         .trim()
         .required("Contest Name is required")
         .min(3, "Contest Name must be at least 3 characters"),
@@ -35,16 +36,16 @@ const validationSchema = Yup.object({
         .max(360, "Duration cannot exceed 6 hours"),
 });
 
-const UpdateContestForm = React.memo(({ onClose, questions, onCreate, prevData }) => {
+const UpdateContestForm = React.memo(({ onClose, questions, onUpdate, prevData }) => {
     const [selectedQuestions, setSelectedQuestions] = useState([]);
-    console.log(prevData);
+    // console.log(prevData);
     useEffect(() => {
-        console.log("form rendered due to prev");
+        // console.log("form rendered due to prev");
         async function getQuestions() {
-            let data=await getContestQuestions(prevData.id);
-            console.log(data.questions);
-            setSelectedQuestions(()=>{
-                const questionIds=data.questions.map((q,idx)=>{
+            let data = await getContestQuestions(prevData.id);
+            // console.log(data.questions);
+            setSelectedQuestions(() => {
+                const questionIds = data.questions.map((q, idx) => {
                     return q.id;
                 })
                 return questionIds;
@@ -57,15 +58,15 @@ const UpdateContestForm = React.memo(({ onClose, questions, onCreate, prevData }
 
     }, [questions])
     useEffect(() => {
-        console.log("form rendered dut oncreate")
-    }, [onCreate])
+        console.log("form rendered dut onUpdate")
+    }, [onUpdate])
     useEffect(() => {
         console.log("form rendered du to onclose")
     }, [onClose])
 
     const formik = useFormik({
         initialValues: {
-            contestName: prevData?.name || "",
+            name: prevData?.name || "",
             code: prevData?.code || "",
             startTime: prevData?.startTime
                 ? new Date(prevData.startTime).toISOString().slice(0, 16)
@@ -77,25 +78,18 @@ const UpdateContestForm = React.memo(({ onClose, questions, onCreate, prevData }
         },
         validationSchema,
         onSubmit: async (values) => {
-            const payload = { ...values, selectedQuestions };
+            const payload = { id: prevData.id, ...values, selectedQuestions };
 
-            // console.log(payload);
+            console.log(payload);
 
-            // if (prevData) {
-            //     // Update contest
-            //     payload.id = prevData.id;
-            //     const res = await updateContest(payload); // create an update API
-            //     if (!res.error) {
-            //         onCreate(res.contest); // update state in parent
-            //     }
-            // } else {
-            //     // Create contest
-            //     const res = await createContest(payload);
-            //     if (!res.error) {
-            //         onCreate(res.contest); // add to upcoming
-            //     }
-            // }
 
+            const res = await updateContest(payload);
+            if (res.error) {
+                toast.error(res.error);
+                return;
+            }
+            onUpdate(res.contest);
+            toast.success(res.message);
             onClose();
         },
     });
@@ -121,17 +115,17 @@ const UpdateContestForm = React.memo(({ onClose, questions, onCreate, prevData }
                         Contest Name
                     </label>
                     <input
-                        {...formik.getFieldProps("contestName")}
+                        {...formik.getFieldProps("name")}
                         type="text"
                         placeholder="Enter contest name"
-                        className={`w-full px-3 py-2 border ${formik.touched.contestName && formik.errors.contestName
+                        className={`w-full px-3 py-2 border ${formik.touched.name && formik.errors.name
                             ? "border-red-500"
                             : "border-gray-300"
                             } rounded-md focus:ring-2 focus:ring-blue-500`}
                     />
-                    {formik.touched.contestName && formik.errors.contestName && (
+                    {formik.touched.name && formik.errors.name && (
                         <p className="text-red-500 text-sm mt-1">
-                            {formik.errors.contestName}
+                            {formik.errors.name}
                         </p>
                     )}
                 </div>
