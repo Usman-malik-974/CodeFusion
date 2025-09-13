@@ -1,38 +1,21 @@
 import { useState, useEffect } from "react";
 import { Trash2, Edit, Edit2, Edit2Icon, EditIcon } from "lucide-react";
+import React from "react";
 
-const AdminContestCard = ({ contest, type }) => {
+const AdminContestCard = React.memo(({ contest, type, onEditClick }) => {
+  // useEffect(()=>{
+  //    console.log("Admin card re rebderd");
+  // },[contest])
   return (
     <div
       className="relative bg-gradient-to-b from-white to-blue-50 rounded-2xl p-6 border border-gray-200 shadow-md 
       flex flex-col items-center text-center cursor-pointer
       transition-all duration-300 hover:scale-[1.04] hover:shadow-xl hover:border-blue-400"
     >
-      {/* {type === "upcoming" && (
-        <div className="flex items-center justify-end gap-3 mt-3">
-          <button
-            className="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition"
-            onClick={() => console.log("Edit contest:", contest.id)}
-          >
-            <EditIcon size={18} />
-          </button>
-          <button
-            className="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition"
-            onClick={() => console.log("Delete contest:", contest.id)}
-          >
-            <Trash2 size={18} />
-          </button>
-        </div>
-      )} */}
 
-      {/* Contest Name */}
-      {/* <div className="relative flex items-center justify-center w-full mb-3"> */}
-        {/* Contest Name (centered) */}
-        <h4 className="text-xl font-bold text-gray-800 tracking-wide text-center mb-3">
-          {contest.name}
-        </h4>
-      {/* </div> */}
-
+      <h4 className="text-xl font-bold text-gray-800 tracking-wide text-center mb-3">
+        {contest.name}
+      </h4>
 
 
       {/* Status Badge */}
@@ -65,27 +48,21 @@ const AdminContestCard = ({ contest, type }) => {
       {type === "live" && (
         <div className="flex items-center gap-2 mt-3">
           <button
-          title="Edit"
+            title="Edit"
             className="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition"
             onClick={() => console.log("Edit contest:", contest.id)}
           >
             <EditIcon size={18} />
           </button>
-          {/* <button
-            className="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition"
-            onClick={() => console.log("Delete contest:", contest.id)}
-          >
-            <Trash2 size={18} />
-          </button> */}
         </div>
       )}
 
       {type === "upcoming" && (
         <div className="flex items-center gap-2 mt-3">
           <button
-          title="Edit"
+            title="Edit"
             className="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-200 transition"
-            onClick={() => console.log("Edit contest:", contest.id)}
+            onClick={() => onEditClick(contest)}
           >
             <EditIcon size={18} />
           </button>
@@ -104,6 +81,6 @@ const AdminContestCard = ({ contest, type }) => {
       <div className="absolute inset-0 rounded-2xl pointer-events-none border border-transparent hover:border-blue-300 transition duration-500"></div>
     </div>
   );
-};
+});
 
 export default AdminContestCard;

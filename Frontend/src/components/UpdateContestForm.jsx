@@ -1,9 +1,11 @@
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import CustomDropdown from "./CustomDropDown";
 import { createContest } from "../shared/networking/api/contestApi/createContest";
+import { getContestQuestions } from "../shared/networking/api/contestApi/getContestQuestions";
+import React from "react";
 
 const validationSchema = Yup.object({
     contestName: Yup.string()
@@ -33,43 +35,67 @@ const validationSchema = Yup.object({
         .max(360, "Duration cannot exceed 6 hours"),
 });
 
-const CreateContestForm = ({ onClose, questions, onCreate }) => {
+const UpdateContestForm = React.memo(({ onClose, questions, onCreate, prevData }) => {
     const [selectedQuestions, setSelectedQuestions] = useState([]);
+    console.log(prevData);
+    useEffect(() => {
+        console.log("form rendered due to prev");
+        async function getQuestions() {
+            let data=await getContestQuestions(prevData.id);
+            console.log(data.questions);
+            setSelectedQuestions(()=>{
+                const questionIds=data.questions.map((q,idx)=>{
+                    return q.id;
+                })
+                return questionIds;
+            });
+        }
+        getQuestions();
+    }, [prevData])
+    useEffect(() => {
+        console.log("form rendered duto ques")
+
+    }, [questions])
+    useEffect(() => {
+        console.log("form rendered dut oncreate")
+    }, [onCreate])
+    useEffect(() => {
+        console.log("form rendered du to onclose")
+    }, [onClose])
 
     const formik = useFormik({
         initialValues: {
-            contestName: "",
-            code: "",
-            startTime: "",
-            endTime: "",
-            duration: "",
+            contestName: prevData?.name || "",
+            code: prevData?.code || "",
+            startTime: prevData?.startTime
+                ? new Date(prevData.startTime).toISOString().slice(0, 16)
+                : "",
+            endTime: prevData?.endTime
+                ? new Date(prevData.endTime).toISOString().slice(0, 16)
+                : "",
+            duration: prevData?.duration || "",
         },
         validationSchema,
         onSubmit: async (values) => {
-            // console.log({
-            //     ...values,
-            //     selectedQuestions,
-            // });
+            const payload = { ...values, selectedQuestions };
 
-            if(selectedQuestions.length==0){
-                alert("Please select at least one Question");
-                return;
-            }
+            // console.log(payload);
 
-            const res = await createContest({
-                ...values,
-                selectedQuestions,
-            });
-            if (res.error) {
-                toast.error(res.error);
-            }
-            else {
-                console.log(res.contest);
-                onCreate(res.contest);
-                toast.success(res.message);
-            }
-        
-            //from here res.contest will be set to the Contest Component
+            // if (prevData) {
+            //     // Update contest
+            //     payload.id = prevData.id;
+            //     const res = await updateContest(payload); // create an update API
+            //     if (!res.error) {
+            //         onCreate(res.contest); // update state in parent
+            //     }
+            // } else {
+            //     // Create contest
+            //     const res = await createContest(payload);
+            //     if (!res.error) {
+            //         onCreate(res.contest); // add to upcoming
+            //     }
+            // }
+
             onClose();
         },
     });
@@ -85,7 +111,7 @@ const CreateContestForm = ({ onClose, questions, onCreate }) => {
             </button>
 
             <h2 className="text-3xl font-bold mb-6 text-center text-blue-500">
-                Create Contest
+                Update Contest
             </h2>
 
             <form className="space-y-4" onSubmit={formik.handleSubmit}>
@@ -212,6 +238,7 @@ const CreateContestForm = ({ onClose, questions, onCreate }) => {
                     <div className="mt-3 space-y-2">
                         {selectedQuestions.map((id) => {
                             const q = questions.find((q) => q.id === id);
+                            // console.log("In here "+q)
                             return (
                                 <div
                                     key={id}
@@ -244,6 +271,6 @@ const CreateContestForm = ({ onClose, questions, onCreate }) => {
             {/* </div> */}
         </div>
     );
-};
+});
 
-export default CreateContestForm;
+export default UpdateContestForm;

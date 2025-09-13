@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { getAllQuestions } from "../shared/networking/api/questionApi/getAllQuestions";
 import CreateContestForm from "./CreateContestForm";
@@ -8,6 +8,7 @@ import { getUpcomingContests } from '../shared/networking/api/contestApi/getUpco
 import { getRecentContests } from '../shared/networking/api/contestApi/getRecentContests'
 import { getLiveContests } from '../shared/networking/api/contestApi/getLiveContests'
 import AdminContestCard from "./AdminContestCard";
+import UpdateContestForm from "./updateContestForm";
 
 const Contests = () => {
   const [activeTab, setActiveTab] = useState("live");
@@ -15,8 +16,13 @@ const Contests = () => {
   const [liveContests, setLiveContests] = useState([]);
   const [upcomingContests, setUpcomingContests] = useState([]);
   const [showCreateContestForm, setShowCreateContestForm] = useState(false);
+  const [showUpdateContestForm, setShowUpdateContestForm] = useState(false);
   const [questions, setQuestions] = useState([]);
   const questionsList = useSelector((state) => state.questions.questionsList);
+  const [editContestData, setEditContestData] = useState(null);
+
+  // When clicking edit
+
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -41,17 +47,45 @@ const Contests = () => {
     }
   }, []);
 
+  // useEffect(() => {
+  //   async function getContests() {
+  //     if (activeTab == "upcoming") {
+  //       const res = await getUpcomingContests();
+  //       setUpcomingContests(res.contests);
+  //     }
+  //     else if (activeTab == "live") {
+  //       const res = await getLiveContests();
+  //       setLiveContests(res.contests);
+  //     }
+  //     else if (activeTab == "previous") {
+  //       const res = await getRecentContests();
+  //       setPreviousContests(res.contests);
+  //     }
+  //   }
+  //   getContests();
+  // }, [activeTab]);
+
   useEffect(() => {
     async function getContests() {
-      if (activeTab == "upcoming") {
+      const now = Date.now();
+
+      if (activeTab === "upcoming") {
         const res = await getUpcomingContests();
-        setUpcomingContests(res.contests);
-      }
-      else if (activeTab == "live") {
+        setUpcomingContests(
+          res.contests.map((contest) => {
+            const diff = new Date(contest.startTime).getTime() - now;
+            return { ...contest, timeLeft: diff > 0 ? formatDiff(diff) : "" };
+          })
+        );
+      } else if (activeTab === "live") {
         const res = await getLiveContests();
-        setLiveContests(res.contests);
-      }
-      else if (activeTab == "previous") {
+        setLiveContests(
+          res.contests.map((contest) => {
+            const diff = new Date(contest.endTime).getTime() - now;
+            return { ...contest, timeLeft: diff > 0 ? formatDiff(diff) : "" };
+          })
+        );
+      } else if (activeTab === "previous") {
         const res = await getRecentContests();
         setPreviousContests(res.contests);
       }
@@ -61,14 +95,7 @@ const Contests = () => {
 
 
   useEffect(() => {
-    const formatDiff = (ms) => {
-      const days = Math.floor(ms / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-      const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((ms % (1000 * 60)) / 1000);
 
-      return `${days > 0 ? days + "d " : ""}${hours}h ${minutes}m ${seconds}s`;
-    };
 
     const updateTimers = () => {
       const now = Date.now();
@@ -127,9 +154,23 @@ const Contests = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const formatDiff = (ms) => {
+    const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((ms % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
 
+    return `${days > 0 ? days + "d " : ""}${hours}h ${minutes}m ${seconds}s`;
+  };
+  const handleEditClick = (contest) => {
+    // console.log(contest);
+    setEditContestData(contest); // pass to form
+    setShowUpdateContestForm(true);
+  };
 
-
+  const handleUpdateFormClose = useCallback(() => {
+    setShowUpdateContestForm(false);
+  }, []);
 
 
   return (
@@ -142,6 +183,20 @@ const Contests = () => {
               onCreate={(contest) => {
                 setUpcomingContests([...upcomingContests, contest]);
               }}
+              questions={questions}
+            />
+          </div>
+        </div>
+      )}
+      {showUpdateContestForm && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-3xl max-h-[90vh] overflow-y-auto relative no-scrollbar animate-fadeIn">
+            <UpdateContestForm
+              onClose={handleUpdateFormClose}
+              // onCreate={(contest) => {
+              //   setUpcomingContests([...upcomingContests, contest]);
+              // }}
+              prevData={editContestData}
               questions={questions}
             />
           </div>
@@ -217,7 +272,12 @@ const Contests = () => {
           (upcomingContests.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {upcomingContests.map((contest) => (
-                <AdminContestCard key={contest.id} contest={contest} type="upcoming" timeLeft={contest.timeLeft} />
+                <AdminContestCard key={contest.id}
+                  contest={contest}
+                  onEditClick={() => handleEditClick(contest)} // okay
+                  type="upcoming"
+                // timeLeft={contest.timeLeft}
+                />
               ))}
             </div>
           ) : (
