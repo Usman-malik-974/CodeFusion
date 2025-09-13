@@ -33,7 +33,7 @@ const Login = () => {
             setLoader(true);
             try {
                 const res = await loginUser(values.email.trim(), values.password.trim());
-                console.log(res);
+                // console.log(res);
                 if (res.user) {
                     const userDetails = res.user;
                     const token = res.token; // assuming API returns token
