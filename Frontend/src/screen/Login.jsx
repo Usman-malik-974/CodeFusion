@@ -50,7 +50,7 @@ const Login = () => {
                 }
             } catch (error) {
                 console.error("Login failed", error);
-                toast.error("Login failed" + " " + error);
+                toast.error(error);
                 // dispatch(loginFailure());
                 // Optionally show error message (toast or UI)
             } finally {
