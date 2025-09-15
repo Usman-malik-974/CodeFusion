@@ -229,13 +229,15 @@ const updateContest = async (req, res) => {
         .status(400)
         .json({ error: "This contest is already started or ended. Cannot update." });
     }
+
     contest.name = name;
     contest.code=code;
     contest.startTime = startTime;
     contest.endTime = endTime;
     contest.duration = duration;
-    contest.selectedQuestions = selectedQuestions;
+    contest.questions = selectedQuestions;
     await contest.save();
+    console.log(contest);
     res.status(200).json({
       message: "Contest updated successfully.",
       contest:{

@@ -1,73 +1,47 @@
-import React, { useEffect, useState } from 'react';
-import { useFormik } from 'formik';
+import { useFormik } from "formik";
+import { useParams } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { BiSolidShow } from "react-icons/bi";
+import { BeatLoader } from "react-spinners";
 import * as Yup from 'yup';
-import { Link, useNavigate } from 'react-router-dom';
-import { BeatLoader } from 'react-spinners';
-import { loginUser } from '../shared/networking/api/userApi/loginUser';
-import { BiSolidShow, BiSolidHide } from "react-icons/bi";
-import { useDispatch, useSelector } from 'react-redux';
-import { toast } from 'react-toastify';
 
-const Login = () => {
-    const [loader, setLoader] = useState(false);
+const ContestLogin = () => {
     const [showPassword, setShowPassword] = useState(false);
-    const navigate = useNavigate();
-
-    useEffect(()=>{
-       const token=localStorage.getItem("token");
-       //api logic to verify if its valid token then redirect acc to role without cred
-    //    navigate("/dashboard") or  navigate("/admin")
-    },[])
+    const [loader, setLoader] = useState(false);
+    const { id } = useParams();
+    // console.log(id);
     const validationSchema = Yup.object({
         email: Yup.string().email('Invalid email').required('Email is Required'),
         password: Yup.string().required('Password Required'),
+        code: Yup.string().required("Test Code is Required")
     });
-
     const formik = useFormik({
         initialValues: {
             email: '',
-            password: ''
+            password: '',
+            code: '',
         },
         validationSchema,
         onSubmit: async (values) => {
             setLoader(true);
-            try {
-                const res = await loginUser(values.email.trim(), values.password.trim());
-                // console.log(res);
-                if (res.user) {
-                    const userDetails = res.user;
-                    const token = res.token; // assuming API returns token
-                    localStorage.setItem("token",token);
-                    if (userDetails.role === 'admin') {
-                        navigate("/admin");
-                    }
-                    else {
-                        navigate("/dashboard");
-                    }
-                }
-                else {
-                    throw new Error(res.error);
-                }
-            } catch (error) {
-                console.error("Login failed", error);
-                toast.error("Login failed" + " " + error);
-                // dispatch(loginFailure());
-                // Optionally show error message (toast or UI)
-            } finally {
+            console.log(values);
+            setTimeout(() => {
+
                 setLoader(false);
-            }
+            }, 5000)
         },
         validateOnChange: false
     });
-
     return (
-        <div className="flex justify-center items-center h-screen bg-gray-50 px-4">
-            <div className="shadow-lg bg-white px-8 py-6 rounded-lg w-full max-w-sm">
-                <div className="flex items-center justify-center gap-1 mb-2">
+        <div className="bg-[url('/Contest.jpg')]  bg-cover bg-center h-screen w-full relative">
+            <div className="shadow-2xl shadow-black/40 bg-black/70 backdrop-blur-md border border-white/10 px-8 py-6 rounded-2xl w-full max-w-sm absolute top-10 right-60">
+                <div className="flex items-center justify-center gap-2 mb-4">
                     <img className="h-10 w-10" src="./Logo_CodeFusion.png" alt="Logo" />
-                    <h3 className="text-blue-600 text-3xl font-bold">CodeFusion</h3>
+                    <h3 className="text-blue-500 text-3xl font-bold">CodeFusion</h3>
                 </div>
-                <h4 className="font-semibold text-center text-gray-700 mb-4 text-lg">Login to your Account</h4>
+                <h4 className="font-semibold text-center text-gray-200 mb-6 text-lg">
+                    Login to Contest
+                </h4>
 
                 <form onSubmit={formik.handleSubmit}>
                     <div className="mb-4">
@@ -114,6 +88,22 @@ const Login = () => {
                         )}
                     </div>
 
+                    <div className="mb-4">
+                        <label className="text-blue-500 block mb-1 font-semibold">Code</label>
+                        <input
+                            type="text"
+                            name="code"
+                            placeholder="Enter test code"
+                            value={formik.values.code}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-400 bg-neutral-100"
+                        />
+                        {formik.touched.code && formik.errors.code && (
+                            <p className="text-red-400 text-sm mt-1">{formik.errors.code}</p>
+                        )}
+                    </div>
+
                     <button
                         type="submit"
                         disabled={loader}
@@ -121,15 +111,9 @@ const Login = () => {
                     >{loader ? <BeatLoader color="#ffffff" size={10} /> : 'Login'}
                     </button>
                 </form>
-
-                <div className="mt-3 text-right">
-                    <Link to="#" className="text-blue-500 text-sm hover:underline">
-                        Forgot Password?
-                    </Link>
-                </div>
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default Login;
+export default ContestLogin;

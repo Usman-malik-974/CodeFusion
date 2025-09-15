@@ -46,13 +46,13 @@ const Home = () => {
                     </p>
 
                     {/* Catchy Button */}
-                  <button
-  onClick={scrollToAbout}
-  className="group flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-md w-fit font-bold px-4 py-2 mt-3 text-sm md:text-lg lg:text-xl xl:text-2xl shadow-slate-400 shadow-md hover:cursor-pointer hover:scale-110 transition-transform duration-300"
->
-  Team Fusion
-  <FaArrowRight className="relative top-[2px] transition-transform duration-300 group-hover:translate-x-2" />
-</button>
+                    <button
+                        onClick={scrollToAbout}
+                        className="group flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-md w-fit font-bold px-4 py-2 mt-3 text-sm md:text-lg lg:text-xl xl:text-2xl shadow-slate-400 shadow-md hover:cursor-pointer hover:scale-110 transition-transform duration-300"
+                    >
+                        Team Fusion
+                        <FaArrowRight className="relative top-[2px] transition-transform duration-300 group-hover:translate-x-2" />
+                    </button>
                 </div>
             </div>
 
