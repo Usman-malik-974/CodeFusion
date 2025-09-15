@@ -2,8 +2,11 @@ import { useFormik } from "formik";
 import { useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { BiSolidShow } from "react-icons/bi";
+import { BiSolidHide } from "react-icons/bi";
 import { BeatLoader } from "react-spinners";
 import * as Yup from 'yup';
+import { toast } from 'react-toastify';
+import { joinContest } from "../shared/networking/api/contestApi/joinContest";
 
 const ContestLogin = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -25,10 +28,23 @@ const ContestLogin = () => {
         onSubmit: async (values) => {
             setLoader(true);
             console.log(values);
-            setTimeout(() => {
-
+            const res=await joinContest({
+                email:values.email,
+                password:values.password,
+                contestCode:values.code,
+                contestId:id
+            })
+            if(res.error){
+                toast.error(res.error);
+            }
+            else{
+                toast.success(res.message);
+                console.log(res.token);
+            }
+            // setTimeout(() => {
+ 
                 setLoader(false);
-            }, 5000)
+            // }, 5000)
         },
         validateOnChange: false
     });

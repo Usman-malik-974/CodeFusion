@@ -324,7 +324,7 @@ exports.runCode = async (req, res) => {
 // };
 
 exports.runTestCases = async (req, res) => {
-  const { code, language, questionId } = req.body;
+  const { code, language, questionId,contestId} = req.body;
   if (!code || !language || !questionId) {
     return res.status(400).json({ error: 'Missing code, language, or questionId' });
   }
@@ -452,6 +452,7 @@ exports.runTestCases = async (req, res) => {
     const passedCount = results.filter(r => r.verdict === 'Passed').length;
     const totalCount = testCases.length;
     const submission = new Submission({
+      ...(contestId && { contestId }),
     userID: req.user.id,
     questionID: questionId,
     passed: passedCount,

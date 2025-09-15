@@ -1,5 +1,7 @@
 const { Contest,User,ContestParticipation,Submission} = require('../models/index');
 const isAdmin = require('../utils/isAdmin');
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const createContest = async (req, res) => {
   try {
@@ -292,7 +294,7 @@ const joinContest = async (req, res) => {
     await ContestParticipation.create({
       userId: user._id,
       contestId: contest._id,
-      startTime: now,
+      startedAt: now,
     });
     const token = jwt.sign(
       { id: user._id, email: user.email },
