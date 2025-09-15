@@ -1,5 +1,7 @@
-const { Contest } = require('../models/index');
+const { Contest,User,ContestParticipation,Submission} = require('../models/index');
 const isAdmin = require('../utils/isAdmin');
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 const createContest = async (req, res) => {
   try {
@@ -255,4 +257,58 @@ const updateContest = async (req, res) => {
   }
 };
 
-module.exports = { createContest, getUpcomingContests, getLiveContests, getRecentContests, getContestQuestions,deleteContest,updateContest}
+const joinContest = async (req, res) => {
+  try {
+    const { email, password, contestId, contestCode } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: "Invalid password" });
+    }
+    const contest = await Contest.findById(contestId);
+    if (!contest) {
+      return res.status(404).json({ error: "Contest not found" });
+    }
+    if (contest.code !== contestCode) {
+      return res.status(400).json({ error: "Invalid contest code" });
+    }
+
+    const now = new Date();
+    if (now < contest.startTime) {
+      return res.status(400).json({ error: "Contest has not started yet" });
+    }
+    if (now > contest.endTime) {
+      return res.status(400).json({ error: "Contest has already ended" });
+    }
+    const alreadyParticipated = await ContestParticipation.findOne({
+      userId: user._id,
+      contestId: contest._id,
+    });
+
+    if (alreadyParticipated) {
+      return res.status(400).json({ error: "Already participated in this contest" });
+    }
+    await ContestParticipation.create({
+      userId: user._id,
+      contestId: contest._id,
+      startedAt: now,
+    });
+    const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+    res.status(200).json({
+      message: "Contest joined successfully",
+      token,
+    });
+  } catch (error) {
+    console.error("Error joining contest:", error);
+    res.status(500).json({ error: "Server error", details: error.message });
+  }
+};
+
+module.exports = { createContest, getUpcomingContests, getLiveContests, getRecentContests, getContestQuestions,deleteContest,updateContest,joinContest}
