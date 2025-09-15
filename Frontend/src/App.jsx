@@ -17,6 +17,7 @@ import AssignQuestion from './screen/AssignQuestion'
 import ManageBatch from './screen/ManageBatch'
 import BatchDashboard from './screen/BatchDashboard'
 import PageNotFound from './screen/PageNotFound'
+import ContestLogin from './screen/ContestLogin'
 
 function App() {
 
@@ -47,6 +48,7 @@ function App() {
             <Route path='/admin/question' element={<AdminQuestionView/>} /> 
             <Route path='/admin/batch' element={<ManageBatch/>} /> 
             <Route path='/users/batch' element={<BatchDashboard/>} /> 
+            <Route path='/test/:id' element={<ContestLogin/>}/>
             <Route path='*' element={<PageNotFound/>} /> 
           </Routes>
         </div>
