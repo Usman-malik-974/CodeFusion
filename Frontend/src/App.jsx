@@ -18,6 +18,7 @@ import ManageBatch from './screen/ManageBatch'
 import BatchDashboard from './screen/BatchDashboard'
 import PageNotFound from './screen/PageNotFound'
 import ContestLogin from './screen/ContestLogin'
+import ContestQuestions from './screen/ContestQuestions'
 
 function App() {
 
@@ -49,6 +50,7 @@ function App() {
             <Route path='/admin/batch' element={<ManageBatch/>} /> 
             <Route path='/users/batch' element={<BatchDashboard/>} /> 
             <Route path='/test/:id' element={<ContestLogin/>}/>
+            <Route path="/test/questions" element={<ContestQuestions/>}/>
             <Route path='*' element={<PageNotFound/>} /> 
           </Routes>
         </div>

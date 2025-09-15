@@ -1,11 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Trash2, Edit, Edit2, Edit2Icon, EditIcon } from "lucide-react";
 import React from "react";
+import { MdContentCopy, MdDone } from "react-icons/md";
 
-const AdminContestCard = React.memo(({ contest, type, onEditClick,onDeleteClick }) => {
+const AdminContestCard = React.memo(({ contest, type, onEditClick, onDeleteClick }) => {
   // useEffect(()=>{
   //    console.log("Admin card re rebderd");
   // },[contest])
+  console.log(contest);
+  const [copied, setCopied] = useState(false);
+
+  const copyToClipboard = useCallback((id) => {
+    const text = `${import.meta.env.VITE_FRONTEND_URL}/test/${id}`; // get clicked element’s text
+    navigator.clipboard.writeText(text).then(() => {
+      // console.log("Copied:", text);
+      setCopied(true);
+      setTimeout(() => {
+        setCopied(false);
+      }, 2000)
+    });
+  }, []);
+
   return (
     <div
       className="relative bg-gradient-to-b from-white to-blue-50 rounded-2xl p-6 border border-gray-200 shadow-md 
@@ -16,6 +31,13 @@ const AdminContestCard = React.memo(({ contest, type, onEditClick,onDeleteClick 
       <h4 className="text-xl font-bold text-gray-800 tracking-wide text-center mb-3">
         {contest.name}
       </h4>
+
+      {(type == "upcoming" || type == "live") && (
+        <button onClick={(e) => { e.stopPropagation(); copyToClipboard(contest.id) }} className="absolute top-7 right-5 hover:text-blue-500" title="Copy Contest Link">
+          {copied ? <MdDone size={22} /> : <MdContentCopy size={22} />}
+             {/* {copied ? "Copied!" : "Copy"} */}
+        </button>
+      )}
 
 
       {/* Status Badge */}
@@ -69,7 +91,7 @@ const AdminContestCard = React.memo(({ contest, type, onEditClick,onDeleteClick 
           <button
             title="Delete"
             className="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-200 transition"
-            onClick={()=>onDeleteClick(contest.id)}
+            onClick={() => onDeleteClick(contest.id)}
           >
             <Trash2 size={18} />
           </button>
