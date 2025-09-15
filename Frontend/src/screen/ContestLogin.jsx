@@ -1,5 +1,5 @@
 import { useFormik } from "formik";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { BiSolidShow,BiSolidHide } from "react-icons/bi";
 import { BeatLoader } from "react-spinners";
@@ -11,6 +11,7 @@ const ContestLogin = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [loader, setLoader] = useState(false);
     const { id } = useParams();
+    const navigate=useNavigate();
     // console.log(id);
     const validationSchema = Yup.object({
         email: Yup.string().email('Invalid email').required('Email is Required'),
@@ -26,7 +27,7 @@ const ContestLogin = () => {
         validationSchema,
         onSubmit: async (values) => {
             setLoader(true);
-            console.log(values);
+            // console.log(values);
             const res=await joinContest({
                 email:values.email,
                 password:values.password,
@@ -39,6 +40,7 @@ const ContestLogin = () => {
             else{
                 toast.success(res.message);
                 console.log(res.token);
+                navigate("/test/questions");
             }
             // setTimeout(() => {
  

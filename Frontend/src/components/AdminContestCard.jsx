@@ -7,7 +7,7 @@ const AdminContestCard = React.memo(({ contest, type, onEditClick, onDeleteClick
   // useEffect(()=>{
   //    console.log("Admin card re rebderd");
   // },[contest])
-
+  console.log(contest);
   const [copied, setCopied] = useState(false);
 
   const copyToClipboard = useCallback((id) => {
@@ -35,6 +35,7 @@ const AdminContestCard = React.memo(({ contest, type, onEditClick, onDeleteClick
       {(type == "upcoming" || type == "live") && (
         <button onClick={(e) => { e.stopPropagation(); copyToClipboard(contest.id) }} className="absolute top-7 right-5 hover:text-blue-500" title="Copy Contest Link">
           {copied ? <MdDone size={22} /> : <MdContentCopy size={22} />}
+             {/* {copied ? "Copied!" : "Copy"} */}
         </button>
       )}
 

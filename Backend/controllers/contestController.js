@@ -266,7 +266,7 @@ const joinContest = async (req, res) => {
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ error: "Invalid password" });
+      return res.status(400).json({ error: "Invalid Email or password" });
     }
     const contest = await Contest.findById(contestId);
     if (!contest) {
