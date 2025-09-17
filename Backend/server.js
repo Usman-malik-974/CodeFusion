@@ -5,10 +5,10 @@ const { Server } = require("socket.io");
 const path = require("path");
 const cors = require("cors");
 const { conn } = require("./config/db");
-
 const app = express();
 app.use(express.json());
 app.use(cors());
+require("./workers/contestWorker");
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {

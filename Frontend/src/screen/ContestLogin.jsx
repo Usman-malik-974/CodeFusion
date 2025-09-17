@@ -39,7 +39,7 @@ const ContestLogin = () => {
             }
             else{
                 toast.success(res.message);
-                console.log(res.token);
+                console.log(res);
             }
             // setTimeout(() => {
  
