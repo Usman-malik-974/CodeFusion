@@ -2,6 +2,7 @@ const { Contest,User,ContestParticipation,Submission} = require('../models/index
 const isAdmin = require('../utils/isAdmin');
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const contestQueue=require("../queues/contestQueue");
 
 const createContest = async (req, res) => {
   try {
@@ -137,6 +138,10 @@ const getContestQuestions = async (req, res) => {
   try {
     const contestId = req.params.id;
     const userId = req.user.id;
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
     const contest = await Contest.findById(contestId).populate("questions");
     if (!contest) {
       return res.status(404).json({ error: "Contest not found" });
@@ -157,6 +162,12 @@ const getContestQuestions = async (req, res) => {
         testCases: q.testCases
       }));
     } else {
+      let userSubmissions = await Submission.find({
+        contestId,
+        userId,
+        $expr: { $eq: ["$passed", "$total"] }   
+      }).select("questionId");
+      const solvedSet = new Set(userSubmissions.map(s => String(s.questionId)));
       formattedQuestions = contest.questions.map((q) => ({
         id: q._id,
         title: q.title,
@@ -169,7 +180,8 @@ const getContestQuestions = async (req, res) => {
         difficulty: q.difficulty,
         testCases: q.testCases.map((t) =>
           t.hidden ? { hidden: true } : { input: t.input, output: t.output, hidden: t.hidden }
-        )
+        ),
+        done: solvedSet.has(String(q._id)),
       }));
     }
 
@@ -264,10 +276,12 @@ const joinContest = async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: "Invalid Email or password" });
     }
+
     const contest = await Contest.findById(contestId);
     if (!contest) {
       return res.status(404).json({ error: "Contest not found" });
@@ -283,32 +297,79 @@ const joinContest = async (req, res) => {
     if (now > contest.endTime) {
       return res.status(400).json({ error: "Contest has already ended" });
     }
-    const alreadyParticipated = await ContestParticipation.findOne({
+    let participation = await ContestParticipation.findOne({
       userId: user._id,
       contestId: contest._id,
     });
 
-    if (alreadyParticipated) {
-      return res.status(400).json({ error: "Already participated in this contest" });
+    if (participation) {
+      if (participation.status === "done") {
+        return res.status(400).json({ error: "You have already completed this contest" });
+      }
     }
-    await ContestParticipation.create({
+    participation = await ContestParticipation.create({
       userId: user._id,
       contestId: contest._id,
       startedAt: now,
+      status: "doing",
     });
+    await contestQueue.add(
+      { participationId: participation._id },
+      { delay: contest.duration * 60 * 1000 }
+    );
+
     const token = jwt.sign(
       { id: user._id, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
-    res.status(200).json({
+
+    return res.status(200).json({
       message: "Contest joined successfully",
+      remainingTime: contest.duration * 60,
       token,
     });
+
   } catch (error) {
     console.error("Error joining contest:", error);
     res.status(500).json({ error: "Server error", details: error.message });
   }
 };
 
-module.exports = { createContest, getUpcomingContests, getLiveContests, getRecentContests, getContestQuestions,deleteContest,updateContest,joinContest}
+const getContestTime = async (req, res) => {
+  try {
+    if (await isAdmin(req.user.id)) {
+      return res.status(403).json({ error: 'Unauthorized Access.' });
+    }
+    const userId = req.user.id; 
+    const contestId= req.params.id;
+    const participation = await ContestParticipation.findOne({
+      userId,
+      contestId,
+    });
+    if (!participation) {
+      return res.status(404).json({ error: "You have not joined this contest" });
+    }
+    if (participation.status !== "doing") {
+      return res.status(400).json({ error: "Contest is not in progress" });
+    }
+    const contest = await Contest.findById(contestId);
+    if (!contest) {
+      return res.status(404).json({ error: "Contest not found" });
+    }
+    const now = new Date();
+    const elapsed = Math.floor((now - participation.startedAt) / 1000);
+    const durationInSec = contest.duration * 60;
+    const remaining = durationInSec - elapsed;
+    if (remaining <= 0) {
+      return res.status(400).json({ error: "Your contest time has expired" });
+    }
+    return res.status(200).json({ remainingTime: remaining });
+  } catch (error) {
+    console.error("Error fetching contest time:", error);
+    res.status(500).json({ error: "Server error", details: error.message });
+  }
+};
+
+
+module.exports = { createContest, getUpcomingContests, getLiveContests, getRecentContests, getContestQuestions,deleteContest,updateContest,joinContest,getContestTime}

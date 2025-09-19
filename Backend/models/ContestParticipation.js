@@ -17,6 +17,11 @@ const contestParticipationSchema = new mongoose.Schema({
   endedAt: {
     type: Date,
   },
+  status: {
+    type: String,
+    enum: ["doing", "done"],
+    default: "doing",
+  },
 });
 
 module.exports = mongoose.model("ContestParticipation", contestParticipationSchema);
