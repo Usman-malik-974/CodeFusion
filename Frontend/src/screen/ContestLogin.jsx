@@ -52,7 +52,7 @@ const ContestLogin = () => {
     });
     return (
         <div className="bg-[url('/Contest.jpg')]  bg-cover bg-center h-screen w-full relative">
-         <div className="shadow-xl shadow-black/40 bg-black/70 backdrop-blur-lg border border-white/10 px-8 py-6 rounded-2xl w-full max-w-sm absolute top-10 right-60">
+         <div className="shadow-xl shadow-black/40 bg-black/70 backdrop-blur-lg border border-white/10 px-8 py-6 rounded-2xl w-full max-w-sm absolute top-[10%] right-[20%]">
     <div className="flex items-center justify-center gap-2 mb-4">
         {/* <img className="h-10 w-10" src="/Logo_CodeFusion.png" alt="Logo" /> */}
         <h3 className="text-blue-500 text-3xl font-semibold">Contest Login</h3>
