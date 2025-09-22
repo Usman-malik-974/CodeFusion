@@ -4,6 +4,7 @@ const { execSync, spawnSync } = require('child_process');
 const path = require('path');
 const {Question,Submission}=require('../models/index');
 const isAdmin = require('../utils/isAdmin');
+const getContestLeaderboard = require('../utils/getContestLeaderBoard');
 
 // exports.runCode = async (req, res) => {
 //     const { code, language, input = '' } = req.body;
@@ -323,7 +324,7 @@ exports.runCode = async (req, res) => {
 //   }
 // };
 
-exports.runTestCases = async (req, res) => {
+exports.runTestCases = async (req, res,io) => {
   const { code, language, questionId,contestId} = req.body;
   if (!code || !language || !questionId) {
     return res.status(400).json({ error: 'Missing code, language, or questionId' });
@@ -462,6 +463,10 @@ exports.runTestCases = async (req, res) => {
   });
 
   await submission.save(); 
+  if(contestId){
+    const leaderboard=await getContestLeaderboard(contestId);
+    io.emit('leaderboard-changed', { contestId, leaderboard });
+  }
     return res.status(200).json({ results });
   } catch (err) {
     console.log(err);
