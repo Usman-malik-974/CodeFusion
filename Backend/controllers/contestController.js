@@ -2,6 +2,8 @@ const { Contest,User,ContestParticipation,Submission} = require('../models/index
 const isAdmin = require('../utils/isAdmin');
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const addToQueueWithTimeout=require("../utils/addToQueueWithTimeout");
+const getContestLeaderboard = require('../utils/getContestLeaderBoard');
 
 const createContest = async (req, res) => {
   try {
@@ -137,6 +139,10 @@ const getContestQuestions = async (req, res) => {
   try {
     const contestId = req.params.id;
     const userId = req.user.id;
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
     const contest = await Contest.findById(contestId).populate("questions");
     if (!contest) {
       return res.status(404).json({ error: "Contest not found" });
@@ -157,6 +163,12 @@ const getContestQuestions = async (req, res) => {
         testCases: q.testCases
       }));
     } else {
+      let userSubmissions = await Submission.find({
+        contestId,
+        userId,
+        $expr: { $eq: ["$passed", "$total"] }   
+      }).select("questionId");
+      const solvedSet = new Set(userSubmissions.map(s => String(s.questionId)));
       formattedQuestions = contest.questions.map((q) => ({
         id: q._id,
         title: q.title,
@@ -169,7 +181,8 @@ const getContestQuestions = async (req, res) => {
         difficulty: q.difficulty,
         testCases: q.testCases.map((t) =>
           t.hidden ? { hidden: true } : { input: t.input, output: t.output, hidden: t.hidden }
-        )
+        ),
+        done: solvedSet.has(String(q._id)),
       }));
     }
 
@@ -264,10 +277,12 @@ const joinContest = async (req, res) => {
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: "Invalid Email or password" });
     }
+
     const contest = await Contest.findById(contestId);
     if (!contest) {
       return res.status(404).json({ error: "Contest not found" });
@@ -283,32 +298,170 @@ const joinContest = async (req, res) => {
     if (now > contest.endTime) {
       return res.status(400).json({ error: "Contest has already ended" });
     }
-    const alreadyParticipated = await ContestParticipation.findOne({
+    let participation = await ContestParticipation.findOne({
       userId: user._id,
       contestId: contest._id,
     });
 
-    if (alreadyParticipated) {
-      return res.status(400).json({ error: "Already participated in this contest" });
+    if (participation) {
+      if (participation.status === "done") {
+        return res.status(400).json({ error: "You have already completed this contest" });
+      }
+      return res.status(200).json({
+        message: "Contest joined successfully"
+      });
     }
-    await ContestParticipation.create({
+    const tempParticipation = new ContestParticipation({
       userId: user._id,
       contestId: contest._id,
       startedAt: now,
+      status: "doing",
     });
+    try {
+      await addToQueueWithTimeout(
+        { participationId: tempParticipation._id },
+        { delay: contest.duration * 60 * 1000 },
+        3000 
+      );
+    } catch (queueError) {
+      console.error("Queue Error:", queueError.message);
+      return res.status(500).json({ error: "Error Joining Contest. Try again later." });
+    }
+    
+    await tempParticipation.save();
     const token = jwt.sign(
       { id: user._id, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
-    res.status(200).json({
+
+    return res.status(200).json({
       message: "Contest joined successfully",
       token,
     });
+
   } catch (error) {
     console.error("Error joining contest:", error);
     res.status(500).json({ error: "Server error", details: error.message });
   }
 };
 
-module.exports = { createContest, getUpcomingContests, getLiveContests, getRecentContests, getContestQuestions,deleteContest,updateContest,joinContest}
+const getContestTime = async (req, res) => {
+  try {
+    if (await isAdmin(req.user.id)) {
+      return res.status(403).json({ error: 'Unauthorized Access.' });
+    }
+    const userId = req.user.id; 
+    const contestId= req.params.id;
+    const participation = await ContestParticipation.findOne({
+      userId,
+      contestId,
+    });
+    if (!participation) {
+      return res.status(404).json({ error: "You have not joined this contest" });
+    }
+    if (participation.status !== "doing") {
+      return res.status(400).json({ error: "Contest is not in progress" });
+    }
+    const contest = await Contest.findById(contestId);
+    if (!contest) {
+      return res.status(404).json({ error: "Contest not found" });
+    }
+    const now = new Date();
+    const elapsed = Math.floor((now - participation.startedAt) / 1000);
+    const durationInSec = contest.duration * 60;
+    const remaining = durationInSec - elapsed;
+    if (remaining <= 0) {
+      return res.status(400).json({ error: "Your contest time has expired" });
+    }
+    return res.status(200).json({ remainingTime: remaining });
+  } catch (error) {
+    console.error("Error fetching contest time:", error);
+    res.status(500).json({ error: "Server error", details: error.message });
+  }
+};
+
+const generateLeaderboard = async (req, res) => {
+  try {
+    if (!(await isAdmin(req.user.id))) {
+      return res.status(403).json({ error: "Unauthorized Access." });
+    }
+    const contestId = req.params.id;
+    if (!contestId) {
+      return res.status(400).json({ error: "contestId is required" });
+    }
+
+    const leaderboard = await getContestLeaderboard(contestId);
+
+    return res.status(200).json({
+      leaderboard,
+    });
+  } catch (error) {
+    console.error("Error generating leaderboard:", error);
+    return res.status(500).json({ error: "Server error", details: error.message });
+  }
+};
+
+const submitContest = async (req, res) => {
+  try {
+    const contestId= req.params.id;
+    const userId = req.user._id; 
+    if (!contestId) {
+      return res.status(400).json({ error: "contestId is required" });
+    }
+    const participation = await ContestParticipation.findOne({
+      contestId,
+      userId,
+    });
+    if (!participation) {
+      return res.status(404).json({ error: "Participation not found" });
+    }
+    if (participation.status === "done") {
+      return res.status(400).json({ error: "Contest already submitted" });
+    }
+    participation.endedAt = new Date();
+    participation.status = "done";
+    await participation.save();
+    return res.status(200).json({
+      message: "Contest submitted successfully",
+      participation,
+    });
+  } catch (error) {
+    console.error("Error in submitContest:", error);
+    return res.status(500).json({ error: "Server error", details: error.message });
+  }
+};
+
+const endContest = async (req, res,io) => {
+  try {
+    if (!(await isAdmin(req.user.id))) {
+      return res.status(403).json({ error: "Unauthorized Access." });
+    }
+    const contestId= req.params.id;
+    const contest = await Contest.findById(contestId);
+    if (!contest) {
+      return res.status(404).json({ error: "Contest not found" });
+    }
+    const now = new Date();
+    if (now > contest.endTime) {
+      return res.status(400).json({ error: "Contest already ended" });
+    }
+    contest.endTime = now;
+    await contest.save();
+    await ContestParticipation.updateMany(
+      { contestId, endedAt: { $exists: false } },
+      { $set: { endedAt: now } }
+    );
+    io.emit('contestended',{
+      contestId
+    })
+    return res.status(200).json({
+      message: "Contest ended successfully, all ongoing participations marked ended",
+    });
+  } catch (error) {
+    console.error("Error in ending Contest:", error);
+    return res.status(500).json({ error: "Server error", details: error.message });
+  }
+};
+
+module.exports = { createContest, getUpcomingContests, getLiveContests, getRecentContests, getContestQuestions,deleteContest,updateContest,joinContest,getContestTime,generateLeaderboard,submitContest,endContest}

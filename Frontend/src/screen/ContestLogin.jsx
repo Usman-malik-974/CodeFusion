@@ -41,6 +41,7 @@ const ContestLogin = () => {
                 toast.success(res.message);
                 console.log(res.token);
                 navigate("/test/questions");
+
             }
             // setTimeout(() => {
  
