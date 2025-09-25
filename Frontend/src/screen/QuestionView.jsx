@@ -8,12 +8,15 @@ import { runCode } from "../shared/networking/api/codeApi/runCode";
 import TestCaseDock from "../components/TestCaseDock";
 import { runTestCases } from "../shared/networking/api/codeApi/runTestCases";
 import { getQuestionSubmissions } from "../shared/networking/api/codeApi/getQuestionSubmissions";
+import { SiTicktick } from "react-icons/si";
+import ContestTimer from "../components/ContestTimer";
 
 const QuestionView = () => {
     // const { id } = useParams();
     const location = useLocation();
 
     const question = location.state?.questionData;
+    const contestId = location?.state.contestId;
     // console.log(question);
 
     // const [testCaseOpen, setTestCaseOpen] = useState(true);
@@ -87,7 +90,13 @@ int main() {
         } else {
             setTestCaseRunSuccess(false);
             // Run with test cases
-            const res = await runTestCases(code, language, question.id);
+            let res;
+            if (contestId) {
+                res = await runTestCases(code, language, question.id, contestId);
+            }
+            else {
+                res = await runTestCases(code, language, question.id);
+            }
 
             if (res.status && (res.status >= 401 && res.status <= 404)) {
                 toast.error("Unauthorized Access");
@@ -159,52 +168,61 @@ int main() {
 
     return (
         <div
-            className={`flex flex-col lg:flex-row gap-4 p-6 transition-colors duration-300 ${isDark ? "bg-neutral-900 text-gray-100" : "bg-blue-50 text-gray-900"
-                } lg:h-screen lg:overflow-hidden`}
+            className={`flex flex-col lg:flex-row lg:justify-center gap-4 p-6 transition-colors duration-300 relative ${isDark ? "bg-neutral-900 text-gray-100" : "bg-blue-50 text-gray-900"
+                } lg:h-screen lg:overflow-hidden `}
         >
-
+            {/* <div className="flex flex-col items-center justify-center"> */}
+                <ContestTimer id={contestId} />
+            {/* </div> */}
             {/* Left Question Panel */}
             <div
                 className={`w-full lg:w-1/2 shadow-lg rounded-xl p-6 border transition-colors duration-300 no-scrollbar
         ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-blue-200 "}`}
                 style={{ overflowY: "auto" }} // scroll only this if content overflows
             >
-                <div className="flex">
-                    <button
-                        className={`flex-1 p-3 text-center rounded-t-2xl  ${activeTab === "question"
-                            ? isDark
-                                ? "bg-neutral-700"
-                                : "bg-blue-100"
-                            : ""
-                            }`}
-                        onClick={() => setActiveTab("question")}
-                    >
-                        Question
-                    </button>
-                    <button
-                        className={`flex-1 p-3 text-center rounded-t-2xl ${activeTab === "submissions"
-                            ? isDark
-                                ? "bg-neutral-700"
-                                : "bg-blue-100"
-                            : ""
-                            }`}
-                        onClick={() => {
-                            LoadSubmissionData();
-                            setActiveTab("submissions")
-                        }
-                        }
-                    >
-                        Submissions
-                    </button>
-                </div>
+                {!contestId && (
+                    <div className="flex">
+                        <button
+                            className={`flex-1 p-3 text-center rounded-t-2xl  ${activeTab === "question"
+                                ? isDark
+                                    ? "bg-neutral-700"
+                                    : "bg-blue-100"
+                                : ""
+                                }`}
+                            onClick={() => setActiveTab("question")}
+                        >
+                            Question
+                        </button>
+
+                        <button
+                            className={`flex-1 p-3 text-center rounded-t-2xl ${activeTab === "submissions"
+                                ? isDark
+                                    ? "bg-neutral-700"
+                                    : "bg-blue-100"
+                                : ""
+                                }`}
+                            onClick={() => {
+                                LoadSubmissionData();
+                                setActiveTab("submissions")
+                            }
+                            }
+                        >
+                            Submissions
+                        </button>
+                    </div>
+                )}
+
                 {activeTab === "question" ? (
                     <div className="p-6">
                         {/* Question Title */}
                         <div className="flex items-center gap-3 mb-3">
                             <h3
-                                className={`font-bold text-3xl ${isDark ? "text-blue-400" : "text-blue-500"}`}
+                                className={`font-bold text-3xl ${isDark ? "text-blue-400" : "text-blue-500"} flex items-center gap-2`}
                             >
                                 {question?.title || "Untitled Question"}
+                                {question.done && (
+                                    <SiTicktick className="text-green-500" />
+                                )}
                             </h3>
                         </div>
 
@@ -494,6 +512,7 @@ int main() {
                         customOutput={customOutput}
                         useCustomInput={useCustomInput}
                         setUseCustomInput={setUseCustomInput}
+                        testCaseRunSuccess={testCaseRunSuccess}
                     />
                 </div>
             </div>

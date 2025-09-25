@@ -11,6 +11,8 @@ import AdminContestCard from "./AdminContestCard";
 import UpdateContestForm from "./updateContestForm";
 import { deleteContest } from "../shared/networking/api/contestApi/deleteContest";
 import { toast } from "react-toastify";
+import EditLiveContestForm from "./EditLiveContestForm";
+import LeaderBoard from "./LeaderBoard";
 
 const Contests = () => {
   const [activeTab, setActiveTab] = useState("live");
@@ -19,9 +21,14 @@ const Contests = () => {
   const [upcomingContests, setUpcomingContests] = useState([]);
   const [showCreateContestForm, setShowCreateContestForm] = useState(false);
   const [showUpdateContestForm, setShowUpdateContestForm] = useState(false);
+  const [showEditLiveContestForm, setShowEditLiveContestForm] = useState(false);
+  const [editLiveContestId, setEditLiveContestId] = useState(null);
+  const [leaderBoardContestId, setLeaderBoardContestId] = useState(null);
   const [questions, setQuestions] = useState([]);
   const questionsList = useSelector((state) => state.questions.questionsList);
   const [editContestData, setEditContestData] = useState(null);
+  // const []
+  const [showLeaderBoard, setShowLeaderBoard] = useState(false);
 
   // When clicking edit
 
@@ -194,8 +201,44 @@ const Contests = () => {
     }
   }
 
+  const handleLiveEditClick = useCallback((id) => {
+    setShowEditLiveContestForm(true);
+    // console.log("Edit contest:", id);
+    setEditLiveContestId(id);
+  }, []);
+
+  const handleLeaderBoardClick = useCallback((id) => {
+    setLeaderBoardContestId(id);
+    setShowLeaderBoard(true);
+  }, []);
+
+  const handleLeaderBoardClose = useCallback(() => {
+    setShowLeaderBoard(false)
+  }, [])
+
   return (
     <div className="p-4 relative">
+      {showLeaderBoard && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-3xl max-h-[90vh] overflow-y-auto relative no-scrollbar animate-fadeIn">
+            <LeaderBoard
+              onClose={handleLeaderBoardClose}
+              contestId={leaderBoardContestId}
+            />
+          </div>
+        </div>
+      )}
+
+      {showEditLiveContestForm && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-3xl max-h-[90vh] overflow-y-auto relative no-scrollbar animate-fadeIn">
+            <EditLiveContestForm
+              onClose={() => setShowEditLiveContestForm(false)}
+              contestId={editLiveContestId}
+            />
+          </div>
+        </div>
+      )}
       {showCreateContestForm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
           <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-3xl max-h-[90vh] overflow-y-auto relative no-scrollbar animate-fadeIn">
@@ -283,7 +326,12 @@ const Contests = () => {
           (liveContests.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {liveContests.map((contest) => (
-                <AdminContestCard key={contest.id} contest={contest} type="live" />
+                <AdminContestCard
+                  key={contest.id}
+                  contest={contest}
+                  onLeaderBoardClick={handleLeaderBoardClick}
+                  onLiveEditClick={handleLiveEditClick}
+                  type="live" />
               ))}
             </div>
           ) : (
