@@ -165,10 +165,10 @@ const getContestQuestions = async (req, res) => {
     } else {
       let userSubmissions = await Submission.find({
         contestId,
-        userId,
+        userID:userId,
         $expr: { $eq: ["$passed", "$total"] }   
-      }).select("questionId");
-      const solvedSet = new Set(userSubmissions.map(s => String(s.questionId)));
+      }).select("questionID");
+      const solvedSet = new Set(userSubmissions.map(s => String(s.questionID)));
       formattedQuestions = contest.questions.map((q) => ({
         id: q._id,
         title: q.title,
@@ -273,6 +273,7 @@ const updateContest = async (req, res) => {
 const joinContest = async (req, res) => {
   try {
     const { email, password, contestId, contestCode } = req.body;
+    console.log(req.body);
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
@@ -307,8 +308,14 @@ const joinContest = async (req, res) => {
       if (participation.status === "done") {
         return res.status(400).json({ error: "You have already completed this contest" });
       }
+       const token = jwt.sign(
+      { id: user._id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
       return res.status(200).json({
-        message: "Contest joined successfully"
+        message: "Contest joined successfully",
+        token
       });
     }
     const tempParticipation = new ContestParticipation({
@@ -334,7 +341,7 @@ const joinContest = async (req, res) => {
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
-
+   console.log(token);
     return res.status(200).json({
       message: "Contest joined successfully",
       token,

@@ -39,9 +39,9 @@ const ContestLogin = () => {
             }
             else{
                 toast.success(res.message);
-                console.log(res.token);
-                navigate("/test/questions");
-
+                // console.log(res.token);
+                localStorage.setItem("token",res.token);
+                navigate("/test/questions",{state:{id:id}});
             }
             // setTimeout(() => {
  
