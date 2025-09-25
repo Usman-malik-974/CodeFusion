@@ -20,12 +20,14 @@ const TestCaseDock = ({
     const [activeTab, setActiveTab] = useState("testcases");
 
     useEffect(() => {
+        // console.log(testCaseRunSuccess);
         if (errorMessage) {
             // ✅ Priority: Error → Console
             setActiveTab("console");
             setIsOpen(true);
         } else if (testCaseRunSuccess && results?.length) {
             // ✅ No error → TestCases
+            // console.log("sare chal gye");
             setActiveTab("testcases");
             setIsOpen(true);
         } else if (customOutput) {
@@ -35,12 +37,12 @@ const TestCaseDock = ({
         }
     }, [errorMessage, testCaseRunSuccess, results, customOutput]);
 
-   useEffect(() => {
-    if (results && results[currentIndex]?.verdict === "Runtime Error" && results[currentIndex]?.error) {
-        setActiveTab("console");
-        setErrorMessage(results[currentIndex].error);
-    }
-}, [results, currentIndex]);
+    useEffect(() => {
+        if (results && results[currentIndex]?.verdict === "Runtime Error" && results[currentIndex]?.error) {
+            setActiveTab("console");
+            setErrorMessage(results[currentIndex].error);
+        }
+    }, [results, currentIndex]);
 
 
     return (
@@ -57,7 +59,7 @@ const TestCaseDock = ({
                 <div className="flex h-full items-center">
                     {/* Test Cases Tab */}
                     <button
-                        onClick={() => { setActiveTab("testcases")}}
+                        onClick={() => { setActiveTab("testcases") }}
                         className={`px-4 font-medium text-sm flex items-center border-b-2 transition-colors ${activeTab === "testcases"
                             ? "border-blue-500 text-blue-500"
                             : "border-transparent hover:text-blue-400"

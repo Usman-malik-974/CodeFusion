@@ -1,8 +1,7 @@
 import { useFormik } from "formik";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { BiSolidShow } from "react-icons/bi";
-import { BiSolidHide } from "react-icons/bi";
+import { BiSolidShow,BiSolidHide } from "react-icons/bi";
 import { BeatLoader } from "react-spinners";
 import * as Yup from 'yup';
 import { toast } from 'react-toastify';
@@ -12,6 +11,7 @@ const ContestLogin = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [loader, setLoader] = useState(false);
     const { id } = useParams();
+    const navigate=useNavigate();
     // console.log(id);
     const validationSchema = Yup.object({
         email: Yup.string().email('Invalid email').required('Email is Required'),
@@ -27,7 +27,7 @@ const ContestLogin = () => {
         validationSchema,
         onSubmit: async (values) => {
             setLoader(true);
-            console.log(values);
+            // console.log(values);
             const res=await joinContest({
                 email:values.email,
                 password:values.password,
@@ -39,7 +39,9 @@ const ContestLogin = () => {
             }
             else{
                 toast.success(res.message);
-                console.log(res);
+                // console.log(res.token);
+                localStorage.setItem("token",res.token);
+                navigate("/test/questions",{state:{id:id}});
             }
             // setTimeout(() => {
  
@@ -50,14 +52,12 @@ const ContestLogin = () => {
     });
     return (
         <div className="bg-[url('/Contest.jpg')]  bg-cover bg-center h-screen w-full relative">
-            <div className="shadow-2xl shadow-black/40 bg-black/70 backdrop-blur-md border border-white/10 px-8 py-6 rounded-2xl w-full max-w-sm absolute top-10 right-60">
-                <div className="flex items-center justify-center gap-2 mb-4">
-                    <img className="h-10 w-10" src="./Logo_CodeFusion.png" alt="Logo" />
-                    <h3 className="text-blue-500 text-3xl font-bold">CodeFusion</h3>
-                </div>
-                <h4 className="font-semibold text-center text-gray-200 mb-6 text-lg">
-                    Login to Contest
-                </h4>
+         <div className="shadow-xl shadow-black/40 bg-black/70 backdrop-blur-lg border border-white/10 px-8 py-6 rounded-2xl w-full max-w-sm absolute top-[10%] right-[20%]">
+    <div className="flex items-center justify-center gap-2 mb-4">
+        {/* <img className="h-10 w-10" src="/Logo_CodeFusion.png" alt="Logo" /> */}
+        <h3 className="text-blue-500 text-3xl font-semibold">Contest Login</h3>
+    </div>
+    {/* <h4 className="font-semibold text-center text-gray-200 mb-6 text-lg">Login to Contest</h4> */}
 
                 <form onSubmit={formik.handleSubmit}>
                     <div className="mb-4">

@@ -25,6 +25,14 @@ const contestRouter = require("./routes/contestRoutes")(io);
 
 io.on("connection", (socket) => {
   console.log(`📡 Client connected: ${socket.id}`);
+  socket.on("joinContestRoom",({id})=>{
+    socket.join(`Contest_${id}`);
+    console.log(`User ${socket.id} joined contest_${id}`);
+  });
+    socket.on("leaveContestRoom",({id})=>{
+    socket.join(`Contest_${id}`);
+    console.log(`User ${socket.id} left contest_${id}`);
+  });
   socket.on("disconnect", () => {
     console.log(`❌ Client disconnected: ${socket.id}`);
   });
