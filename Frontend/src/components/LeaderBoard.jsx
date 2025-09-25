@@ -1,19 +1,38 @@
 import React, { useEffect, useState } from "react";
-
+import { getContestLeaderboard } from "../shared/networking/api/contestApi/getContestLeaderBoard";
+import { toast } from "react-toastify";
+import io from "socket.io-client";
+const socket = io(import.meta.env.VITE_SERVER_URL);
 const LeaderBoard = React.memo(({ onClose, contestId }) => {
     // dummy data
-    const [leaderBoardData,setLeaderBoardData]=useState( [
-        { rank: 1, name: "Alice", time: "12m 45s" },
-        { rank: 2, name: "Bob", time: "14m 20s" },
-        { rank: 3, name: "Charlie", time: "15m 05s" },
-        { rank: 4, name: "David", time: "16m 50s" },
-        { rank: 5, name: "Eva", time: "18m 10s" },
-    ]);
+    const [leaderBoardData,setLeaderBoardData]=useState([]);
     console.log(contestId);
     console.log("re")
     useEffect(() => {
         console.log("id");
+        const getLeaderboard=async(id)=>{
+           const res=await getContestLeaderboard(id);
+           if(res.error){
+            toast.error(res.error);
+            return;
+           }
+           console.log(res);
+        }
+        getLeaderboard(contestId);
     }, [contestId])
+    useEffect(() => {
+        
+        if (!contestId) return;
+        socket.emit("joinContestRoom", { id:contestId });
+        socket.on('leaderboard-changed',({contestId,leaderboard})=>{
+            setLeaderBoardData(leaderboard);
+            console.log(leaderboard);
+            console.log(contestId);
+        })
+        return () => {
+            socket.emit("leaveContestRoom", { id:contestId });
+        }
+    }, [contestId]);
     useEffect(() => {
         console.log("onclose");
     }, [onClose])
