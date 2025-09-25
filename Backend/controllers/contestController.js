@@ -452,7 +452,7 @@ const endContest = async (req, res,io) => {
       { contestId, endedAt: { $exists: false } },
       { $set: { endedAt: now } }
     );
-    io.emit('contestended',{
+    io.to(`Contest_${contestId}`).emit('contest-ended',{
       contestId
     })
     return res.status(200).json({
@@ -464,4 +464,39 @@ const endContest = async (req, res,io) => {
   }
 };
 
-module.exports = { createContest, getUpcomingContests, getLiveContests, getRecentContests, getContestQuestions,deleteContest,updateContest,joinContest,getContestTime,generateLeaderboard,submitContest,endContest}
+const updateContestTime = async (req, res, io) => {
+  try {
+    if (!(await isAdmin(req.user.id))) {
+      return res.status(403).json({ error: "Unauthorized Access." });
+    }
+    const { contestId, minutes } = req.body;
+    const userId = req.user.id;
+    if (!(await isAdmin(userId))) {
+      return res.status(403).json({ error: "Unauthorized access" });
+    }
+    if (!contestId || !minutes || minutes <= 0) {
+      return res.status(400).json({ error: "contestId and positive minutes required" });
+    }
+    const contest = await Contest.findById(contestId);
+    if (!contest) {
+      return res.status(404).json({ error: "Contest not found" });
+    }
+    contest.duration += minutes; 
+    await contest.save();
+    const addedSeconds = minutes * 60;
+    io.to(`Contest_${contestId}`).emit("contest-time-increased", {
+      contestId,
+      addedSeconds,
+    });
+
+    return res.status(200).json({
+      message: `Contest time increased by ${minutes} minutes`
+    });
+
+  } catch (err) {
+    console.error("Error updating contest time:", err);
+    return res.status(500).json({ error: "Server error", details: err.message });
+  }
+};
+
+module.exports = { createContest, getUpcomingContests, getLiveContests, getRecentContests, getContestQuestions,deleteContest,updateContest,joinContest,getContestTime,generateLeaderboard,submitContest,endContest,updateContestTime}
