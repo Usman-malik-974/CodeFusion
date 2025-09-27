@@ -61,9 +61,9 @@ const getContestLeaderboard = async (contestId) => {
       {
         $project: {
           userId: "$user._id",
-          userName: "$user.name",
+          name: "$user.fullname",
           email: "$user.email", 
-          solvedCount: 1,
+          solvedCount: 1,  
           totalTime: 1,
         },
       },

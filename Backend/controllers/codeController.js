@@ -465,7 +465,8 @@ exports.runTestCases = async (req, res,io) => {
   await submission.save(); 
   if(contestId){
     const leaderboard=await getContestLeaderboard(contestId);
-    io.emit('leaderboard-changed', { contestId, leaderboard });
+    io.to(`Contest_${contestId}`).emit('leaderboard-changed', { contestId, leaderboard });
+    console.log(contestId, leaderboard);
   }
     return res.status(200).json({ results });
   } catch (err) {

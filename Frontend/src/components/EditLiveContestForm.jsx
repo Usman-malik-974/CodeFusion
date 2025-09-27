@@ -1,6 +1,8 @@
 import { useFormik } from "formik";
 import { useState } from "react";
 import * as Yup from "yup";
+import {toast} from "react-toastify";
+import { updateContestTime } from "../shared/networking/api/contestApi/updateContestTime";
 
 const validationSchema = Yup.object({
     time: Yup.number()
@@ -20,6 +22,15 @@ const EditLiveContestForm = ({ onClose,contestId }) => {
         onSubmit: async (values, { resetForm }) => {
             setIsSubmitting(true);
             console.log(contestId);
+            const res=await updateContestTime({
+                contestId,
+                minutes:values.time
+            });
+            if(res.error){
+                toast.error(res.error);
+                return;
+            }
+            console.log(res);
             console.log(values);
             setTimeout(() => {
                 resetForm(); // optional

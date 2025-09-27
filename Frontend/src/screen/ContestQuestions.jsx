@@ -42,9 +42,15 @@ const ContestQuestions = () => {
     // }, [id]);
 
     useEffect(() => {
-        
         if (!id) return;
         socket.emit("joinContestRoom", { id });
+        socket.on("contest-time-increased",({contestId,addedSeconds})=>{
+            console.log("Increase by",addedSeconds);
+            console.log(contestId);
+        })
+        socket.on("contest-ended",({contestId})=>{
+            console.log("Ended ",contestId);
+        })
         return () => {
             socket.emit("leaveContestRoom", { id });
         }
