@@ -1,35 +1,96 @@
-import { useState,useEffect } from "react";
+import { useState, useEffect } from "react";
 import { getContestTime } from "../shared/networking/api/contestApi/getContestTime";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-const ContestTimer = ({id}) => {
+import socket from "../shared/socket";
+const ContestTimer = ({ id }) => {
     // console.log(id);
     const [timeLeft, setTimeLeft] = useState(0);
     const [displayTime, setDisplayTime] = useState("");
-    const navigate=useNavigate();
+    useEffect(() => {
+        console.log("Socket connected?", socket.connected);
+    }, []);
+
+    useEffect(() => {
+        const handler = ({ contestId: updatedId, addedSeconds }) => {
+            if (updatedId === id) { // only update if it's for this contest
+                setTimeLeft(prev => prev + addedSeconds);
+            }
+        };
+
+        const endHandler = ({ contestId: endedId }) => {
+            if (endedId === id) {
+                setTimeLeft(0);
+            }
+        }
+
+        socket.on("contest-ended", endHandler)
+
+        socket.on("contest-time-increased", handler);
+
+        return () => {
+            socket.off("contest-time-increased", handler);
+            socket.off("contest-ended", endHandler)
+        };
+    }, [id]);
+
+
+    const navigate = useNavigate();
+    // useEffect(() => {
+    //     if (!id) return;
+    //     let interval;
+    //     async function getRemainingTime() {
+    //         const res = await getContestTime(id);
+    //         if (res.error) {
+    //             toast.error(res.error);
+    //             // console.log(res.error);
+    //             navigate(-1);
+    //             return;
+    //         }
+    //         console.log("Time from backend", res);
+    //         setTimeLeft(res.remainingTime);
+    //         interval = setInterval(() => {
+    //             setTimeLeft(prev => {
+    //                 if (prev <= 1) {
+    //                     handleSubmit();
+    //                     clearInterval(interval);
+    //                     return 0;
+    //                 }
+    //                 return prev - 1;
+    //             });
+    //         }, 950);
+    //     }
+
+    //     getRemainingTime();
+
+    //     return () => clearInterval(interval);
+    // }, [id]);
     useEffect(() => {
         if (!id) return;
+
         let interval;
+        let endTime;
+
         async function getRemainingTime() {
             const res = await getContestTime(id);
             if (res.error) {
                 toast.error(res.error);
-                // console.log(res.error);
                 navigate(-1);
                 return;
             }
-            console.log("Time from backend", res);
-            setTimeLeft(res.remainingTime);
+
+            // Compute absolute end timestamp
+            endTime = Date.now() + res.remainingTime * 1000;
+
             interval = setInterval(() => {
-                setTimeLeft(prev => {
-                    if (prev <= 1) {
-                        handleSubmit();
-                        clearInterval(interval);
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
+                const diff = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+                setTimeLeft(diff);
+
+                if (diff <= 0) {
+                    clearInterval(interval);
+                    // handleSubmit();
+                }
+            }, 250); // small interval for smooth updates
         }
 
         getRemainingTime();

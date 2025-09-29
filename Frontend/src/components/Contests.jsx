@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { getAllQuestions } from "../shared/networking/api/questionApi/getAllQuestions";
-import CreateContestForm from "./CreateContestForm";
+import CreateContestForm from "./createContestForm";
 import { Clock, PlayCircle, History } from "lucide-react"; // Icons
 import { setQuestionsList } from '../app/slices/questionsSlice';
 import { getUpcomingContests } from '../shared/networking/api/contestApi/getUpcomingContests'
@@ -13,6 +13,7 @@ import { deleteContest } from "../shared/networking/api/contestApi/deleteContest
 import { toast } from "react-toastify";
 import EditLiveContestForm from "./EditLiveContestForm";
 import LeaderBoard from "./LeaderBoard";
+import { endContest } from "../shared/networking/api/contestApi/endContest";
 
 const Contests = () => {
   const [activeTab, setActiveTab] = useState("live");
@@ -27,7 +28,6 @@ const Contests = () => {
   const [questions, setQuestions] = useState([]);
   const questionsList = useSelector((state) => state.questions.questionsList);
   const [editContestData, setEditContestData] = useState(null);
-  // const []
   const [showLeaderBoard, setShowLeaderBoard] = useState(false);
 
   // When clicking edit
@@ -216,11 +216,30 @@ const Contests = () => {
     setShowLeaderBoard(false)
   }, [])
 
+  const handleLiveUpdateTime = useCallback((id, time) => {
+    setLiveContests((prev) =>
+      prev.map((c) =>
+        c.id === id
+          ? { ...c, duration: c.duration + time } // return new object for the updated contest
+          : c                                     // keep others as is
+      )
+    );
+  }, []);
+
+  const handleEndContestClick = useCallback(async (id) => {
+    let res = await endContest(id);
+    if (res.error) {
+      toast.error(res.error);
+      return;
+    }
+    toast.success(res.message);
+  })
+
   return (
     <div className="p-4 relative">
       {showLeaderBoard && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-3xl max-h-[90vh] overflow-y-auto relative no-scrollbar animate-fadeIn">
+          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-6xl max-h-[90vh] overflow-y-auto relative no-scrollbar animate-fadeIn">
             <LeaderBoard
               onClose={handleLeaderBoardClose}
               contestId={leaderBoardContestId}
@@ -234,6 +253,7 @@ const Contests = () => {
           <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-3xl max-h-[90vh] overflow-y-auto relative no-scrollbar animate-fadeIn">
             <EditLiveContestForm
               onClose={() => setShowEditLiveContestForm(false)}
+              onLiveUpdateTime={handleLiveUpdateTime}
               contestId={editLiveContestId}
             />
           </div>
@@ -301,7 +321,7 @@ const Contests = () => {
                   }`}
                 onClick={() => setActiveTab(key)}
               >
-                <Icon size={16} className={active ? "text-blue-500" : "text-gray-400"} />
+                <Icon size={16} className={active ? `text-${color}-600` : "text-gray-400"} />
                 {label}
               </button>
             );
@@ -315,7 +335,11 @@ const Contests = () => {
           (previousContests.length > 0 ? (
             <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {previousContests.map((contest) => (
-                <AdminContestCard key={contest.id} contest={contest} type="previous" />
+                <AdminContestCard key={contest.id}
+                  contest={contest}
+                  onLeaderBoardClick={handleLeaderBoardClick}
+                  type="previous"
+                />
               ))}
             </div>
           ) : (
@@ -331,6 +355,7 @@ const Contests = () => {
                   contest={contest}
                   onLeaderBoardClick={handleLeaderBoardClick}
                   onLiveEditClick={handleLiveEditClick}
+                  onEndContestClick={handleEndContestClick}
                   type="live" />
               ))}
             </div>

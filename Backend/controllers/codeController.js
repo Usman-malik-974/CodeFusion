@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 const fs = require('fs-extra');
-const { execSync, spawnSync } = require('child_process');
+const { execSync, spawnSync ,spawn} = require('child_process');
 const path = require('path');
 const {Question,Submission}=require('../models/index');
 const isAdmin = require('../utils/isAdmin');
@@ -101,6 +101,64 @@ const getContestLeaderboard = require('../utils/getContestLeaderBoard');
 //         return res.status(500).json({ error: '⚠️ Internal server error. Please try again later.' });
 //     }
 // };
+
+function runCommand(containerName, runCmd, input, timeout, maxOutputLength = 1000000) {
+    return new Promise((resolve, reject) => {
+      try{
+        const child = spawn('docker', ['exec', '-i', containerName, 'sh', '-c', runCmd], {
+            stdio: ['pipe', 'pipe', 'pipe'],
+            encoding: 'utf-8'
+        });
+        let stdoutLength = 0;
+        let stdout = '';
+        let stderr = '';
+        let timedOut = false;
+        let memoryExceeded = false;
+
+        const timer = setTimeout(() => {
+            timedOut = true;
+            child.kill('SIGKILL');
+        }, timeout);
+
+        child.stdout.on('data', data => {
+            stdoutLength += data.length;
+            if (stdoutLength > maxOutputLength) {
+                memoryExceeded = true;
+                child.kill('SIGKILL');
+            } else {
+                stdout += data.toString();
+            }
+        });
+
+        child.stderr.on('data', data => {
+            stderr += data.toString();
+        });
+
+        child.on('close', code => {
+            clearTimeout(timer);
+
+            if (timedOut) {
+                return resolve({ output: stdout.trim(), error: '⏱️ Time Limit Exceeded' });
+            }
+            if (memoryExceeded) {
+                return resolve({ output: stdout.trim(), error: '💾 Memory/Output Limit Exceeded' });
+            }
+            if (code !== 0) {
+                return resolve({ output: stdout.trim(), error: `❌ Runtime Error:\n${stderr.trim()}` });
+            }
+            resolve({ output: stdout.trim() });
+        });
+
+        child.stdin.write(input);
+        child.stdin.end();
+         }
+      catch(err){
+        reject(err);
+      }
+    });
+}
+
+
 exports.runCode = async (req, res) => {
   const { code, language, input = '' } = req.body;
 
@@ -116,7 +174,7 @@ exports.runCode = async (req, res) => {
   let containerName = '';
   let compileCmd = '';
   let runCmd = '';
-  let timeout = 5000;
+  let timeout = 10000;
 
   switch (language) {
       case 'python':
@@ -175,26 +233,29 @@ exports.runCode = async (req, res) => {
           }
       }
 
-      const result = spawnSync('docker', [
-          'exec', '-i', containerName,
-          'sh', '-c', runCmd
-      ], {
-          input,
-          encoding: 'utf-8',
-          timeout,
-          maxBuffer: 1024 * 1024
-      });
-      const output = (result.stdout || '').trim();
-      const stderr = (result.stderr || '').trim();
-      await fs.remove(tempDir);
+      // const result = spawnSync('docker', [
+      //     'exec', '-i', containerName,
+      //     'sh', '-c', runCmd
+      // ], {
+      //     input,
+      //     encoding: 'utf-8',
+      //     timeout,
+      //     maxBuffer: 1024 * 1024
+      // });
+      const result = await runCommand(containerName, runCmd, input, timeout);
+      return res.status(200).json(result);
 
-      if (result.error?.code === 'ETIMEDOUT') {
-          return res.status(200).json({ output, error: '⏱️ Time Limit Exceeded' });
-      } else if (result.status !== 0) {
-          return res.status(200).json({ output, error: `❌ Runtime Error:\n${stderr || 'Unknown error'}` });
-      }
+      // const output = (result.stdout || '').trim();
+      // const stderr = (result.stderr || '').trim();
+      // await fs.remove(tempDir);
 
-      return res.status(200).json({ output });
+      // if (result.error?.code === 'ETIMEDOUT') {
+      //     return res.status(200).json({ output, error: '⏱️ Time Limit Exceeded' });
+      // } else if (result.status !== 0) {
+      //     return res.status(200).json({ output, error: `❌ Runtime Error:\n${stderr || 'Unknown error'}` });
+      // }
+
+      // return res.status(200).json({ output });
 
   } catch (err) {
       await fs.remove(tempDir);
@@ -348,7 +409,7 @@ exports.runTestCases = async (req, res,io) => {
   let containerName = '';
   let compileCmd = '';
   let runCmd = '';
-  let timeout = 5000;
+  let timeout = 10000;
 
   switch (language) {
     case 'python':
@@ -373,7 +434,7 @@ exports.runTestCases = async (req, res,io) => {
       containerName = 'java-runner';
       compileCmd = `javac /app/${jobId}/${fileName}`;
       runCmd = `java -cp /app/${jobId} Main`;
-      timeout = 10000;
+      // timeout = 10000;
       break;
     case 'javascript':
       fileName = 'main.js';
@@ -406,46 +467,89 @@ exports.runTestCases = async (req, res,io) => {
     }
   }
 
+//   const runTestCase = async (test) => {
+//   //   return new Promise((resolve) => {
+//   //     const input = (test.input || '').trim();
+//   //     const expected = (test.output || '').trim();
+//   //     const isHidden = test.hidden;
+
+//   //     const execResult = spawnSync('docker', [
+//   //       'exec', '-i', containerName,
+//   //       'sh', '-c', runCmd
+//   //     ], {
+//   //       input,
+//   //       encoding: 'utf-8',
+//   //       timeout,
+//   //       maxBuffer: 1024 * 1024
+//   //     });
+
+//   //     const actual = (execResult.stdout || '').trim();
+//   //     const stderr = (execResult.stderr || '').trim();
+
+//   //     let verdict = 'Passed';
+//   //     if (execResult.error?.code === 'ETIMEDOUT') {
+//   //       verdict = 'Time Limit Exceeded';
+//   //     } else if (execResult.status !== 0) {
+//   //       verdict = 'Runtime Error';
+//   //     } else if (actual !== expected) {
+//   //       verdict = 'Failed';
+//   //     }
+
+//   //     const result = {
+//   //       verdict,
+//   //       error: verdict !== 'Passed' ? stderr : undefined
+//   //     };
+//   //     if (!isHidden) {
+//   //       result.input = input;
+//   //       result.expected = expected;
+//   //       result.actual = actual;
+//   //     }
+//   //     resolve(result);
+//   //   });
+//   // };
   const runTestCase = async (test) => {
-    return new Promise((resolve) => {
+    try{
+
       const input = (test.input || '').trim();
       const expected = (test.output || '').trim();
       const isHidden = test.hidden;
-
-      const execResult = spawnSync('docker', [
-        'exec', '-i', containerName,
-        'sh', '-c', runCmd
-      ], {
-        input,
-        encoding: 'utf-8',
-        timeout,
-        maxBuffer: 1024 * 1024
-      });
-
-      const actual = (execResult.stdout || '').trim();
-      const stderr = (execResult.stderr || '').trim();
-
-      let verdict = 'Passed';
-      if (execResult.error?.code === 'ETIMEDOUT') {
-        verdict = 'Time Limit Exceeded';
-      } else if (execResult.status !== 0) {
-        verdict = 'Runtime Error';
-      } else if (actual !== expected) {
-        verdict = 'Failed';
-      }
-
-      const result = {
-        verdict,
-        error: verdict !== 'Passed' ? stderr : undefined
-      };
-      if (!isHidden) {
-        result.input = input;
-        result.expected = expected;
-        result.actual = actual;
-      }
-      resolve(result);
-    });
+      
+      // Call runCommand in proper order
+  const { output: actual, error: execError } = await runCommand(
+    containerName,   // container name
+    runCmd,          // command to run
+    input,           // stdin input
+    timeout,         // time limit
+    1024 * 100       // max output length (100 KB)
+  );
+  
+  let verdict = 'Passed';
+  if (execError) {
+    if (execError.includes('Time')) verdict = 'TLE';
+    else if (execError.includes('Memory')) verdict = 'MLE';
+    else verdict = 'Runtime Error';
+  } else if (actual !== expected) {
+    verdict = 'Failed';
+  }
+  
+  const result = {
+    verdict,
+    error: verdict !== 'Passed' ? execError : undefined
   };
+  
+  if (!isHidden) {
+    result.input = input;
+    result.expected = expected;
+    result.actual = actual;
+  }
+  
+  return result;
+}
+catch(err){
+  console.log(err);
+}
+};
+
 
   try {
     const results = await Promise.all(testCases.map(runTestCase));

@@ -1,18 +1,29 @@
 import { createSlice } from "@reduxjs/toolkit";
-import ContestQuestions from "../../screen/ContestQuestions";
 
-const contestQuestionsSlice=createSlice({
-    name:"contestQuestions",
-    initialState:{
-        contestQuestions:[]
+const contestQuestionsSlice = createSlice({
+    name: "contestQuestions",
+    initialState: {
+        contestQuestions: {}, // object, not array
     },
-    reducers:{
-        setContestQuestions:(state,action)=>{
-            // console.log(action.payload);
-            state.contestQuestions.push(action.payload);
-        }
-    }
-})
+    reducers: {
+        setContestQuestions: (state, action) => {
+            const contestId = Object.keys(action.payload)[0];
+            state.contestQuestions[contestId] = action.payload[contestId];
+        },
+        markQuestionSolved: (state, action) => {
+            const { contestId, questionId } = action.payload;
+            console.log(contestId,questionId);
+            const questions = state.contestQuestions[contestId];
+            if (!questions) return;
 
-export const {setContestQuestions}=contestQuestionsSlice.actions;
+            const q = questions.find((q) => q.id === questionId);
+            if (q) {
+                q.done = true;
+            }
+        }
+
+    },
+});
+
+export const { setContestQuestions,markQuestionSolved } = contestQuestionsSlice.actions;
 export default contestQuestionsSlice.reducer;
