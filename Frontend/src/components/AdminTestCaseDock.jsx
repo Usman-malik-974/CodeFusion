@@ -157,11 +157,11 @@ const AdminTestCaseDock = ({
                                                     <FiCheck className="text-green-500 font-bold text-lg" />
                                                 ) : results[idx].verdict === "Failed" ? (
                                                     <FiX className="text-red-500 font-bold text-lg" />
-                                                ) : results[idx].verdict === "Runtime Error" ? (
+                                                ) : (
                                                     <span className="text-red-500 font-medium">
                                                         {results[idx].verdict}
                                                     </span>
-                                                ) : null
+                                                )
                                             )}
 
                                             {/* Only show remove button in editable mode */}
@@ -252,6 +252,23 @@ const AdminTestCaseDock = ({
                                         onChange={(e) => {
                                             const updated = [...testCases];
                                             updated[currentIndex].output = e.target.value;
+                                            setTestCases(updated);
+                                        }}
+                                        className={`w-full h-20 p-2 rounded border resize-none text-sm ${isDark
+                                            ? "bg-neutral-900 border-neutral-700 text-gray-100"
+                                            : "bg-gray-50 border-gray-300 text-gray-900"
+                                            }`}
+                                    />
+                                </div>
+
+                                <div className="flex-1">
+                                    <span className="font-semibold text-sm">Marks</span>
+                                    <textarea
+                                        readOnly={!isEditable}
+                                        value={testCases[currentIndex]?.marks || ""}
+                                        onChange={(e) => {
+                                            const updated = [...testCases];
+                                            updated[currentIndex].marks = e.target.value;
                                             setTestCases(updated);
                                         }}
                                         className={`w-full h-20 p-2 rounded border resize-none text-sm ${isDark

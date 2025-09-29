@@ -30,7 +30,7 @@ io.on("connection", (socket) => {
     console.log(`User ${socket.id} joined contest_${id}`);
   });
     socket.on("leaveContestRoom",({id})=>{
-    socket.join(`Contest_${id}`);
+    socket.leave(`Contest_${id}`);
     console.log(`User ${socket.id} left contest_${id}`);
   });
   socket.on("disconnect", () => {

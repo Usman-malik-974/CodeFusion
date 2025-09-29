@@ -10,6 +10,9 @@ import { runTestCases } from "../shared/networking/api/codeApi/runTestCases";
 import { getQuestionSubmissions } from "../shared/networking/api/codeApi/getQuestionSubmissions";
 import { SiTicktick } from "react-icons/si";
 import ContestTimer from "../components/ContestTimer";
+import { useDispatch } from "react-redux";
+import { markQuestionSolved } from "../app/slices/contestQuestionsSlice";
+import socket from "../shared/socket"
 
 const QuestionView = () => {
     // const { id } = useParams();
@@ -39,6 +42,7 @@ int main() {
     const [submissions, setSubmissions] = useState([]);
 
     const [viewingCode, setViewingCode] = useState(null);
+    const dispatch = useDispatch();
 
 
     useEffect(() => {
@@ -47,6 +51,21 @@ int main() {
             setCode(prevData.code);
         }
     }, [language]);
+
+    useEffect(() => {
+        if (!contestId) return;
+        socket.emit("joinContestRoom", { contestId });
+        // socket.on("contest-time-increased", ({ contestId, addedSeconds }) => {
+        //     console.log("Increase by", addedSeconds);
+        //     console.log(contestId);
+        // })
+        // socket.on("contest-ended", ({ contestId }) => {
+        //     console.log("Ended ", contestId);
+        // })
+        return () => {
+            socket.emit("leaveContestRoom", { contestId });
+        }
+    }, [contestId]);
 
     // useEffect(() => {
     //     let prevCode = JSON.parse(localStorage.getItem(question.id));
@@ -103,11 +122,14 @@ int main() {
                 navigate("/login");
                 return;
             }
-
+            // console.log(res,res.error);
             if (res.error) {
                 setErrorMessage(res.error);
             } else {
                 setTestResults(res.results);
+                if (contestId) {
+                    dispatch(markQuestionSolved({ contestId, questionId: question.id }));
+                }
                 setTestCaseRunSuccess(true); // ✅ triggers testcases tab
             }
         }
@@ -172,7 +194,10 @@ int main() {
                 } lg:h-screen lg:overflow-hidden `}
         >
             {/* <div className="flex flex-col items-center justify-center"> */}
+            {contestId && (
                 <ContestTimer id={contestId} />
+            )}
+
             {/* </div> */}
             {/* Left Question Panel */}
             <div

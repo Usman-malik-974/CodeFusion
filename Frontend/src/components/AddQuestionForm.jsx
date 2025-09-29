@@ -16,6 +16,7 @@ const validationSchema = Yup.object().shape({
         Yup.object().shape({
             input: Yup.string().required('Input is required'),
             output: Yup.string().required('Output is required'),
+            marks:Yup.number("Marks must be a number").required("Marks are required"),
             hidden: Yup.boolean().required('Visibility is required'),
         })
     ).min(1, 'At least one test case is required'),
@@ -30,7 +31,7 @@ const initialValues = {
     sampleOutput: '',
     tags: '',
     difficulty: 'Easy',
-    testCases: [{ input: '', output: '', hidden: false }],
+    testCases: [{ input: '', output: '', marks:1,hidden: false }],
 };
 
 const AddQuestionForm = ({ onSubmit, onClose }) => {
@@ -240,6 +241,22 @@ const AddQuestionForm = ({ onSubmit, onClose }) => {
                                                 formik.errors.testCases?.[index]?.output && (
                                                     <div className="text-red-500 text-sm mt-1">
                                                         {formik.errors.testCases[index].output}
+                                                    </div>
+                                                )}
+                                        </div>
+                                        <div>
+                                            <textarea
+                                                name={`testCases.${index}.marks`}
+                                                value={tc.marks}
+                                                onChange={formik.handleChange}
+                                                onBlur={formik.handleBlur}
+                                                placeholder="Marks"
+                                                className="p-2 border rounded"
+                                            />
+                                            {formik.touched.testCases?.[index]?.marks &&
+                                                formik.errors.testCases?.[index]?.marks && (
+                                                    <div className="text-red-500 text-sm mt-1">
+                                                        {formik.errors.testCases[index].marks}
                                                     </div>
                                                 )}
                                         </div>

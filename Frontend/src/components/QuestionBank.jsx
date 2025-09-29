@@ -104,12 +104,12 @@ const QuestionBank = () => {
       <div className="p-4 relative">
          {showAddForm && (
             <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-               <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto relative">
+               <div className="bg-white rounded-xl shadow-lg p-6 w-full max-w-5xl max-h-[90vh] overflow-y-auto relative">
                   <button
                      className="absolute top-2 right-0 text-gray-500 hover:text-red-500"
                      onClick={() => setShowAddForm(false)}
                   >
-                     <X size={24} />
+                     <X size={30} />
                   </button>
                   <AddQuestionForm
                      onClose={() => setShowAddForm(false)}

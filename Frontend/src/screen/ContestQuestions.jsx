@@ -4,12 +4,11 @@ import { getContestTime } from "../shared/networking/api/contestApi/getContestTi
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { MdFullscreen } from "react-icons/md";
-import io from "socket.io-client";
 import { SiTicktick } from "react-icons/si";
 import ContestTimer from "../components/ContestTimer";
 import { useDispatch, useSelector } from "react-redux";
 import { setContestQuestions } from "../app/slices/contestQuestionsSlice";
-const socket = io(import.meta.env.VITE_SERVER_URL);
+import socket from "../shared/socket";
 
 const ContestQuestions = () => {
     const location = useLocation();
@@ -20,11 +19,9 @@ const ContestQuestions = () => {
 
     const [showFullScreenPopup, setShowFullScreenPopup] = useState(false);
     const dispatch = useDispatch();
-    const contestQuestions = useSelector((state) => state.contestQuestions.contestQuestions);
+    const contestQuestions = useSelector((state) => state.contestQuestions.contestQuestions[id] || [] );
     const navigate = useNavigate();
 
-    // const token = localStorage.getItem('token');
-    // console.log(token);
     const goFullScreen = () => {
         const elem = document.documentElement;
         if (elem.requestFullscreen) {
@@ -36,6 +33,9 @@ const ContestQuestions = () => {
         }
     };
 
+
+
+
     // Show full screen popup only if contest id exists
     // useEffect(() => {
     //     // if (id) setShowFullScreenPopup(true);
@@ -44,13 +44,13 @@ const ContestQuestions = () => {
     useEffect(() => {
         if (!id) return;
         socket.emit("joinContestRoom", { id });
-        socket.on("contest-time-increased",({contestId,addedSeconds})=>{
-            console.log("Increase by",addedSeconds);
-            console.log(contestId);
-        })
-        socket.on("contest-ended",({contestId})=>{
-            console.log("Ended ",contestId);
-        })
+        // socket.on("contest-time-increased", ({ contestId, addedSeconds }) => {
+        //     console.log("Increase by", addedSeconds);
+        //     console.log(contestId);
+        // })
+        // socket.on("contest-ended", ({ contestId }) => {
+        //     console.log("Ended ", contestId);
+        // })
         return () => {
             socket.emit("leaveContestRoom", { id });
         }
@@ -60,10 +60,10 @@ const ContestQuestions = () => {
     useEffect(() => {
         if (!id) return;
 
-        const existingQuestionsObj = contestQuestions.find(item => item[id]);
-        if (existingQuestionsObj) {
+        // const existingQuestionsObj = contestQuestions.find(item => item[id]);
+        if (contestQuestions.length>0) {
             // Use questions from Redux if already fetched
-            setQuestions(existingQuestionsObj[id]);
+            setQuestions(contestQuestions);
             return;
         }
 

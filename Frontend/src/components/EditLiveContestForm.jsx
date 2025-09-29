@@ -1,8 +1,9 @@
 import { useFormik } from "formik";
 import { useState } from "react";
 import * as Yup from "yup";
-import {toast} from "react-toastify";
+import { toast } from "react-toastify";
 import { updateContestTime } from "../shared/networking/api/contestApi/updateContestTime";
+import { time } from "framer-motion";
 
 const validationSchema = Yup.object({
     time: Yup.number()
@@ -11,7 +12,7 @@ const validationSchema = Yup.object({
         .integer("Duration must be an integer"),
 });
 
-const EditLiveContestForm = ({ onClose,contestId }) => {
+const EditLiveContestForm = ({ onClose, contestId, onLiveUpdateTime}) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const formik = useFormik({
         initialValues: {
@@ -21,22 +22,20 @@ const EditLiveContestForm = ({ onClose,contestId }) => {
         validateOnChange: false,
         onSubmit: async (values, { resetForm }) => {
             setIsSubmitting(true);
-            console.log(contestId);
-            const res=await updateContestTime({
+            // console.log(contestId);
+            const res = await updateContestTime({
                 contestId,
-                minutes:values.time
+                minutes: values.time
             });
-            if(res.error){
+            if (res.error) {
                 toast.error(res.error);
                 return;
             }
-            console.log(res);
-            console.log(values);
-            setTimeout(() => {
-                resetForm(); // optional
-                setIsSubmitting(false);
-                onClose();
-            }, 5000)
+            toast.success(res.message);
+            resetForm(); // optional
+            setIsSubmitting(false);
+            onLiveUpdateTime(contestId,values.time);
+            onClose();
         },
     });
 
@@ -86,8 +85,8 @@ const EditLiveContestForm = ({ onClose,contestId }) => {
                         className={`px-5 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition shadow-md disabled:cursor-not-allowed disabled:bg-blue-400`}
                         disabled={isSubmitting}
                     >
-                        {isSubmitting?`Adding...`:`Add Time`}
-                        
+                        {isSubmitting ? `Adding...` : `Add Time`}
+
                     </button>
                 </div>
             </form>

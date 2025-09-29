@@ -7,17 +7,19 @@ import { loginUser } from '../shared/networking/api/userApi/loginUser';
 import { BiSolidShow, BiSolidHide } from "react-icons/bi";
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
+import ForgotPassword from '../components/ForgotPassword';
 
 const Login = () => {
     const [loader, setLoader] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [showForgotPasswordForm, setShowForgotPasswordForm] = useState(false);
     const navigate = useNavigate();
 
-    useEffect(()=>{
-       const token=localStorage.getItem("token");
-       //api logic to verify if its valid token then redirect acc to role without cred
-    //    navigate("/dashboard") or  navigate("/admin")
-    },[])
+    useEffect(() => {
+        const token = localStorage.getItem("token");
+        //api logic to verify if its valid token then redirect acc to role without cred
+        //    navigate("/dashboard") or  navigate("/admin")
+    }, [])
     const validationSchema = Yup.object({
         email: Yup.string().email('Invalid email').required('Email is Required'),
         password: Yup.string().required('Password Required'),
@@ -37,7 +39,7 @@ const Login = () => {
                 if (res.user) {
                     const userDetails = res.user;
                     const token = res.token; // assuming API returns token
-                    localStorage.setItem("token",token);
+                    localStorage.setItem("token", token);
                     if (userDetails.role === 'admin') {
                         navigate("/admin");
                     }
@@ -62,6 +64,14 @@ const Login = () => {
 
     return (
         <div className="flex justify-center items-center h-screen bg-gray-50 px-4">
+            {showForgotPasswordForm && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+
+                    <ForgotPassword
+                        onClose={() => setShowForgotPasswordForm(false)}
+                    />
+                </div>
+            )}
             <div className="shadow-lg bg-white px-8 py-6 rounded-lg w-full max-w-sm">
                 <div className="flex items-center justify-center gap-1 mb-2">
                     <img className="h-10 w-10" src="./Logo_CodeFusion.png" alt="Logo" />
@@ -123,9 +133,11 @@ const Login = () => {
                 </form>
 
                 <div className="mt-3 text-right">
-                    <Link to="#" className="text-blue-500 text-sm hover:underline">
+                    <button className="text-blue-500 text-sm hover:underline"
+                        onClick={() => setShowForgotPasswordForm(true)}
+                    >
                         Forgot Password?
-                    </Link>
+                    </button>
                 </div>
             </div>
         </div>

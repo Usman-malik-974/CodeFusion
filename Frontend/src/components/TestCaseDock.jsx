@@ -124,7 +124,7 @@ const TestCaseDock = ({
                             style={{ height: "calc(100% - 40px)" }}
                         >
                             {errorMessage ? (
-                                <pre className="text-red-500">Error: {errorMessage}</pre>
+                                <pre className="text-red-500">{errorMessage}</pre>
                             ) : customOutput ? (
                                 <pre className="text-green-400">{customOutput}</pre>
                             ) : (
@@ -161,11 +161,17 @@ const TestCaseDock = ({
                                                 <FiCheck className="text-green-500 font-bold text-lg" />
                                             ) : results[idx].verdict === "Failed" ? (
                                                 <FiX className="text-red-500 font-bold text-lg" />
-                                            ) : results[idx].verdict === "Runtime Error" ? (
-                                                <span className="text-red-500 font-medium">
-                                                    {results[idx].verdict}
-                                                </span>
-                                            ) : null
+                                            ) :
+                                                // results[idx].verdict === "Runtime Error" ? (
+                                                //     <span className="text-red-500 font-medium">
+                                                //         {results[idx].verdict}
+                                                //     </span>
+                                                // ) :
+                                                    (
+                                                        <span className="text-red-500 font-medium">
+                                                            {results[idx].verdict}
+                                                        </span>
+                                                    )
                                         )}
 
 
