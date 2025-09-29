@@ -180,7 +180,7 @@ const getContestQuestions = async (req, res) => {
         tags: q.tags,
         difficulty: q.difficulty,
         testCases: q.testCases.map((t) =>
-          t.hidden ? { hidden: true } : { input: t.input, output: t.output, hidden: t.hidden }
+          t.hidden ? { hidden: true } : { input: t.input, output: t.output, hidden: t.hidden,marks:t.marks }
         ),
         done: solvedSet.has(String(q._id)),
       }));
@@ -412,7 +412,7 @@ const generateLeaderboard = async (req, res) => {
 const submitContest = async (req, res) => {
   try {
     const contestId= req.params.id;
-    const userId = req.user._id; 
+    const userId = req.user.id; 
     if (!contestId) {
       return res.status(400).json({ error: "contestId is required" });
     }
@@ -431,7 +431,6 @@ const submitContest = async (req, res) => {
     await participation.save();
     return res.status(200).json({
       message: "Contest submitted successfully",
-      participation,
     });
   } catch (error) {
     console.error("Error in submitContest:", error);

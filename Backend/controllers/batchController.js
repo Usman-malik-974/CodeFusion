@@ -165,7 +165,7 @@ const getBatchQuestions = async (req, res) => {
       difficulty: q.difficulty,
       testCases: q.testCases.map((t)=>{
         if(t.hidden) return {hidden:true};
-        else return {input:t.input,output:t.output,hidden:t.hidden};
+        else return {input:t.input,output:t.output,hidden:t.hidden,marks:t.marks};
       }),
     }));
 
