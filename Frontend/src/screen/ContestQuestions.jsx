@@ -8,7 +8,8 @@ import { SiTicktick } from "react-icons/si";
 import ContestTimer from "../components/ContestTimer";
 import { useDispatch, useSelector } from "react-redux";
 import { setContestQuestions } from "../app/slices/contestQuestionsSlice";
-import socket from "../shared/socket";
+import socket from "../shared/soket";
+import { submitContest } from "../shared/networking/api/contestApi/submitContest";
 
 const ContestQuestions = () => {
     const location = useLocation();
@@ -95,8 +96,15 @@ const ContestQuestions = () => {
         );
     }
 
-    const handleSubmit = () => {
-        console.log("submitted");
+    const handleSubmit = async () => {
+        console.log("submitted",id);
+        const res=await submitContest(id);
+        if(res.error){
+            toast.error(res.error);
+            return;
+        }
+        toast.success(res.message);
+        navigate("/feedback");
     }
 
     return (

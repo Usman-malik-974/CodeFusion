@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getContestLeaderboard } from "../shared/networking/api/contestApi/getContestLeaderBoard";
 import { toast } from "react-toastify";
-import socket from "../shared/socket";
+import socket from "../shared/soket";
 import { FaEye } from "react-icons/fa";
 const LeaderBoard = React.memo(({ onClose, contestId }) => {
     // dummy data

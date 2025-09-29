@@ -12,7 +12,7 @@ import { SiTicktick } from "react-icons/si";
 import ContestTimer from "../components/ContestTimer";
 import { useDispatch } from "react-redux";
 import { markQuestionSolved } from "../app/slices/contestQuestionsSlice";
-import socket from "../shared/socket"
+import socket from "../shared/soket"
 
 const QuestionView = () => {
     // const { id } = useParams();
@@ -127,7 +127,8 @@ int main() {
                 setErrorMessage(res.error);
             } else {
                 setTestResults(res.results);
-                if (contestId) {
+                const allPassed = res.results.every(r => r.verdict === "Passed");
+                if (contestId && allPassed) {
                     dispatch(markQuestionSolved({ contestId, questionId: question.id }));
                 }
                 setTestCaseRunSuccess(true); // ✅ triggers testcases tab

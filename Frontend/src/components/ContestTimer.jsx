@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { getContestTime } from "../shared/networking/api/contestApi/getContestTime";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import socket from "../shared/socket";
+import socket from "../shared/soket";
+import { submitContest } from "../shared/networking/api/contestApi/submitContest";
 const ContestTimer = ({ id }) => {
     // console.log(id);
     const [timeLeft, setTimeLeft] = useState(0);
@@ -87,8 +88,8 @@ const ContestTimer = ({ id }) => {
                 setTimeLeft(diff);
 
                 if (diff <= 0) {
+                    handleSubmit();
                     clearInterval(interval);
-                    // handleSubmit();
                 }
             }, 250); // small interval for smooth updates
         }
@@ -107,6 +108,16 @@ const ContestTimer = ({ id }) => {
             `${hours.toString().padStart(2, '0')} : ${minutes.toString().padStart(2, '0')} : ${seconds.toString().padStart(2, '0')}`
         );
     }, [timeLeft]);
+
+    const handleSubmit = async () => {
+        const res = await submitContest(id);
+        if (res.error) {
+            toast.error(res.error);
+            return;
+        }
+        toast.success(res.message);
+        navigate("/feedback");
+    }
 
 
     return (

@@ -412,7 +412,8 @@ const generateLeaderboard = async (req, res) => {
 const submitContest = async (req, res) => {
   try {
     const contestId= req.params.id;
-    const userId = req.user._id; 
+    const userId = req.user.id; 
+    // console.log
     if (!contestId) {
       return res.status(400).json({ error: "contestId is required" });
     }

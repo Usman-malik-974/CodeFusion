@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import CustomDropdown from "./CustomDropDown";
 import { createContest } from "../shared/networking/api/contestApi/createContest";
+import { useNavigate } from "react-router-dom";
 
 const validationSchema = Yup.object({
     contestName: Yup.string()
@@ -35,6 +36,7 @@ const validationSchema = Yup.object({
 
 const CreateContestForm = ({ onClose, questions, onCreate }) => {
     const [selectedQuestions, setSelectedQuestions] = useState([]);
+    const navigate = useNavigate();
 
     const formik = useFormik({
         initialValues: {
@@ -51,7 +53,7 @@ const CreateContestForm = ({ onClose, questions, onCreate }) => {
             //     selectedQuestions,
             // });
 
-            if(selectedQuestions.length==0){
+            if (selectedQuestions.length == 0) {
                 alert("Please select at least one Question");
                 return;
             }
@@ -68,7 +70,7 @@ const CreateContestForm = ({ onClose, questions, onCreate }) => {
                 onCreate(res.contest);
                 toast.success(res.message);
             }
-        
+
             //from here res.contest will be set to the Contest Component
             onClose();
         },
@@ -79,7 +81,7 @@ const CreateContestForm = ({ onClose, questions, onCreate }) => {
             {/* Close Button */}
             <button
                 onClick={onClose}
-                className="absolute top-0 right-0 text-gray-500 hover:text-red-500 text-2xl font-bold"
+                className="sticky right-0 top-0 float-right text-gray-500 hover:text-red-500 text-2xl font-bold"
             >
                 ✖
             </button>
@@ -129,6 +131,49 @@ const CreateContestForm = ({ onClose, questions, onCreate }) => {
                             {formik.errors.code}
                         </p>
                     )}
+                </div>
+
+                {/* Questions */}
+                <div>
+                    <label className="block text-gray-700 font-medium mb-1">
+                        Add Questions
+                    </label>
+
+                    <CustomDropdown
+                        questions={questions}
+                        selectedQuestions={selectedQuestions}
+                        onAdd={(qIds) => {
+                            // Merge multiple new IDs at once, prevent duplicates
+                            const newSelection = [...new Set([...selectedQuestions, ...qIds])];
+                            setSelectedQuestions(newSelection);
+                        }}
+                    />
+
+
+                    {/* Selected Questions */}
+                    <div className="mt-3 space-y-2">
+                        {selectedQuestions.map((id) => {
+                            const q = questions.find((q) => q.id === id);
+                            return (
+                                <div
+                                    key={id}
+                                    className="flex justify-between items-center bg-gray-100 px-3 py-2 rounded-md"
+                                >
+                                    <span>{q?.title}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            setSelectedQuestions(selectedQuestions.filter((qid) => qid !== id))
+                                        }
+                                        className="text-red-500 hover:underline"
+                                    >
+                                        Remove
+                                    </button>
+                                </div>
+                            );
+                        })}
+                    </div>
+
                 </div>
 
                 {/* Start Time */}
@@ -192,47 +237,7 @@ const CreateContestForm = ({ onClose, questions, onCreate }) => {
                     )}
                 </div>
 
-                {/* Questions */}
-                <div>
-                    <label className="block text-gray-700 font-medium mb-1">
-                        Add Questions
-                    </label>
 
-                    <CustomDropdown
-                        questions={questions}
-                        selectedQuestions={selectedQuestions}
-                        onAdd={(qId) => {
-                            if (!selectedQuestions.includes(qId)) {
-                                setSelectedQuestions([...selectedQuestions, qId]);
-                            }
-                        }}
-                    />
-
-                    {/* Selected Questions */}
-                    <div className="mt-3 space-y-2">
-                        {selectedQuestions.map((id) => {
-                            const q = questions.find((q) => q.id === id);
-                            return (
-                                <div
-                                    key={id}
-                                    className="flex justify-between items-center bg-gray-100 px-3 py-2 rounded-md"
-                                >
-                                    <span>{q?.title}</span>
-                                    <button
-                                        type="button"
-                                        onClick={() =>
-                                            setSelectedQuestions(selectedQuestions.filter((qid) => qid !== id))
-                                        }
-                                        className="text-red-500 hover:underline"
-                                    >
-                                        Remove
-                                    </button>
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                </div>
 
                 <button
                     type="submit"
