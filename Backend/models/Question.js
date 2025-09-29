@@ -26,6 +26,7 @@ const questionSchema = new mongoose.Schema({
   testCases: [{
     input: { type: String, required: true },
     output: { type: String, required: true },
+    marks: {type:Number,default:1},
     hidden: { type: Boolean, default: false }
   }],
 

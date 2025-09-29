@@ -242,12 +242,12 @@ exports.runCode = async (req, res) => {
       //     timeout,
       //     maxBuffer: 1024 * 1024
       // });
+      await fs.remove(tempDir);
       const result = await runCommand(containerName, runCmd, input, timeout);
       return res.status(200).json(result);
 
       // const output = (result.stdout || '').trim();
       // const stderr = (result.stderr || '').trim();
-      // await fs.remove(tempDir);
 
       // if (result.error?.code === 'ETIMEDOUT') {
       //     return res.status(200).json({ output, error: '⏱️ Time Limit Exceeded' });
@@ -262,6 +262,7 @@ exports.runCode = async (req, res) => {
       return res.status(500).json({ error: '⚠️ Internal server error. Please try again later.' });
   }
 };
+
 // exports.runTestCases = async (req, res) => {
 //   const { code, language, testCases } = req.body;
 //   if (!code || !language || !Array.isArray(testCases)) {
@@ -466,64 +467,23 @@ exports.runTestCases = async (req, res,io) => {
       });
     }
   }
-
-//   const runTestCase = async (test) => {
-//   //   return new Promise((resolve) => {
-//   //     const input = (test.input || '').trim();
-//   //     const expected = (test.output || '').trim();
-//   //     const isHidden = test.hidden;
-
-//   //     const execResult = spawnSync('docker', [
-//   //       'exec', '-i', containerName,
-//   //       'sh', '-c', runCmd
-//   //     ], {
-//   //       input,
-//   //       encoding: 'utf-8',
-//   //       timeout,
-//   //       maxBuffer: 1024 * 1024
-//   //     });
-
-//   //     const actual = (execResult.stdout || '').trim();
-//   //     const stderr = (execResult.stderr || '').trim();
-
-//   //     let verdict = 'Passed';
-//   //     if (execResult.error?.code === 'ETIMEDOUT') {
-//   //       verdict = 'Time Limit Exceeded';
-//   //     } else if (execResult.status !== 0) {
-//   //       verdict = 'Runtime Error';
-//   //     } else if (actual !== expected) {
-//   //       verdict = 'Failed';
-//   //     }
-
-//   //     const result = {
-//   //       verdict,
-//   //       error: verdict !== 'Passed' ? stderr : undefined
-//   //     };
-//   //     if (!isHidden) {
-//   //       result.input = input;
-//   //       result.expected = expected;
-//   //       result.actual = actual;
-//   //     }
-//   //     resolve(result);
-//   //   });
-//   // };
   const runTestCase = async (test) => {
     try{
 
       const input = (test.input || '').trim();
       const expected = (test.output || '').trim();
       const isHidden = test.hidden;
-      
-      // Call runCommand in proper order
+      const marks=test.marks||1;
   const { output: actual, error: execError } = await runCommand(
-    containerName,   // container name
-    runCmd,          // command to run
-    input,           // stdin input
-    timeout,         // time limit
-    1024 * 100       // max output length (100 KB)
+    containerName,   
+    runCmd,        
+    input,          
+    timeout,        
+    1024 * 100      
   );
   
   let verdict = 'Passed';
+  let obtainedMarks=0;
   if (execError) {
     if (execError.includes('Time')) verdict = 'TLE';
     else if (execError.includes('Memory')) verdict = 'MLE';
@@ -531,9 +491,14 @@ exports.runTestCases = async (req, res,io) => {
   } else if (actual !== expected) {
     verdict = 'Failed';
   }
+  else{
+    obtainedMarks=marks;
+  }
   
   const result = {
     verdict,
+    obtainedMarks,
+    totalMarks: marks,
     error: verdict !== 'Passed' ? execError : undefined
   };
   
@@ -554,10 +519,12 @@ catch(err){
   try {
     const results = await Promise.all(testCases.map(runTestCase));
     await fs.remove(tempDir);
+    const obtainedMarks = results.reduce((acc, r) => acc + (r.obtainedMarks || 0), 0);
+const totalMarks = results.reduce((acc, r) => acc + (r.totalMarks || 0), 0);
     const passedCount = results.filter(r => r.verdict === 'Passed').length;
     const totalCount = testCases.length;
     const submission = new Submission({
-      ...(contestId && { contestId }),
+      ...(contestId && { contestId,obtainedMarks,totalMarks }),
     userID: req.user.id,
     questionID: questionId,
     passed: passedCount,
@@ -570,7 +537,6 @@ catch(err){
   if(contestId){
     const leaderboard=await getContestLeaderboard(contestId);
     io.to(`Contest_${contestId}`).emit('leaderboard-changed', { contestId, leaderboard });
-    console.log(contestId, leaderboard);
   }
     return res.status(200).json({ results });
   } catch (err) {
