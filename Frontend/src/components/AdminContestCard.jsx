@@ -137,15 +137,15 @@ const AdminContestCard = React.memo(({ contest, type, onEditClick, onDeleteClick
             <MdLeaderboard size={18} />
             {/* LeaderBoard */}
           </button>
-          <button
+          {/* <button
             title="End Contest"
             className="px-2 py-1.5 rounded-xl bg-red-100 text-red-600 hover:bg-red-200 transition cursor-pointer flex items-center gap-1"
           // onClick={() => console.log("Edit contest:", contest.id)}
           >
-            {/* <FaHourglassEnd size={18} /> */}
+            
             <FaFlagCheckered size={18} />
-            {/* End */}
-          </button>
+            
+          </button> */}
         </div>
       )}
 

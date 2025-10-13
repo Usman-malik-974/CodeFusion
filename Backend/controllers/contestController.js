@@ -1,9 +1,12 @@
+const mongoose = require("mongoose");
 const { Contest,User,ContestParticipation,Submission} = require('../models/index');
 const isAdmin = require('../utils/isAdmin');
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const addToQueueWithTimeout=require("../utils/addToQueueWithTimeout");
 const getContestLeaderboard = require('../utils/getContestLeaderBoard');
+const NodeCache = require("node-cache");
+const cache = new NodeCache({ stdTTL: 60 * 5 }); 
 
 const createContest = async (req, res) => {
   try {
@@ -135,65 +138,160 @@ const getRecentContests = async (req, res) => {
   }
 };
 
+// const getContestQuestions = async (req, res) => {
+//   try {
+//     const contestId = req.params.id;
+//     const userId = req.user.id;
+//     if (!req.user || !req.user.id) {
+//       return res.status(401).json({ error: "Unauthorized" });
+//     }
+    
+//     const contest = await Contest.findById(contestId).populate("questions");
+//     if (!contest) {
+//       return res.status(404).json({ error: "Contest not found" });
+//     }
+//     const admin = await isAdmin(userId);
+//     let formattedQuestions;
+//     if (admin) {
+//       formattedQuestions = contest.questions.map((q) => ({
+//         id: q._id,
+//         title: q.title,
+//         statement: q.statement,
+//         inputFormat: q.inputFormat,
+//         outputFormat: q.outputFormat,
+//         sampleInput: q.sampleInput,
+//         sampleOutput: q.sampleOutput,
+//         tags: q.tags,
+//         difficulty: q.difficulty,
+//         testCases: q.testCases
+//       }));
+//     } else {
+//       let userSubmissions = await Submission.find({
+//         contestId,
+//         userID:userId,
+//         $expr: { $eq: ["$passed", "$total"] }   
+//       }).select("questionID");
+//       const solvedSet = new Set(userSubmissions.map(s => String(s.questionID)));
+//       formattedQuestions = contest.questions.map((q) => ({
+//         id: q._id,
+//         title: q.title,
+//         statement: q.statement,
+//         inputFormat: q.inputFormat,
+//         outputFormat: q.outputFormat,
+//         sampleInput: q.sampleInput,
+//         sampleOutput: q.sampleOutput,
+//         tags: q.tags,
+//         difficulty: q.difficulty,
+//         testCases: q.testCases.map((t) =>
+//           t.hidden ? { hidden: true } : { input: t.input, output: t.output, hidden: t.hidden,marks:t.marks }
+//         ),
+//         done: solvedSet.has(String(q._id)),
+//       }));
+//     }
+
+//     res.status(200).json({
+//       questions: formattedQuestions
+//     });
+//   } catch (error) {
+//     console.error("Error fetching contest questions:", error);
+//     res.status(500).json({ error: "Something Went Wrong" });
+//   }
+// };
+
+
+
 const getContestQuestions = async (req, res) => {
   try {
     const contestId = req.params.id;
-    const userId = req.user.id;
-    if (!req.user || !req.user.id) {
+    const userId = req.user?.id;
+
+    if (!userId) {
       return res.status(401).json({ error: "Unauthorized" });
     }
-    
-    const contest = await Contest.findById(contestId).populate("questions");
-    if (!contest) {
-      return res.status(404).json({ error: "Contest not found" });
-    }
-    const admin = await isAdmin(userId);
-    let formattedQuestions;
-    if (admin) {
-      formattedQuestions = contest.questions.map((q) => ({
-        id: q._id,
-        title: q.title,
-        statement: q.statement,
-        inputFormat: q.inputFormat,
-        outputFormat: q.outputFormat,
-        sampleInput: q.sampleInput,
-        sampleOutput: q.sampleOutput,
-        tags: q.tags,
-        difficulty: q.difficulty,
-        testCases: q.testCases
-      }));
-    } else {
-      let userSubmissions = await Submission.find({
-        contestId,
-        userID:userId,
-        $expr: { $eq: ["$passed", "$total"] }   
-      }).select("questionID");
-      const solvedSet = new Set(userSubmissions.map(s => String(s.questionID)));
-      formattedQuestions = contest.questions.map((q) => ({
-        id: q._id,
-        title: q.title,
-        statement: q.statement,
-        inputFormat: q.inputFormat,
-        outputFormat: q.outputFormat,
-        sampleInput: q.sampleInput,
-        sampleOutput: q.sampleOutput,
-        tags: q.tags,
-        difficulty: q.difficulty,
-        testCases: q.testCases.map((t) =>
-          t.hidden ? { hidden: true } : { input: t.input, output: t.output, hidden: t.hidden,marks:t.marks }
-        ),
-        done: solvedSet.has(String(q._id)),
-      }));
+
+    const cacheKey = `contest:${contestId}:questions`;
+    let contestQuestions = cache.get(cacheKey);
+
+    if (!contestQuestions) {
+      const pipeline = [
+        { $match: { _id: new mongoose.Types.ObjectId(contestId) } },
+        {
+          $lookup: {
+            from: "questions",
+            localField: "questions",
+            foreignField: "_id",
+            as: "questionDetails",
+          },
+        },
+        { $unwind: "$questionDetails" },
+        {
+          $project: {
+            _id: "$questionDetails._id",
+            title: "$questionDetails.title",
+            statement: "$questionDetails.statement",
+            inputFormat: "$questionDetails.inputFormat",
+            outputFormat: "$questionDetails.outputFormat",
+            sampleInput: "$questionDetails.sampleInput",
+            sampleOutput: "$questionDetails.sampleOutput",
+            tags: "$questionDetails.tags",
+            difficulty: "$questionDetails.difficulty",
+            testCases: "$questionDetails.testCases",
+          },
+        },
+      ];
+
+      contestQuestions = await Contest.aggregate(pipeline);
+
+      if (!contestQuestions || contestQuestions.length === 0) {
+        return res.status(404).json({ error: "Contest not found or has no questions" });
+      }
+
+      cache.set(cacheKey, contestQuestions); 
     }
 
-    res.status(200).json({
-      questions: formattedQuestions
+    // Fetch solved questions for this user (admin included)
+    const solvedQuestionIDs = await Submission.find({
+      contestId,
+      userID: userId,
+      $expr: { $eq: ["$passed", "$total"] },
+    }).distinct("questionID");
+
+    const solvedSet = new Set(solvedQuestionIDs.map((id) => String(id)));
+
+    // Format questions based on user/admin
+    const formattedQuestions = contestQuestions.map((q) => {
+      const formattedTestCases = q.testCases.map((t) =>
+        t.hidden && !req.user.isAdmin
+          ? { hidden: true }
+          : { input: t.input, output: t.output, marks: t.marks, hidden: t.hidden }
+      );
+
+      return {
+        id: q._id,
+        title: q.title,
+        statement: q.statement,
+        inputFormat: q.inputFormat,
+        outputFormat: q.outputFormat,
+        sampleInput: q.sampleInput,
+        sampleOutput: q.sampleOutput,
+        tags: q.tags,
+        difficulty: q.difficulty,
+        testCases: formattedTestCases,
+        done: solvedSet.has(String(q._id)),
+      };
+    });
+
+    return res.status(200).json({
+      questions: formattedQuestions,
+      cached: true,
     });
   } catch (error) {
     console.error("Error fetching contest questions:", error);
-    res.status(500).json({ error: "Something Went Wrong" });
+    return res.status(500).json({ error: "Something Went Wrong" });
   }
 };
+
+
 
 const deleteContest = async (req, res) => {
   try {

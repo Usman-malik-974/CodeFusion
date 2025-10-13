@@ -239,7 +239,7 @@ const Contests = () => {
     <div className="p-4 relative">
       {showLeaderBoard && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-6xl max-h-[90vh] overflow-y-auto relative no-scrollbar animate-fadeIn">
+          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-7xl max-h-[90vh] overflow-y-auto relative no-scrollbar animate-fadeIn">
             <LeaderBoard
               onClose={handleLeaderBoardClose}
               contestId={leaderBoardContestId}

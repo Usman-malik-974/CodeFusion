@@ -87,6 +87,23 @@ const getContestLeaderboard = async (contestId) => {
       },
     },
     { $unwind: "$user" },
+      {
+      $lookup: {
+        from: "contests",
+        localField: "contestId",
+        foreignField: "_id",
+        as: "contest",
+      },
+    },
+    { $unwind: "$contest" },
+    {
+      $lookup: {
+        from: "questions",
+        localField: "contest.questions",
+        foreignField: "_id",
+        as: "allQuestions",
+      },
+    },
     {
       $lookup: {
         from: "submissions",
@@ -125,7 +142,7 @@ const getContestLeaderboard = async (contestId) => {
     {
       $addFields: {
         obtainedMarks: { $sum: "$submissions.maxMarks" },
-        totalMarks: { $sum: "$submissions.totalMarksPerQuestion" },
+        totalMarks: { $sum: "$allQuestions.totalMarks" },
         solvedCount: { $size: { $filter: { input: "$submissions", as: "s", cond: { $eq: ["$$s.passedAll", true] } } } },
         lastEarliestSuccess: { 
           $max: "$submissions.earliestSuccessAt"

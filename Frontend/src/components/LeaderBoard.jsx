@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { getContestLeaderboard } from "../shared/networking/api/contestApi/getContestLeaderBoard";
 import { toast } from "react-toastify";
-import socket from "../shared/socket";
+import socket from "../shared/soket";
 import { FaEye } from "react-icons/fa";
 const LeaderBoard = React.memo(({ onClose, contestId }) => {
     // dummy data
@@ -47,13 +47,15 @@ const LeaderBoard = React.memo(({ onClose, contestId }) => {
             </button>
             <h1 className="text-3xl font-bold text-blue-700 mb-8">🏆 LeaderBoard</h1>
 
-            <div className="w-full max-w-5xl bg-white shadow-xl rounded-2xl overflow-hidden">
+            <div className="w-full max-w-6xl bg-white shadow-xl rounded-2xl overflow-hidden">
                 <table className="w-full text-left border-collapse">
                     <thead className="bg-blue-600 text-white">
                         <tr>
                             <th className="px-6 py-3 text-sm font-semibold">Rank</th>
                             <th className="px-6 py-3 text-sm font-semibold">Name</th>
                             <th className="px-6 py-3 text-sm font-semibold">Email</th>
+                            <th className="px-6 py-3 text-sm font-semibold">Obtained Marks</th>
+                            <th className="px-6 py-3 text-sm font-semibold">Total Marks</th>
                             <th className="px-6 py-3 text-sm font-semibold">Solved</th>
                             <th className="px-6 py-3 text-sm font-semibold">Total Time</th>
                             <th className="px-6 py-3 text-sm font-semibold">Submissions</th>
@@ -72,6 +74,8 @@ const LeaderBoard = React.memo(({ onClose, contestId }) => {
                                     </td>
                                     <td className="px-6 py-3">{player.name}</td>
                                     <td className="px-6 py-3">{player.email}</td>
+                                    <td className="px-6 py-3">{player.obtainedMarks}</td>
+                                    <td className="px-6 py-3">{player.totalMarks}</td>
                                     <td className="px-6 py-3">{player.solvedCount}</td>
                                     <td className="px-6 py-3">
                                         {`${Math.floor(player.totalTime / 3600)

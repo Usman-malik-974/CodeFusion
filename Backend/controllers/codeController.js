@@ -524,11 +524,12 @@ const totalMarks = results.reduce((acc, r) => acc + (r.totalMarks || 0), 0);
     const passedCount = results.filter(r => r.verdict === 'Passed').length;
     const totalCount = testCases.length;
     const submission = new Submission({
-      ...(contestId && { contestId,obtainedMarks,totalMarks }),
-    userID: req.user.id,
-    questionID: questionId,
-    passed: passedCount,
-    total: totalCount,
+      ...(contestId && { contestId,obtainedMarks}),
+      userID: req.user.id,
+      questionID: questionId,
+      passed: passedCount,
+      total: totalCount,
+      totalMarks,
     language,
     code
   });

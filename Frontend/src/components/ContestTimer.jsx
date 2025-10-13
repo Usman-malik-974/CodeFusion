@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { getContestTime } from "../shared/networking/api/contestApi/getContestTime";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import socket from "../shared/socket";
+import socket from "../shared/soket";
+import { submitContest } from "../shared/networking/api/contestApi/submitContest";
 const ContestTimer = ({ id }) => {
     // console.log(id);
     const [timeLeft, setTimeLeft] = useState(0);
@@ -14,6 +15,7 @@ const ContestTimer = ({ id }) => {
     useEffect(() => {
         const handler = ({ contestId: updatedId, addedSeconds }) => {
             if (updatedId === id) { // only update if it's for this contest
+                console.log("Added ",addedSeconds);
                 setTimeLeft(prev => prev + addedSeconds);
             }
         };
@@ -87,8 +89,8 @@ const ContestTimer = ({ id }) => {
                 setTimeLeft(diff);
 
                 if (diff <= 0) {
+                    handleSubmit();
                     clearInterval(interval);
-                    // handleSubmit();
                 }
             }, 250); // small interval for smooth updates
         }
@@ -108,12 +110,29 @@ const ContestTimer = ({ id }) => {
         );
     }, [timeLeft]);
 
+    const handleSubmit = async () => {
+        const res = await submitContest(id);
+        if (res.error) {
+            toast.error(res.error);
+            return;
+        }
+        toast.success(res.message);
+        navigate("/feedback");
+    }
+
 
     return (
         <div className="absolute top-0 bg-blue-200 text-blue-500 font-semibold px-4 py-2 rounded-b-lg">
+            {/* <div
+            className="px-4 py-2 bg-blue-200 text-blue-500 font-semibold rounded-b-lg shadow-sm text-sm
+                 flex items-center justify-center"
+            style={{ minWidth: "100px" }} // optional for consistent width
+        > */}
             <p>{displayTime}</p>
         </div>
     )
 }
 
 export default ContestTimer;
+
+
