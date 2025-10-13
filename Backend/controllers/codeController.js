@@ -242,8 +242,8 @@ exports.runCode = async (req, res) => {
       //     timeout,
       //     maxBuffer: 1024 * 1024
       // });
-      await fs.remove(tempDir);
       const result = await runCommand(containerName, runCmd, input, timeout);
+      await fs.remove(tempDir);
       return res.status(200).json(result);
 
       // const output = (result.stdout || '').trim();
@@ -387,6 +387,7 @@ exports.runCode = async (req, res) => {
 // };
 
 exports.runTestCases = async (req, res,io) => {
+  console.log(req.body);
   const { code, language, questionId,contestId} = req.body;
   if (!code || !language || !questionId) {
     return res.status(400).json({ error: 'Missing code, language, or questionId' });

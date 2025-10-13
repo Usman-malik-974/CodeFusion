@@ -14,6 +14,7 @@ import { useDispatch } from "react-redux";
 import { markQuestionSolved } from "../app/slices/contestQuestionsSlice";
 import socket from "../shared/soket"
 import ContestHeader from "../components/ContestHeader";
+import { MdFullscreen } from "react-icons/md";
 
 
 const QuestionView = () => {
@@ -42,10 +43,11 @@ int main() {
     const [testCaseRunSuccess, setTestCaseRunSuccess] = useState(false);
     const [activeTab, setActiveTab] = useState("question");
     const [submissions, setSubmissions] = useState([]);
+    const [showFullScreenPopup, setShowFullScreenPopup] = useState(false);
 
     const [viewingCode, setViewingCode] = useState(null);
     const dispatch = useDispatch();
-    const navigate=useNavigate();
+    const navigate = useNavigate();
 
 
     useEffect(() => {
@@ -58,7 +60,7 @@ int main() {
     useEffect(() => {
         if (!contestId) return;
         console.log(contestId);
-        socket.emit("joinContestRoom", { id:contestId });
+        socket.emit("joinContestRoom", { id: contestId });
         // socket.on("contest-time-increased", ({ contestId, addedSeconds }) => {
         //     console.log("Increase by", addedSeconds);
         //     console.log(contestId);
@@ -67,7 +69,7 @@ int main() {
         //     console.log("Ended ", contestId);
         // })
         return () => {
-            socket.emit("leaveContestRoom", { id:contestId });
+            socket.emit("leaveContestRoom", { id: contestId });
         }
     }, [contestId]);
 
@@ -77,6 +79,47 @@ int main() {
     //         setCode(prevCode.code);
     //     }
     // }, [language])
+
+    const goFullScreen = () => {
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } else if (elem.webkitRequestFullscreen) { // Safari
+            elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) { // IE11
+            elem.msRequestFullscreen();
+        }
+        sessionStorage.setItem("fullscreen", "true");
+    };
+
+    // 2️⃣ Detect when user exits fullscreen (e.g., presses ESC)
+    useEffect(() => {
+        const handleFullScreenChange = () => {
+            if (!document.fullscreenElement) {
+                console.log("🚨 User exited fullscreen");
+                sessionStorage.removeItem("fullscreen");
+                setShowFullScreenPopup(true); // Show popup again if needed
+            }
+        };
+
+        document.addEventListener("fullscreenchange", handleFullScreenChange);
+
+        return () => {
+            document.removeEventListener("fullscreenchange", handleFullScreenChange);
+        };
+    }, []);
+
+    // 3️⃣ Show popup or go fullscreen on mount/contest start
+    useEffect(() => {
+        const isFullscreen = sessionStorage.getItem("fullscreen");
+
+        if (isFullscreen) {
+            goFullScreen(); // Continue fullscreen if previously active
+            return;
+        }
+
+        if (contestId) setShowFullScreenPopup(true); // Ask to go fullscreen
+    }, [contestId]);
 
     const isDark = theme === "dark";
 
@@ -200,6 +243,25 @@ int main() {
     min-h-screen overflow-y-auto ${contestId ? "pt-[50px]" : ""}`}
         >
 
+            {showFullScreenPopup && (
+                <div className="fixed inset-0 bg-black bg-opacity-70 flex flex-col items-center justify-center z-50">
+                    <div className="bg-white rounded-xl p-6 flex flex-col items-center gap-4 shadow-2xl max-w-sm text-center">
+                        <p className="text-gray-800 font-semibold text-lg">
+                            You need to switch to Full Screen to continue
+                        </p>
+                        <button
+                            onClick={() => {
+                                setShowFullScreenPopup(false);
+                                goFullScreen();
+                            }}
+                            className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md font-bold hover:bg-green-700 transition-colors duration-200"
+                        >
+                            <MdFullscreen /> Full Screen
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* <div className="flex flex-col items-center justify-center"> */}
             {contestId && (
                 <>
@@ -255,13 +317,18 @@ int main() {
                     </div>
                 )}
 
-                {/* {contestId && (
-                    <button className="m-0"
-                        onClick={() => {
-                            navigate("/test/questions", { state: { id: contestId } });
-                        }}
-                    >Goback</button>
-                )} */}
+                {contestId && (
+                    <button
+                        onClick={() => navigate("/test/questions", { state: { id: contestId } })}
+                        className={`absolute top-0 left-0 flex items-center gap-2 px-3 py-2 rounded-lg font-medium shadow-md transition-colors duration-300
+      ${isDark
+                                ? "bg-neutral-800 hover:bg-neutral-700 text-gray-100 border border-neutral-600"
+                                : "bg-white hover:bg-blue-100 text-blue-700 border border-blue-300"}`}
+                    >
+                        ← Go Back
+                    </button>
+                )}
+
 
                 {activeTab === "question" ? (
                     <div className="p-6">
@@ -552,19 +619,24 @@ int main() {
                         />
                     </div>
                     {/* TestCaseDock stays fixed to bottom of editor */}
-                    <TestCaseDock
-                        testCases={question.testCases}
-                        isDark={isDark}
-                        results={testResults}
-                        errorMessage={errorMessage}
-                        setErrorMessage={setErrorMessage}
-                        customInput={customInput} // pass value
-                        setCustomInput={setCustomInput} // pass setter
-                        customOutput={customOutput}
-                        useCustomInput={useCustomInput}
-                        setUseCustomInput={setUseCustomInput}
-                        testCaseRunSuccess={testCaseRunSuccess}
-                    />
+                    {!showFullScreenPopup && (
+
+
+                        <TestCaseDock
+                            testCases={question.testCases}
+                            isDark={isDark}
+                            results={testResults}
+                            errorMessage={errorMessage}
+                            setErrorMessage={setErrorMessage}
+                            customInput={customInput} // pass value
+                            setCustomInput={setCustomInput} // pass setter
+                            customOutput={customOutput}
+                            useCustomInput={useCustomInput}
+                            setUseCustomInput={setUseCustomInput}
+                            testCaseRunSuccess={testCaseRunSuccess}
+                        />
+                    )
+                    }
                 </div>
             </div>
         </div>
