@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getContestTime } from "../shared/networking/api/contestApi/getContestTime";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +8,7 @@ const ContestTimer = ({ id }) => {
     // console.log(id);
     const [timeLeft, setTimeLeft] = useState(0);
     const [displayTime, setDisplayTime] = useState("");
+    const endTimeRef = useRef(null);
     useEffect(() => {
         console.log("Socket connected?", socket.connected);
     }, []);
@@ -15,8 +16,9 @@ const ContestTimer = ({ id }) => {
     useEffect(() => {
         const handler = ({ contestId: updatedId, addedSeconds }) => {
             if (updatedId === id) { // only update if it's for this contest
-                console.log("Added ",addedSeconds);
-                setTimeLeft(prev => prev + addedSeconds);
+                console.log("Added ", addedSeconds);
+                endTimeRef.current += addedSeconds * 1000;
+                // setTimeLeft(prev => prev + addedSeconds);
             }
         };
 
@@ -71,7 +73,7 @@ const ContestTimer = ({ id }) => {
         if (!id) return;
 
         let interval;
-        let endTime;
+        // let endTime;
 
         async function getRemainingTime() {
             const res = await getContestTime(id);
@@ -82,10 +84,10 @@ const ContestTimer = ({ id }) => {
             }
 
             // Compute absolute end timestamp
-            endTime = Date.now() + res.remainingTime * 1000;
+            endTimeRef.current = Date.now() + res.remainingTime * 1000;
 
             interval = setInterval(() => {
-                const diff = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+                const diff = Math.max(0, Math.floor((endTimeRef.current - Date.now()) / 1000));
                 setTimeLeft(diff);
 
                 if (diff <= 0) {

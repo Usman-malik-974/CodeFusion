@@ -1,0 +1,12 @@
+[
+  {
+    "language": "cpp",
+    "questionId": "688d95550bc84aa5d7618cb7",
+    "code": "#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    int a, b;\n    cin >> a >> b;\n    cout << a + b;\n    return 0;\n}"
+  },
+  {
+    "language": "cpp",
+    "questionId": "688d95550bc84aa5d7618cb7",
+    "code": "#include <bits/stdc++.h>\nusing namespace std;\n\nint main() {\n    int a, b;\n    cin >> a >> b;\n    cout << a + b;\n    return 0;\n}"
+  }
+]
