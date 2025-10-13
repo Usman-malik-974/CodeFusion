@@ -31,6 +31,14 @@ const submissionSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  obtainedMarks:{
+    type:Number,
+    default:0,
+  },
+  totalMarks:{
+    type:Number,
+    default:0,
+  },
   submittedAt: {
     type: Date,
     default: Date.now

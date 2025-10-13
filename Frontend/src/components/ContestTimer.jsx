@@ -15,6 +15,7 @@ const ContestTimer = ({ id }) => {
     useEffect(() => {
         const handler = ({ contestId: updatedId, addedSeconds }) => {
             if (updatedId === id) { // only update if it's for this contest
+                console.log("Added ",addedSeconds);
                 setTimeLeft(prev => prev + addedSeconds);
             }
         };
@@ -122,9 +123,16 @@ const ContestTimer = ({ id }) => {
 
     return (
         <div className="absolute top-0 bg-blue-200 text-blue-500 font-semibold px-4 py-2 rounded-b-lg">
+            {/* <div
+            className="px-4 py-2 bg-blue-200 text-blue-500 font-semibold rounded-b-lg shadow-sm text-sm
+                 flex items-center justify-center"
+            style={{ minWidth: "100px" }} // optional for consistent width
+        > */}
             <p>{displayTime}</p>
         </div>
     )
 }
 
 export default ContestTimer;
+
+

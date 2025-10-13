@@ -39,7 +39,7 @@ const ContestQuestions = () => {
 
     // Show full screen popup only if contest id exists
     // useEffect(() => {
-    //     // if (id) setShowFullScreenPopup(true);
+    //     if (id) setShowFullScreenPopup(true);
     // }, [id]);
 
     useEffect(() => {

@@ -12,6 +12,7 @@ const getContestQuestions = async (id) => {
     } catch (error) {
       console.error("Error:", error);
       return {
+        
         error: "Something went wrong.",
       };
     }

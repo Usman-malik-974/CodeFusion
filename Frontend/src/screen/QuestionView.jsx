@@ -1,4 +1,4 @@
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { Editor } from "@monaco-editor/react";
 import { MdDarkMode, MdOutlineDarkMode } from "react-icons/md";
@@ -13,6 +13,8 @@ import ContestTimer from "../components/ContestTimer";
 import { useDispatch } from "react-redux";
 import { markQuestionSolved } from "../app/slices/contestQuestionsSlice";
 import socket from "../shared/soket"
+import ContestHeader from "../components/ContestHeader";
+
 
 const QuestionView = () => {
     // const { id } = useParams();
@@ -43,6 +45,7 @@ int main() {
 
     const [viewingCode, setViewingCode] = useState(null);
     const dispatch = useDispatch();
+    const navigate=useNavigate();
 
 
     useEffect(() => {
@@ -54,7 +57,8 @@ int main() {
 
     useEffect(() => {
         if (!contestId) return;
-        socket.emit("joinContestRoom", { contestId });
+        console.log(contestId);
+        socket.emit("joinContestRoom", { id:contestId });
         // socket.on("contest-time-increased", ({ contestId, addedSeconds }) => {
         //     console.log("Increase by", addedSeconds);
         //     console.log(contestId);
@@ -63,7 +67,7 @@ int main() {
         //     console.log("Ended ", contestId);
         // })
         return () => {
-            socket.emit("leaveContestRoom", { contestId });
+            socket.emit("leaveContestRoom", { id:contestId });
         }
     }, [contestId]);
 
@@ -191,13 +195,26 @@ int main() {
 
     return (
         <div
-            className={`flex flex-col lg:flex-row lg:justify-center gap-4 p-6 transition-colors duration-300 relative ${isDark ? "bg-neutral-900 text-gray-100" : "bg-blue-50 text-gray-900"
-                } lg:h-screen lg:overflow-hidden `}
+            className={`flex flex-col lg:flex-row lg:justify-center gap-4 p-6 transition-colors duration-300 relative
+    ${isDark ? "bg-neutral-900 text-gray-100" : "bg-blue-50 text-gray-900"}
+    min-h-screen overflow-y-auto ${contestId ? "pt-[50px]" : ""}`}
         >
+
             {/* <div className="flex flex-col items-center justify-center"> */}
             {contestId && (
-                <ContestTimer id={contestId} />
+                <>
+
+                    <ContestTimer id={contestId} />
+                </>
+                // <ContestHeader
+                //     contestId={contestId}
+                //     contestName="Live Coding Contest"
+                //     questionTitle={question?.title}
+                // />
+
             )}
+
+
 
             {/* </div> */}
             {/* Left Question Panel */}
@@ -237,6 +254,14 @@ int main() {
                         </button>
                     </div>
                 )}
+
+                {/* {contestId && (
+                    <button className="m-0"
+                        onClick={() => {
+                            navigate("/test/questions", { state: { id: contestId } });
+                        }}
+                    >Goback</button>
+                )} */}
 
                 {activeTab === "question" ? (
                     <div className="p-6">

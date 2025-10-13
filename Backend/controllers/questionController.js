@@ -48,7 +48,9 @@ const addQuestion = async (req, res) => {
       if (!title || !statement || !testCases || testCases.length === 0) {
         return res.status(400).json({ error: 'Title, statement, and at least one test case are required.' });
       }
-  
+   
+      let totalMarks=0;
+      testCases.forEach((t)=>{totalMarks+=t.marks});
       const newQuestion = new Question({
         title,
         statement,
@@ -59,6 +61,7 @@ const addQuestion = async (req, res) => {
         tags,
         difficulty,
         testCases,
+        totalMarks,
         createdBy: req.user.id
       });
       const savedQuestion = await newQuestion.save();
@@ -244,7 +247,7 @@ const addQuestion = async (req, res) => {
         difficulty: q.difficulty,
         testCases: q.testCases.map((t)=>{
           if(t.hidden) return {hidden:true};
-          else return {input:t.input,output:t.output,hidden:t.hidden};
+          else return {input:t.input,output:t.output,hidden:t.hidden,marks:t.marks};
         }),
       }))
      });
@@ -283,6 +286,9 @@ const addQuestion = async (req, res) => {
       if (!question) {
         return res.status(404).json({ error: 'Question not found' });
       }
+      let total=0;
+      testCases.forEach((t)=>{total+=t.marks});
+      console.log(total);
       question.title = title;
       question.statement = statement;
       question.inputFormat = inputFormat;
@@ -292,6 +298,7 @@ const addQuestion = async (req, res) => {
       question.tags = tags;
       question.difficulty = difficulty;
       question.testCases = testCases;
+      question.totalMarks=total;
       await question.save();
       return res.status(200).json({
         message: 'Question updated successfully',
