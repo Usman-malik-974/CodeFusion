@@ -186,8 +186,6 @@ const searchUsers = async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 };
-
-
 const uploadUsers = async (req, res) => {
   try {
     if (!(await isAdmin(req.user.id))) {
@@ -268,19 +266,19 @@ const uploadUsers = async (req, res) => {
         validUsers.push({
           fullname,
           email,
-          password, // plain for now → will hash later
+          password,
           role,
           rollno,
           course,
           session,
+          plainPassword:password
         });
 
         existingEmails.add(email);
         emailsInFile.add(email);
       }
     }
-
-    // ===== Hash passwords in parallel =====
+    // Insert valid users
     const hashedPasswords = await Promise.all(
       validUsers.map(u => bcrypt.hash(u.password, 10))
     );
@@ -288,13 +286,10 @@ const uploadUsers = async (req, res) => {
       u.password = hashedPasswords[i];
     });
 
-    // ===== Insert valid users =====
     let insertedDocs = [];
     if (validUsers.length > 0) {
       insertedDocs = await User.insertMany(validUsers);
     }
-
-    // ===== Send emails asynchronously (do not block response) =====
     (async () => {
       await Promise.allSettled(
         validUsers.map(u =>
@@ -302,14 +297,14 @@ const uploadUsers = async (req, res) => {
             to: u.email,
             fullname: u.fullname,
             email: u.email,
-            password: generatePassword(), // ⚠️ keep plain pw somewhere if needed
+            password:u.plainPassword,
           })
         )
         
       );
     })();
 
-    // ===== If failed users, return Excel =====
+  // If any failed, send back Excel as Base64
     if (failedUsers.length > 0) {
       const failedWB = xlsx.utils.book_new();
       const failedSheet = xlsx.utils.json_to_sheet(failedUsers);

@@ -1,6 +1,9 @@
 import { useFormik } from "formik";
+import { useParams,useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { toast } from 'react-toastify';
 import * as Yup from 'yup'
+import { resetPassword } from "../shared/networking/api/userApi/resetPassword";
 
 const validationSchema = Yup.object({
     newPassword: Yup.string()
@@ -17,6 +20,8 @@ const validationSchema = Yup.object({
 
 const ResetPassword = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { id } = useParams();
+    const navigate=useNavigate();
     const formik = useFormik({
         initialValues: {
             newPassword: "",
@@ -26,11 +31,21 @@ const ResetPassword = () => {
         validateOnChange: false,
         onSubmit: async function (values, { resetForm }) {
             setIsSubmitting(true);
-            setTimeout(() => {
-
-                console.log(values);
-                setIsSubmitting(false);
-            }, 2000)
+           try{
+               const res=await resetPassword(id,values.newPassword);
+               if(res.error){
+                toast.error(res.error);
+                return;
+               }
+               toast.success(res.message);
+               navigate("/login");
+           }
+           catch(e){
+            toast.error("Something went wrong");
+           }
+           finally{
+            setIsSubmitting(false);
+           }
         }
     })
     return (
@@ -57,7 +72,7 @@ const ResetPassword = () => {
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Email
+                            Confirm Password
                         </label>
                         <input
                             {...formik.getFieldProps("confirmPassword")}

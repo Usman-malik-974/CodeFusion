@@ -1,25 +1,25 @@
-const updateContestTime=async(data)=> {
+const getUserPerformance=async(contestId,userId)=> {
     try {
         const token=localStorage.getItem('token');
-        const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/contests/updatetime`, {
+        const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/contests/getperformance`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(data)
+            body: JSON.stringify({contestId,userId})
         });
         const result = await response.json();
         if (!response.ok) {
-            return { error: result.error || 'Failed to create contest' };
+            return { error: result.error || 'Failed to get performance' };
         }
         return result;
     } catch (error) {
-        console.error('Error creating contest:', error.message);
+        console.error('Error getting performance:', error.message);
         return {
             error: "Something went wrong.",
           };
     }
 }
 
-export { updateContestTime };
+export { getUserPerformance };

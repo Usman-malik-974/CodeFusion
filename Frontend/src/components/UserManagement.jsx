@@ -229,7 +229,7 @@ const UserManagement = () => {
     const token = localStorage.getItem("token");
 
     try {
-      const response = await fetch("http://localhost:5000/api/users/upload", {
+      const response = await fetch(`${import.meta.env.VITE_SERVER_URL}/api/users/upload`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
