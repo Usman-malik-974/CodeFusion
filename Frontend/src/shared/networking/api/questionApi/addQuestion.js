@@ -16,7 +16,9 @@ const addQuestion=async(questionData)=> {
         return result;
     } catch (error) {
         console.error('Error adding question:', error.message);
-        throw error;
+        return {
+            error: "Something went wrong.",
+          };
     }
 }
 

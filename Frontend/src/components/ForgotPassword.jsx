@@ -1,6 +1,8 @@
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useState } from "react";
+import { requestPasswordMail } from "../shared/networking/api/userApi/requestPasswordMail";
+import {toast} from "react-toastify";
 
 const validationSchema = Yup.object({
     email: Yup.string()
@@ -18,8 +20,22 @@ const ForgotPassword = ({ onClose }) => {
         validationSchema,
         validateOnChange: false,
         onSubmit: async function (values) {
-            console.log(values);
-            // onClose();
+            try{
+                setIsSubmitting(true);
+                const res=await requestPasswordMail(values.email);
+                if(res.error){
+                    toast.error(res.error);
+                    return;
+                }
+                toast.success(res.message);
+            }
+            catch(e){
+                toast.error("Something went wrong");
+            }
+            finally{
+                onClose();
+                setIsSubmitting(false);
+            }
         }
     })
     return (

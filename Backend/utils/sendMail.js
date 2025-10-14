@@ -31,7 +31,7 @@ const sendWelcomeMail = async ({ to, fullname, email, password }) => {
 };
 
 const sendPasswordResetMail = async ({ to, fullname, token }) => {
-  const resetLink = `${process.env.FRONTEND_URL}/reset-password/${token}`;
+  const resetLink = `${process.env.FRONTEND_URL}/resetpassword/${token}`;
 
   const mailOptions = {
     from: `"CodeFusion" <${process.env.MAIL_USER}>`,

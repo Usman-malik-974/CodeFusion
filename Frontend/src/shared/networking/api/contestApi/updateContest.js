@@ -17,7 +17,9 @@ const updateContest=async(contestData)=> {
         return result;
     } catch (error) {
         console.error('Error updating contest:', error.message);
-        throw error;
+        return {
+            error: "Something went wrong.",
+          };
     }
 }
 

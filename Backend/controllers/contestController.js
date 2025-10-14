@@ -453,9 +453,9 @@ const joinContest = async (req, res) => {
 
 const getContestTime = async (req, res) => {
   try {
-    if (await isAdmin(req.user.id)) {
-      return res.status(403).json({ error: 'Unauthorized Access.' });
-    }
+    // if (await isAdmin(req.user.id)) {
+    //   return res.status(403).json({ error: 'Unauthorized Access.' });
+    // }
     const userId = req.user.id; 
     const contestId= req.params.id;
     const participation = await ContestParticipation.findOne({
@@ -554,7 +554,7 @@ const endContest = async (req, res,io) => {
     await contest.save();
     await ContestParticipation.updateMany(
       { contestId, endedAt: { $exists: false } },
-      { $set: { endedAt: now } }
+      { $set: { endedAt: now,status:"done" } }
     );
     io.to(`Contest_${contestId}`).emit('contest-ended',{
       contestId
@@ -575,9 +575,6 @@ const updateContestTime = async (req, res, io) => {
     }
     const { contestId, minutes } = req.body;
     const userId = req.user.id;
-    if (!(await isAdmin(userId))) {
-      return res.status(403).json({ error: "Unauthorized access" });
-    }
     if (!contestId || !minutes || minutes <= 0) {
       return res.status(400).json({ error: "contestId and positive minutes required" });
     }
@@ -603,4 +600,52 @@ const updateContestTime = async (req, res, io) => {
   }
 };
 
-module.exports = { createContest, getUpcomingContests, getLiveContests, getRecentContests, getContestQuestions,deleteContest,updateContest,joinContest,getContestTime,generateLeaderboard,submitContest,endContest,updateContestTime}
+
+const getUserPerformance=async(req,res)=>{
+  try {
+    if (!(await isAdmin(req.user.id))) {
+      return res.status(403).json({ error: "Unauthorized access" });
+    }
+    const { contestId, userId } = req.body;
+    if (!mongoose.Types.ObjectId.isValid(contestId) || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid contestId or userId" });
+    }
+    const contest = await Contest.findById(contestId).populate("questions");
+    if (!contest) {
+      return res.status(404).json({ message: "Contest not found" });
+    }
+    const questionIds = contest.questions.map(q => q._id);
+    const submissions = await Submission.aggregate([
+      {
+        $match: {
+          userID: new mongoose.Types.ObjectId(userId),
+          contestId: new mongoose.Types.ObjectId(contestId),
+          questionID: { $in: questionIds },
+        },
+      },
+      { $sort: { submittedAt: -1 } },
+      {
+        $group: {
+          _id: "$questionID",
+          allSubmissions: { $push: "$$ROOT" },
+        },
+      },
+    ]);
+    const submissionsMap = new Map(
+      submissions.map(s => [s._id.toString(), s.allSubmissions])
+    );
+
+    const result = contest.questions.map((q) => ({
+      questionId: q._id,
+      title: q.title,
+      difficulty: q.difficulty,
+      maxMarks: q.totalMarks,
+      submissions: submissionsMap.get(q._id.toString()) || [],
+    }));
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Error in getContestQuestionsWithUserSubmissions:", error);
+    return res.status(500).json({ error:"Internal Server Error" });
+  }
+}
+module.exports = { createContest, getUpcomingContests, getLiveContests, getRecentContests, getContestQuestions,deleteContest,updateContest,joinContest,getContestTime,generateLeaderboard,submitContest,endContest,updateContestTime,getUserPerformance}

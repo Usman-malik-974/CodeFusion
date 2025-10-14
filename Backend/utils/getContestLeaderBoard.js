@@ -121,7 +121,6 @@ const getContestLeaderboard = async (contestId) => {
             $group: {
               _id: "$questionID",
               maxMarks: { $max: "$obtainedMarks" },
-              totalMarksPerQuestion: { $max: "$totalMarks" },
               passedAll: { $max: { $eq: ["$passed", "$total"] } },
               earliestSuccessAt: {
                 $min: {

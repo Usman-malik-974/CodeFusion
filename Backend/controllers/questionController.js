@@ -50,7 +50,7 @@ const addQuestion = async (req, res) => {
       }
    
       let totalMarks=0;
-      testCases.forEach((t)=>{totalMarks+=t.marks});
+      testCases.forEach((t)=>{totalMarks+=parseInt(t.marks)});
       const newQuestion = new Question({
         title,
         statement,
@@ -287,8 +287,7 @@ const addQuestion = async (req, res) => {
         return res.status(404).json({ error: 'Question not found' });
       }
       let total=0;
-      testCases.forEach((t)=>{total+=t.marks});
-      console.log(total);
+      testCases.forEach((t)=>{total+=parseInt(t.marks)});
       question.title = title;
       question.statement = statement;
       question.inputFormat = inputFormat;
