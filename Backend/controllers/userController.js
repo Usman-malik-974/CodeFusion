@@ -280,6 +280,13 @@ const uploadUsers = async (req, res) => {
       }
     }
     // Insert valid users
+    const hashedPasswords = await Promise.all(
+      validUsers.map(u => bcrypt.hash(u.password, 10))
+    );
+    validUsers.forEach((u, i) => {
+      u.password = hashedPasswords[i];
+    });
+
     let insertedDocs = [];
     if (validUsers.length > 0) {
       insertedDocs = await User.insertMany(validUsers);

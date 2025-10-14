@@ -63,7 +63,6 @@ const ContestQuestions = () => {
         sessionStorage.setItem("fullscreen", "true");
     };
 
-    // 2️⃣ Detect when user exits fullscreen (e.g., presses ESC)
     useEffect(() => {
         const handleFullScreenChange = () => {
             if (!document.fullscreenElement) {
