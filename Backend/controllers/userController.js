@@ -3,7 +3,6 @@ const isAdmin = require("../utils/isAdmin");
 const xlsx = require("xlsx");
 const bcrypt = require("bcrypt");
 const {sendWelcomeMail} = require("../utils/sendMail");
-const {sendWelcomeMail} = require("../utils/sendMail");
 const generatePassword = require("../utils/generatePassword");
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const getAllUsers = async (req, res) => {

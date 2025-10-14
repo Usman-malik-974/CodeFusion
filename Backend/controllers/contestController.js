@@ -453,9 +453,9 @@ const joinContest = async (req, res) => {
 
 const getContestTime = async (req, res) => {
   try {
-    if (await isAdmin(req.user.id)) {
-      return res.status(403).json({ error: 'Unauthorized Access.' });
-    }
+    // if (await isAdmin(req.user.id)) {
+    //   return res.status(403).json({ error: 'Unauthorized Access.' });
+    // }
     const userId = req.user.id; 
     const contestId= req.params.id;
     const participation = await ContestParticipation.findOne({
@@ -575,9 +575,6 @@ const updateContestTime = async (req, res, io) => {
     }
     const { contestId, minutes } = req.body;
     const userId = req.user.id;
-    if (!(await isAdmin(userId))) {
-      return res.status(403).json({ error: "Unauthorized access" });
-    }
     if (!contestId || !minutes || minutes <= 0) {
       return res.status(400).json({ error: "contestId and positive minutes required" });
     }
@@ -606,6 +603,9 @@ const updateContestTime = async (req, res, io) => {
 
 const getUserPerformance=async(req,res)=>{
   try {
+    if (!(await isAdmin(req.user.id))) {
+      return res.status(403).json({ error: "Unauthorized access" });
+    }
     const { contestId, userId } = req.body;
     if (!mongoose.Types.ObjectId.isValid(contestId) || !mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).json({ message: "Invalid contestId or userId" });
@@ -639,13 +639,13 @@ const getUserPerformance=async(req,res)=>{
       questionId: q._id,
       title: q.title,
       difficulty: q.difficulty,
-      maxMarks: q.maxMarks,
+      maxMarks: q.totalMarks,
       submissions: submissionsMap.get(q._id.toString()) || [],
     }));
     return res.status(200).json(result);
   } catch (error) {
     console.error("Error in getContestQuestionsWithUserSubmissions:", error);
-    return res.status(500).json({ message: "Server error", error: error.message });
+    return res.status(500).json({ error:"Internal Server Error" });
   }
 }
 module.exports = { createContest, getUpcomingContests, getLiveContests, getRecentContests, getContestQuestions,deleteContest,updateContest,joinContest,getContestTime,generateLeaderboard,submitContest,endContest,updateContestTime,getUserPerformance}

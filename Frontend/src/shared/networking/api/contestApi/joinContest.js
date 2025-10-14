@@ -16,7 +16,9 @@ const joinContest=async(contestData)=> {
         return result;
     } catch (error) {
         console.error('Error creating contest:', error.message);
-        throw error;
+        return {
+            error: "Something went wrong.",
+          };
     }
 }
 

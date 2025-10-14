@@ -3,6 +3,7 @@ import { getContestLeaderboard } from "../shared/networking/api/contestApi/getCo
 import { toast } from "react-toastify";
 import socket from "../shared/soket";
 import { FaEye } from "react-icons/fa";
+import { getUserPerformance } from "../shared/networking/api/contestApi/getUserPerformance";
 const LeaderBoard = React.memo(({ onClose, contestId }) => {
     // dummy data
     const [leaderBoardData, setLeaderBoardData] = useState([]);
@@ -37,6 +38,21 @@ const LeaderBoard = React.memo(({ onClose, contestId }) => {
     useEffect(() => {
         console.log("onclose");
     }, [onClose])
+
+    const handleView=async(userId)=>{
+        try{
+            const res=await getUserPerformance(contestId,userId);
+            if(res.error){
+                toast.error(res.error);
+                return;
+            }
+            console.log(res);
+        }
+        catch(e){
+            toast.error("Something Went Wrong");
+        }
+    }
+
     return (
         <div className="min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 flex flex-col items-center p-6">
             <button
@@ -86,7 +102,7 @@ const LeaderBoard = React.memo(({ onClose, contestId }) => {
                                     </td>
 
                                     <td className="px-6 py-3">
-                                        <button className="flex items-center py-2 px-3 rounded-lg gap-2 text-sm font-medium bg-blue-600 text-white hover:bg-blue-700">
+                                        <button onClick={()=>handleView(player.userId)} className="flex items-center py-2 px-3 rounded-lg gap-2 text-sm font-medium bg-blue-600 text-white hover:bg-blue-700">
                                             <FaEye size={16} />
                                             <span>View</span>
                                         </button>
