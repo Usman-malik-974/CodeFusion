@@ -2,7 +2,7 @@ const { User, Batch } = require("../models/index");
 const isAdmin = require("../utils/isAdmin");
 const xlsx = require("xlsx");
 const bcrypt = require("bcrypt");
-const sendWelcomeMail = require("../utils/sendMail");
+const {sendWelcomeMail} = require("../utils/sendMail");
 const generatePassword = require("../utils/generatePassword");
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const getAllUsers = async (req, res) => {
@@ -187,6 +187,144 @@ const searchUsers = async (req, res) => {
   }
 };
 
+// const uploadUsers = async (req, res) => {
+//   try {
+//     if (!(await isAdmin(req.user.id))) {
+//       return res.status(403).json({ error: "Unauthorized Access." });
+//     }
+//     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
+
+//     const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
+//     const sheet = workbook.Sheets[workbook.SheetNames[0]];
+//     const rows = xlsx.utils.sheet_to_json(sheet);
+
+//     const validUsers = [];
+//     const failedUsers = [];
+
+//     const existingUsers = await User.find({}, "email");
+//     const existingEmails = new Set(existingUsers.map((u) => u.email));
+//     const emailsInFile = new Set();
+
+//     for (let index = 0; index < rows.length; index++) {
+//       const row = rows[index];
+//       const errors = [];
+
+//       const fullname = row.fullname?.toString().trim() || "";
+//       const email = row.email?.toString().trim().toLowerCase() || "";
+//       let password = generatePassword(); // Always generate internally
+//       const role = row.role?.toString().trim().toLowerCase() || "";
+
+//       // New fields
+//       const rollno = row.rollno ? Number(row.rollno) : null;
+//       const course = row.course?.toString().trim().toUpperCase() || "";
+//       const session = row.session?.toString().trim() || "";
+
+//       // ===== Validations =====
+//       if (!fullname) errors.push("fullname is empty");
+//       else if (!/^[A-Za-z ]{2,50}$/.test(fullname))
+//         errors.push("fullname must be 2-50 characters and letters/spaces only");
+
+//       if (!email) errors.push("email is empty");
+//       else if (!emailRegex.test(email)) errors.push("invalid email format");
+//       else if (existingEmails.has(email)) errors.push("email already exists");
+//       else if (emailsInFile.has(email)) errors.push("duplicate in Excel file");
+
+//       if (!role) errors.push("role is empty");
+//       else if (!["user", "admin"].includes(role))
+//         errors.push("role must be either 'user' or 'admin'");
+
+//       // Validate extra fields if role === 'user'
+//       if (role === "user") {
+//         if (!rollno || isNaN(rollno))
+//           errors.push("rollno is required for user");
+//         if (!course || !["BCA", "MCA"].includes(course))
+//           errors.push("course must be BCA or MCA for user");
+//         if (!session) errors.push("session is required for user");
+//       }
+
+//       // ===== Push to failure or valid list =====
+//       if (errors.length > 0) {
+//         failedUsers.push({
+//           fullname,
+//           email,
+//           role,
+//           rollno,
+//           course,
+//           session,
+//           error: errors.join("; "),
+//         });
+//       } else {
+//         const hashedPassword = await bcrypt.hash(password, 10);
+
+//         validUsers.push({
+//           fullname,
+//           email,
+//           password: hashedPassword,
+//           role,
+//           rollno,
+//           course,
+//           session,
+//         });
+
+//         // Send welcome email with original generated password
+//         sendWelcomeMail({ to: email, fullname, email, password });
+
+//         existingEmails.add(email);
+//         emailsInFile.add(email);
+//       }
+//     }
+
+//     // Insert valid users
+//     let insertedDocs = [];
+//     if (validUsers.length > 0) {
+//       insertedDocs = await User.insertMany(validUsers);
+//     }
+
+//     // If any failed, send back Excel as Base64
+//     if (failedUsers.length > 0) {
+//       const failedWB = xlsx.utils.book_new();
+//       const failedSheet = xlsx.utils.json_to_sheet(failedUsers);
+//       xlsx.utils.book_append_sheet(failedWB, failedSheet, "Failed");
+
+//       const buffer = xlsx.write(failedWB, { type: "buffer", bookType: "xlsx" });
+//       const base64Excel = buffer.toString("base64");
+
+//       return res.status(400).json({
+//         insertedCount: insertedDocs.length,
+//         failedCount: failedUsers.length,
+//         validUsers: insertedDocs.map((user) => ({
+//           id: user._id,
+//           name: user.fullname,
+//           email: user.email,
+//           role: user.role,
+//           course: user.course,
+//           rollno: user.rollno,
+//           session: user.session,
+//         })),
+//         failedFile: base64Excel,
+//       });
+//     }
+
+//     return res.status(200).json({
+//       message: "All users inserted successfully",
+//       inserted: insertedDocs.length,
+//       validUsers: insertedDocs.map((user) => ({
+//         id: user._id,
+//         name: user.fullname,
+//         email: user.email,
+//         role: user.role,
+//         course: user.course,
+//         rollno: user.rollno,
+//         session: user.session,
+//       })),
+//     });
+//   } catch (err) {
+//     console.error("Upload error:", err);
+//     res.status(500).json({ message: "Server error", error: err.message });
+//   }
+// };
+
+
 const uploadUsers = async (req, res) => {
   try {
     if (!(await isAdmin(req.user.id))) {
@@ -194,6 +332,7 @@ const uploadUsers = async (req, res) => {
     }
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
+    // Parse Excel
     const workbook = xlsx.read(req.file.buffer, { type: "buffer" });
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = xlsx.utils.sheet_to_json(sheet);
@@ -201,8 +340,17 @@ const uploadUsers = async (req, res) => {
     const validUsers = [];
     const failedUsers = [];
 
-    const existingUsers = await User.find({}, "email");
-    const existingEmails = new Set(existingUsers.map((u) => u.email));
+    // Pre-fetch existing emails only for relevant rows
+    const emailsFromFile = rows
+      .map(r => r.email?.toString().trim().toLowerCase())
+      .filter(Boolean);
+
+    const existingUsers = await User.find(
+      { email: { $in: emailsFromFile } },
+      "email"
+    );
+
+    const existingEmails = new Set(existingUsers.map(u => u.email));
     const emailsInFile = new Set();
 
     for (let index = 0; index < rows.length; index++) {
@@ -211,13 +359,14 @@ const uploadUsers = async (req, res) => {
 
       const fullname = row.fullname?.toString().trim() || "";
       const email = row.email?.toString().trim().toLowerCase() || "";
-      let password = generatePassword(); // Always generate internally
       const role = row.role?.toString().trim().toLowerCase() || "";
 
       // New fields
       const rollno = row.rollno ? Number(row.rollno) : null;
       const course = row.course?.toString().trim().toUpperCase() || "";
       const session = row.session?.toString().trim() || "";
+
+      let password = generatePassword();
 
       // ===== Validations =====
       if (!fullname) errors.push("fullname is empty");
@@ -233,7 +382,6 @@ const uploadUsers = async (req, res) => {
       else if (!["user", "admin"].includes(role))
         errors.push("role must be either 'user' or 'admin'");
 
-      // Validate extra fields if role === 'user'
       if (role === "user") {
         if (!rollno || isNaN(rollno))
           errors.push("rollno is required for user");
@@ -254,33 +402,45 @@ const uploadUsers = async (req, res) => {
           error: errors.join("; "),
         });
       } else {
-        const hashedPassword = await bcrypt.hash(password, 10);
-
         validUsers.push({
           fullname,
           email,
-          password: hashedPassword,
+          password,
           role,
           rollno,
           course,
           session,
+          plainPassword:password
         });
-
-        // Send welcome email with original generated password
-        sendWelcomeMail({ to: email, fullname, email, password });
 
         existingEmails.add(email);
         emailsInFile.add(email);
       }
     }
-
-    // Insert valid users
+    const hashedPasswords = await Promise.all(
+      validUsers.map(u => bcrypt.hash(u.password, 10))
+    );
+    validUsers.forEach((u, i) => {
+      u.password = hashedPasswords[i];
+    });
     let insertedDocs = [];
     if (validUsers.length > 0) {
       insertedDocs = await User.insertMany(validUsers);
     }
+    (async () => {
+      await Promise.allSettled(
+        validUsers.map(u =>
+          sendWelcomeMail({
+            to: u.email,
+            fullname: u.fullname,
+            email: u.email,
+            password:u.plainPassword,
+          })
+        )
+      );
+    })();
 
-    // If any failed, send back Excel as Base64
+    // ===== If failed users, return Excel =====
     if (failedUsers.length > 0) {
       const failedWB = xlsx.utils.book_new();
       const failedSheet = xlsx.utils.json_to_sheet(failedUsers);
@@ -292,7 +452,7 @@ const uploadUsers = async (req, res) => {
       return res.status(400).json({
         insertedCount: insertedDocs.length,
         failedCount: failedUsers.length,
-        validUsers: insertedDocs.map((user) => ({
+        validUsers: insertedDocs.map(user => ({
           id: user._id,
           name: user.fullname,
           email: user.email,
@@ -308,7 +468,7 @@ const uploadUsers = async (req, res) => {
     return res.status(200).json({
       message: "All users inserted successfully",
       inserted: insertedDocs.length,
-      validUsers: insertedDocs.map((user) => ({
+      validUsers: insertedDocs.map(user => ({
         id: user._id,
         name: user.fullname,
         email: user.email,

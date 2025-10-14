@@ -212,8 +212,6 @@ exports.runCode = async (req, res) => {
 
   const codePath = path.join(tempDir, fileName);
   await fs.writeFile(codePath, code);
-
-  // Allow disk sync (especially on Windows)
   await new Promise(r => setTimeout(r, 100));
 
   try {
@@ -242,8 +240,8 @@ exports.runCode = async (req, res) => {
       //     timeout,
       //     maxBuffer: 1024 * 1024
       // });
-      await fs.remove(tempDir);
       const result = await runCommand(containerName, runCmd, input, timeout);
+      await fs.remove(tempDir);
       return res.status(200).json(result);
 
       // const output = (result.stdout || '').trim();

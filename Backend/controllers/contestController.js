@@ -456,7 +456,7 @@ const endContest = async (req, res,io) => {
     await contest.save();
     await ContestParticipation.updateMany(
       { contestId, endedAt: { $exists: false } },
-      { $set: { endedAt: now } }
+      { $set: { endedAt: now,status:"done" } }
     );
     io.to(`Contest_${contestId}`).emit('contest-ended',{
       contestId
@@ -505,4 +505,49 @@ const updateContestTime = async (req, res, io) => {
   }
 };
 
-module.exports = { createContest, getUpcomingContests, getLiveContests, getRecentContests, getContestQuestions,deleteContest,updateContest,joinContest,getContestTime,generateLeaderboard,submitContest,endContest,updateContestTime}
+
+const getUserPerformance=async(req,res)=>{
+  try {
+    const { contestId, userId } = req.body;
+    if (!mongoose.Types.ObjectId.isValid(contestId) || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid contestId or userId" });
+    }
+    const contest = await Contest.findById(contestId).populate("questions");
+    if (!contest) {
+      return res.status(404).json({ message: "Contest not found" });
+    }
+    const questionIds = contest.questions.map(q => q._id);
+    const submissions = await Submission.aggregate([
+      {
+        $match: {
+          userID: new mongoose.Types.ObjectId(userId),
+          contestId: new mongoose.Types.ObjectId(contestId),
+          questionID: { $in: questionIds },
+        },
+      },
+      { $sort: { submittedAt: -1 } },
+      {
+        $group: {
+          _id: "$questionID",
+          allSubmissions: { $push: "$$ROOT" },
+        },
+      },
+    ]);
+    const submissionsMap = new Map(
+      submissions.map(s => [s._id.toString(), s.allSubmissions])
+    );
+
+    const result = contest.questions.map((q) => ({
+      questionId: q._id,
+      title: q.title,
+      difficulty: q.difficulty,
+      maxMarks: q.maxMarks,
+      submissions: submissionsMap.get(q._id.toString()) || [],
+    }));
+    return res.status(200).json(result);
+  } catch (error) {
+    console.error("Error in getContestQuestionsWithUserSubmissions:", error);
+    return res.status(500).json({ message: "Server error", error: error.message });
+  }
+}
+module.exports = { createContest, getUpcomingContests, getLiveContests, getRecentContests, getContestQuestions,deleteContest,updateContest,joinContest,getContestTime,generateLeaderboard,submitContest,endContest,updateContestTime,getUserPerformance}
