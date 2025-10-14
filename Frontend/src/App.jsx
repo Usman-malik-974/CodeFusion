@@ -21,7 +21,8 @@ import PageNotFound from './screen/PageNotFound'
 import ContestLogin from './screen/ContestLogin'
 import ContestQuestions from './screen/ContestQuestions'
 import ResetPassword from './screen/ResetPassword'
-import socket from './shared/socket'
+import socket from './shared/soket'
+import ContestFeedback from './screen/ContestFeedback'
 
 function App() {
   useEffect(() => {
@@ -63,7 +64,8 @@ function App() {
               <Route path='assign' element={<AssignQuestion />} />
             </Route>
             <Route path='/question' element={<QuestionView />} />
-            <Route path='/resetpassword/:id' element={<ResetPassword/>}/>
+            <Route path='feedback' element={<ContestFeedback />} />
+            <Route path='/resetpassword/:id' element={<ResetPassword />} />
             <Route path='/admin/question' element={<AdminQuestionView />} />
             <Route path='/admin/batch' element={<ManageBatch />} />
             <Route path='/users/batch' element={<BatchDashboard />} />

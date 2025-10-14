@@ -2,6 +2,7 @@ import React from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
 
 const validationSchema = Yup.object().shape({
     title: Yup.string().required('Title is required'),
@@ -35,6 +36,7 @@ const initialValues = {
 };
 
 const AddQuestionForm = ({ onSubmit, onClose }) => {
+    const navigate=useNavigate();
     const formik = useFormik({
         initialValues,
         validationSchema,
@@ -75,7 +77,7 @@ const AddQuestionForm = ({ onSubmit, onClose }) => {
         <div className="min-h-screen bg-gradient-to-br from-blue-500 to-indigo-600 p-6 text-white">
             <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg text-gray-900">
                 <h2 className="text-3xl font-bold mb-6 text-center text-blue-500">Add New Question</h2>
-
+              
                 <form onSubmit={formik.handleSubmit} className="space-y-6">
                     {/* Title */}
                     <div>

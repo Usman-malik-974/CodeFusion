@@ -8,7 +8,8 @@ import { SiTicktick } from "react-icons/si";
 import ContestTimer from "../components/ContestTimer";
 import { useDispatch, useSelector } from "react-redux";
 import { setContestQuestions } from "../app/slices/contestQuestionsSlice";
-import socket from "../shared/socket";
+import socket from "../shared/soket";
+import { submitContest } from "../shared/networking/api/contestApi/submitContest";
 
 const ContestQuestions = () => {
     const location = useLocation();
@@ -19,27 +20,79 @@ const ContestQuestions = () => {
 
     const [showFullScreenPopup, setShowFullScreenPopup] = useState(false);
     const dispatch = useDispatch();
-    const contestQuestions = useSelector((state) => state.contestQuestions.contestQuestions[id] || [] );
+    const contestQuestions = useSelector((state) => state.contestQuestions.contestQuestions[id] || []);
     const navigate = useNavigate();
 
+
+    // const goFullScreen = () => {
+    //     const elem = document.documentElement;
+    //     if (elem.requestFullscreen) {
+    //         elem.requestFullscreen();
+    //     } else if (elem.webkitRequestFullscreen) { /* Safari */
+    //         elem.webkitRequestFullscreen();
+    //     } else if (elem.msRequestFullscreen) { /* IE11 */
+    //         elem.msRequestFullscreen();
+    //     }
+    //     sessionStorage.setItem("fullscreen",true);
+    // };
+
+
+
+
+    // // Show full screen popup only if contest id exists
+    // useEffect(() => {
+    //     const isFullscreen=sessionStorage.getItem("fullscreen");
+    //     if(isFullscreen){
+    //         goFullScreen()
+    //         return;
+    //     }
+    //     if (id) setShowFullScreenPopup(true);
+
+    // }, [id]);
+
+    // 1️⃣ Function to enter fullscreen
     const goFullScreen = () => {
         const elem = document.documentElement;
         if (elem.requestFullscreen) {
             elem.requestFullscreen();
-        } else if (elem.webkitRequestFullscreen) { /* Safari */
+        } else if (elem.webkitRequestFullscreen) { // Safari
             elem.webkitRequestFullscreen();
-        } else if (elem.msRequestFullscreen) { /* IE11 */
+        } else if (elem.msRequestFullscreen) { // IE11
             elem.msRequestFullscreen();
         }
+        sessionStorage.setItem("fullscreen", "true");
     };
 
+    // 2️⃣ Detect when user exits fullscreen (e.g., presses ESC)
+    useEffect(() => {
+        const handleFullScreenChange = () => {
+            if (!document.fullscreenElement) {
+                console.log("🚨 User exited fullscreen");
+                sessionStorage.removeItem("fullscreen");
+                setShowFullScreenPopup(true); // Show popup again if needed
+            }
+        };
+
+        document.addEventListener("fullscreenchange", handleFullScreenChange);
+
+        return () => {
+            document.removeEventListener("fullscreenchange", handleFullScreenChange);
+        };
+    }, []);
+
+    // 3️⃣ Show popup or go fullscreen on mount/contest start
+    useEffect(() => {
+        const isFullscreen = sessionStorage.getItem("fullscreen");
+
+        if (isFullscreen) {
+            goFullScreen(); // Continue fullscreen if previously active
+            return;
+        }
+
+        if (id) setShowFullScreenPopup(true); // Ask to go fullscreen
+    }, [id]);
 
 
-
-    // Show full screen popup only if contest id exists
-    // useEffect(() => {
-    //     // if (id) setShowFullScreenPopup(true);
-    // }, [id]);
 
     useEffect(() => {
         if (!id) return;
@@ -61,7 +114,7 @@ const ContestQuestions = () => {
         if (!id) return;
 
         // const existingQuestionsObj = contestQuestions.find(item => item[id]);
-        if (contestQuestions.length>0) {
+        if (contestQuestions.length > 0) {
             // Use questions from Redux if already fetched
             setQuestions(contestQuestions);
             return;
@@ -95,8 +148,15 @@ const ContestQuestions = () => {
         );
     }
 
-    const handleSubmit = () => {
-        console.log("submitted");
+    const handleSubmit = async () => {
+        console.log("submitted", id);
+        const res = await submitContest(id);
+        if (res.error) {
+            toast.error(res.error);
+            return;
+        }
+        toast.success(res.message);
+        navigate("/feedback");
     }
 
     return (

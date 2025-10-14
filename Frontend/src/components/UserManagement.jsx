@@ -242,6 +242,7 @@ const UserManagement = () => {
       if (response.status === 200) {
         toast.success(`${result.inserted} users inserted successfully`);
         setUsers([...users, ...result.validUsers]);
+        dispatch(setUsersList([...users,...validUsers]));
         setShowForm(false);
       } else if (response.status === 400) {
         const { insertedCount, failedCount, validUsers, failedFile } = result;
@@ -271,6 +272,7 @@ const UserManagement = () => {
         );
 
         setUsers([...users, ...validUsers]);
+        dispatch(setUsersList([...users,...validUsers]));
         setShowForm(false);
       } else {
         toast.error("Unexpected error during upload.");

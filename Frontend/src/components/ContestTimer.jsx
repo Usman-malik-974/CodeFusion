@@ -1,12 +1,14 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { getContestTime } from "../shared/networking/api/contestApi/getContestTime";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import socket from "../shared/socket";
+import socket from "../shared/soket";
+import { submitContest } from "../shared/networking/api/contestApi/submitContest";
 const ContestTimer = ({ id }) => {
     // console.log(id);
     const [timeLeft, setTimeLeft] = useState(0);
     const [displayTime, setDisplayTime] = useState("");
+    const endTimeRef = useRef(null);
     useEffect(() => {
         console.log("Socket connected?", socket.connected);
     }, []);
@@ -14,7 +16,9 @@ const ContestTimer = ({ id }) => {
     useEffect(() => {
         const handler = ({ contestId: updatedId, addedSeconds }) => {
             if (updatedId === id) { // only update if it's for this contest
-                setTimeLeft(prev => prev + addedSeconds);
+                console.log("Added ", addedSeconds);
+                endTimeRef.current += addedSeconds * 1000;
+                // setTimeLeft(prev => prev + addedSeconds);
             }
         };
 
@@ -69,7 +73,7 @@ const ContestTimer = ({ id }) => {
         if (!id) return;
 
         let interval;
-        let endTime;
+        // let endTime;
 
         async function getRemainingTime() {
             const res = await getContestTime(id);
@@ -80,15 +84,15 @@ const ContestTimer = ({ id }) => {
             }
 
             // Compute absolute end timestamp
-            endTime = Date.now() + res.remainingTime * 1000;
+            endTimeRef.current = Date.now() + res.remainingTime * 1000;
 
             interval = setInterval(() => {
-                const diff = Math.max(0, Math.floor((endTime - Date.now()) / 1000));
+                const diff = Math.max(0, Math.floor((endTimeRef.current - Date.now()) / 1000));
                 setTimeLeft(diff);
 
                 if (diff <= 0) {
+                    handleSubmit();
                     clearInterval(interval);
-                    // handleSubmit();
                 }
             }, 250); // small interval for smooth updates
         }
@@ -108,12 +112,29 @@ const ContestTimer = ({ id }) => {
         );
     }, [timeLeft]);
 
+    const handleSubmit = async () => {
+        const res = await submitContest(id);
+        if (res.error) {
+            toast.error(res.error);
+            return;
+        }
+        toast.success(res.message);
+        navigate("/feedback");
+    }
+
 
     return (
         <div className="absolute top-0 bg-blue-200 text-blue-500 font-semibold px-4 py-2 rounded-b-lg">
+            {/* <div
+            className="px-4 py-2 bg-blue-200 text-blue-500 font-semibold rounded-b-lg shadow-sm text-sm
+                 flex items-center justify-center"
+            style={{ minWidth: "100px" }} // optional for consistent width
+        > */}
             <p>{displayTime}</p>
         </div>
     )
 }
 
 export default ContestTimer;
+
+
