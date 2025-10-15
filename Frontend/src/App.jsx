@@ -23,6 +23,8 @@ import ContestQuestions from './screen/ContestQuestions'
 import ResetPassword from './screen/ResetPassword'
 import socket from './shared/soket'
 import ContestFeedback from './screen/ContestFeedback'
+// import LeaderBoard from './components/LeaderBoard'
+import LeaderBoard from './screen/LeaderBoard'
 
 function App() {
   useEffect(() => {
@@ -67,6 +69,7 @@ function App() {
             <Route path='feedback' element={<ContestFeedback />} />
             <Route path='/resetpassword/:id' element={<ResetPassword />} />
             <Route path='/admin/question' element={<AdminQuestionView />} />
+            <Route path='/admin/leaderboard' element={<LeaderBoard/>}/>
             <Route path='/admin/batch' element={<ManageBatch />} />
             <Route path='/users/batch' element={<BatchDashboard />} />
             <Route path='/test/:id' element={<ContestLogin />} />

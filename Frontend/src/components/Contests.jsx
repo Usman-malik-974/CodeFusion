@@ -12,8 +12,9 @@ import UpdateContestForm from "./updateContestForm";
 import { deleteContest } from "../shared/networking/api/contestApi/deleteContest";
 import { toast } from "react-toastify";
 import EditLiveContestForm from "./EditLiveContestForm";
-import LeaderBoard from "./LeaderBoard";
+// import LeaderBoard from "./LeaderBoard";
 import { endContest } from "../shared/networking/api/contestApi/endContest";
+import { useNavigate } from "react-router-dom";
 
 const Contests = () => {
   const [activeTab, setActiveTab] = useState("live");
@@ -33,6 +34,7 @@ const Contests = () => {
   // When clicking edit
 
   const dispatch = useDispatch();
+  const navigate=useNavigate();
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -208,8 +210,9 @@ const Contests = () => {
   }, []);
 
   const handleLeaderBoardClick = useCallback((id) => {
-    setLeaderBoardContestId(id);
-    setShowLeaderBoard(true);
+    // setLeaderBoardContestId(id);
+    // setShowLeaderBoard(true);
+    navigate("/admin/leaderboard",{state:{contestId:id}});
   }, []);
 
   const handleLeaderBoardClose = useCallback(() => {
@@ -237,7 +240,7 @@ const Contests = () => {
 
   return (
     <div className="p-4 relative">
-      {showLeaderBoard && (
+      {/* {showLeaderBoard && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
           <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-7xl max-h-[90vh] overflow-y-auto relative no-scrollbar animate-fadeIn">
             <LeaderBoard
@@ -246,7 +249,7 @@ const Contests = () => {
             />
           </div>
         </div>
-      )}
+      )} */}
 
       {showEditLiveContestForm && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
