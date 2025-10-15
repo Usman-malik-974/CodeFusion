@@ -146,7 +146,8 @@ const getContestLeaderboard = async (contestId) => {
         lastEarliestSuccess: { 
           $max: "$submissions.earliestSuccessAt"
         },
-        lastSubmission: { $max: "$submissions.lastSubmittedAt" }
+        lastSubmission: { $max: "$submissions.lastSubmittedAt" },
+        totalQuestions: { $size: "$allQuestions" }
       }
     },
     {
@@ -173,6 +174,7 @@ const getContestLeaderboard = async (contestId) => {
         email: "$user.email",
         obtainedMarks: 1,
         totalMarks: 1,
+        totalQuestions:1,
         solvedCount: 1,
         totalTime: 1
       }
