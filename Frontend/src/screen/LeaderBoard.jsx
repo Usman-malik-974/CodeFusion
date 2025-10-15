@@ -5,6 +5,8 @@ import socket from "../shared/soket";
 import { FaEye } from "react-icons/fa";
 import { Download } from "lucide-react";
 import { useLocation } from "react-router-dom";
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 import PlayerAnalysis from "../components/PlayerAnalysis";
 
 const LeaderBoard = React.memo(() => {
@@ -61,8 +63,30 @@ const LeaderBoard = React.memo(() => {
 
   // ✅ Download leaderboard
   const handleDownload = () => {
-    console.log("Downloading leaderboard:", leaderBoardData);
-  };
+    console.log(leaderBoardData);
+    const filename = prompt("Enter file name:", "leaderboard.xlsx");
+    if (!filename) return;
+    const downloadData = leaderBoardData.map((l) => ({
+      rank: l.rank,
+      name: l.name,
+      email: l.email,
+      solved: l.solvedCount,
+      total: l.totalQuestions,
+      marks: l.obtainedMarks,
+      totalMarks: l.totalMarks,
+      timeTaken: `${Math.floor(l.totalTime / 3600)
+        .toString()
+        .padStart(2, "0")} : ${Math.floor((l.totalTime % 3600) / 60)
+          .toString()
+          .padStart(2, "0")} : ${Math.round((l.totalTime % 60), 2).toString().padStart(2, "0")}`
+    }))
+    const worksheet = XLSX.utils.json_to_sheet(downloadData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const data = new Blob([excelBuffer], { type: 'application/octet-stream' });
+    saveAs(data, filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`);
+  }
 
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-blue-50 to-blue-100 flex flex-col items-center p-6">
@@ -112,9 +136,8 @@ const LeaderBoard = React.memo(() => {
               leaderBoardData.map((player, idx) => (
                 <tr
                   key={idx}
-                  className={`${
-                    idx % 2 === 0 ? "bg-blue-50" : "bg-white"
-                  } hover:bg-blue-100 transition`}
+                  className={`${idx % 2 === 0 ? "bg-blue-50" : "bg-white"
+                    } hover:bg-blue-100 transition`}
                 >
                   <td className="px-4 py-3 font-bold text-blue-700">
                     {player.rank}
@@ -131,16 +154,16 @@ const LeaderBoard = React.memo(() => {
                     {player.totalTime === 0
                       ? "-"
                       : `${Math.floor(player.totalTime / 3600)
-                          .toString()
-                          .padStart(2, "0")} : ${Math.floor(
+                        .toString()
+                        .padStart(2, "0")} : ${Math.floor(
                           (player.totalTime % 3600) / 60
                         )
                           .toString()
                           .padStart(2, "0")} : ${Math.round(
-                          player.totalTime % 60
-                        )
-                          .toString()
-                          .padStart(2, "0")}`}
+                            player.totalTime % 60
+                          )
+                            .toString()
+                            .padStart(2, "0")}`}
                   </td>
                   <td className="px-4 py-3">
                     <button
