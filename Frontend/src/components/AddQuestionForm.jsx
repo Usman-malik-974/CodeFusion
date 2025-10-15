@@ -17,7 +17,9 @@ const validationSchema = Yup.object().shape({
         Yup.object().shape({
             input: Yup.string().required('Input is required'),
             output: Yup.string().required('Output is required'),
-            marks:Yup.number("Marks must be a number").required("Marks are required"),
+            marks: Yup.number()
+                .typeError("Marks must be a number")
+                .required("Marks are required"),
             hidden: Yup.boolean().required('Visibility is required'),
         })
     ).min(1, 'At least one test case is required'),
@@ -32,11 +34,11 @@ const initialValues = {
     sampleOutput: '',
     tags: '',
     difficulty: 'Easy',
-    testCases: [{ input: '', output: '', marks:1,hidden: false }],
+    testCases: [{ input: '', output: '', marks: 1, hidden: false }],
 };
 
 const AddQuestionForm = ({ onSubmit, onClose }) => {
-    const navigate=useNavigate();
+    const navigate = useNavigate();
     const formik = useFormik({
         initialValues,
         validationSchema,
@@ -77,7 +79,7 @@ const AddQuestionForm = ({ onSubmit, onClose }) => {
         <div className="min-h-screen bg-gradient-to-br from-blue-500 to-indigo-600 p-6 text-white">
             <div className="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg text-gray-900">
                 <h2 className="text-3xl font-bold mb-6 text-center text-blue-500">Add New Question</h2>
-              
+
                 <form onSubmit={formik.handleSubmit} className="space-y-6">
                     {/* Title */}
                     <div>

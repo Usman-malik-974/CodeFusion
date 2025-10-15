@@ -3,6 +3,7 @@ import { Trash2, Edit, Edit2, Edit2Icon, EditIcon } from "lucide-react";
 import React from "react";
 import { MdContentCopy, MdDone, MdLeaderboard } from "react-icons/md";
 import { FaFlagCheckered, FaHourglassEnd } from "react-icons/fa";
+import { CopyToClipboard } from "react-copy-to-clipboard";
 
 const AdminContestCard = React.memo(({ contest, type, onEditClick, onDeleteClick, onLiveEditClick, onLeaderBoardClick, onEndContestClick }) => {
   // useEffect(()=>{
@@ -29,14 +30,14 @@ const AdminContestCard = React.memo(({ contest, type, onEditClick, onDeleteClick
   // },[onLiveEditClick]);
 
   const copyToClipboard = useCallback((id) => {
-    const text = `${import.meta.env.VITE_FRONTEND_URL}/test/${id}`; // get clicked element’s text
-    navigator.clipboard.writeText(text).then(() => {
+    // const text = `${import.meta.env.VITE_FRONTEND_URL}/test/${id}`; // get clicked element’s text
+    // navigator.clipboard.writeText(text).then(() => {
       // console.log("Copied:", text);
       setCopied(true);
       setTimeout(() => {
         setCopied(false);
       }, 2000)
-    });
+    // });
   }, []);
 
   return (
@@ -56,9 +57,14 @@ const AdminContestCard = React.memo(({ contest, type, onEditClick, onDeleteClick
       </h4>
 
       {(type == "upcoming" || type == "live") && (
-        <button onClick={(e) => { e.stopPropagation(); copyToClipboard(contest.id) }} className="absolute top-7 right-5 hover:text-blue-500" title="Copy Contest Link">
-          {copied ? <MdDone size={22} /> : <MdContentCopy size={22} />}
-        </button>
+        // <button onClick={(e) => { e.stopPropagation(); copyToClipboard(contest.id) }} className="absolute top-7 right-5 hover:text-blue-500" title="Copy Contest Link">
+        //   {copied ? <MdDone size={22} /> : <MdContentCopy size={22} />}
+        // </button>
+        <CopyToClipboard text={`${import.meta.env.VITE_FRONTEND_URL}/test/${contest.id}`} onCopy={copyToClipboard}>
+          <button className="absolute top-7 right-5 hover:text-blue-500" title="Copy Contest Link">
+            {copied ? <MdDone size={22} /> : <MdContentCopy size={22} />}
+          </button>
+        </CopyToClipboard>
       )}
 
 
