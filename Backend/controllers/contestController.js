@@ -644,7 +644,7 @@ const getUserPerformance=async(req,res)=>{
     }));
     return res.status(200).json(result);
   } catch (error) {
-    console.error("Error in getContestQuestionsWithUserSubmissions:", error);
+    console.error("Error in getUserPerformance-*  :", error);
     return res.status(500).json({ error:"Internal Server Error" });
   }
 }

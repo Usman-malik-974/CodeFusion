@@ -5,6 +5,8 @@ import socket from "../shared/soket";
 import { FaEye } from "react-icons/fa";
 import { getUserPerformance } from "../shared/networking/api/contestApi/getUserPerformance";
 import { Download } from "lucide-react";
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
 const LeaderBoard = React.memo(({ onClose, contestId }) => {
     // dummy data
     const [leaderBoardData, setLeaderBoardData] = useState([]);
@@ -36,7 +38,7 @@ const LeaderBoard = React.memo(({ onClose, contestId }) => {
         //     socket.emit("leaveContestRoom", { id: contestId });
         // }
     }, [contestId]);
-    useEffect(() => {
+    useEffect(() => { 
         console.log("onclose");
     }, [onClose])
 
@@ -56,6 +58,28 @@ const LeaderBoard = React.memo(({ onClose, contestId }) => {
 
     const handleDownload=()=>{
         console.log(leaderBoardData);
+        const filename = prompt("Enter file name:", "leaderboard.xlsx");
+        if (!filename) return;
+        const downloadData=leaderBoardData.map((l)=>({
+            rank:l.rank,
+            name:l.name,
+            email:l.email,
+            solved:l.solvedCount,
+            total:l.totalQuestions,
+            marks:l.obtainedMarks,
+            totalMarks:l.totalMarks,
+            timeTaken:`${Math.floor(l.totalTime / 3600)
+            .toString()
+            .padStart(2, "0")} : ${Math.floor((l.totalTime % 3600) / 60)
+                .toString()
+                .padStart(2, "0")} : ${Math.round((l.totalTime % 60), 2).toString().padStart(2, "0")}`
+        }))
+        const worksheet = XLSX.utils.json_to_sheet(downloadData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+        const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+        const data = new Blob([excelBuffer], { type: 'application/octet-stream' });
+        saveAs(data, filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`);
     }
 
     return (
