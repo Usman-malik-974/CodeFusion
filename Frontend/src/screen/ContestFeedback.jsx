@@ -1,6 +1,8 @@
 import { CheckCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const ContestFeedback = () => {
+  const navigate=useNavigate();
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 via-blue-100 to-blue-200 px-4">
       <div className="bg-white shadow-xl rounded-2xl p-8 max-w-md text-center relative overflow-hidden">
@@ -23,7 +25,7 @@ const ContestFeedback = () => {
 
         {/* Button */}
         <button
-          onClick={() => window.history.back()}
+          onClick={() => navigate("/")}
           className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg shadow-md hover:bg-blue-700 transition"
         >
           Go Back

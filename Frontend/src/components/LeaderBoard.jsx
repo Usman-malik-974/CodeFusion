@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import socket from "../shared/soket";
 import { FaEye } from "react-icons/fa";
 import { getUserPerformance } from "../shared/networking/api/contestApi/getUserPerformance";
+import { Download } from "lucide-react";
 const LeaderBoard = React.memo(({ onClose, contestId }) => {
     // dummy data
     const [leaderBoardData, setLeaderBoardData] = useState([]);
@@ -39,18 +40,22 @@ const LeaderBoard = React.memo(({ onClose, contestId }) => {
         console.log("onclose");
     }, [onClose])
 
-    const handleView=async(userId)=>{
-        try{
-            const res=await getUserPerformance(contestId,userId);
-            if(res.error){
+    const handleView = async (userId) => {
+        try {
+            const res = await getUserPerformance(contestId, userId);
+            if (res.error) {
                 toast.error(res.error);
                 return;
             }
             console.log(res);
         }
-        catch(e){
+        catch (e) {
             toast.error("Something Went Wrong");
         }
+    }
+
+    const handleDownload=()=>{
+        console.log(leaderBoardData);
     }
 
     return (
@@ -63,6 +68,13 @@ const LeaderBoard = React.memo(({ onClose, contestId }) => {
             </button>
             <h1 className="text-3xl font-bold text-blue-700 mb-8">🏆 LeaderBoard</h1>
 
+            <button
+                className="absolute right-10 top-10 flex items-center gap-2 bg-green-600 text-white text-sm px-4 py-2 rounded-md shadow hover:bg-green-700 transition cursor-pointer"
+                onClick={handleDownload}
+            >
+                <Download size={16} />
+                Download
+            </button>
             <div className="w-full max-w-6xl bg-white shadow-xl rounded-2xl overflow-hidden">
                 <table className="w-full text-left border-collapse">
                     <thead className="bg-blue-600 text-white">
@@ -102,7 +114,7 @@ const LeaderBoard = React.memo(({ onClose, contestId }) => {
                                     </td>
 
                                     <td className="px-6 py-3">
-                                        <button onClick={()=>handleView(player.userId)} className="flex items-center py-2 px-3 rounded-lg gap-2 text-sm font-medium bg-blue-600 text-white hover:bg-blue-700">
+                                        <button onClick={() => handleView(player.userId)} className="flex items-center py-2 px-3 rounded-lg gap-2 text-sm font-medium bg-blue-600 text-white hover:bg-blue-700">
                                             <FaEye size={16} />
                                             <span>View</span>
                                         </button>

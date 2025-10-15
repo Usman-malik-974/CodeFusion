@@ -48,13 +48,12 @@ const Login = () => {
                     }
                 }
                 else {
+                    // toast.error("Hos");
                     throw new Error(res.error);
                 }
             } catch (error) {
-                console.error("Login failed", error);
-                toast.error(error);
-                // dispatch(loginFailure());
-                // Optionally show error message (toast or UI)
+                toast.error(error.message || "Login failed");
+                // console.error("Login failed", error);
             } finally {
                 setLoader(false);
             }
