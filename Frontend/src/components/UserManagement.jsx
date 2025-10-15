@@ -241,12 +241,13 @@ const UserManagement = () => {
 
       if (response.status === 200) {
         toast.success(`${result.inserted} users inserted successfully`);
+        // console.log(result);
         setUsers([...users, ...result.validUsers]);
-        dispatch(setUsersList([...users,...validUsers]));
+        dispatch(setUsersList([...users,...result.validUsers]));
         setShowForm(false);
       } else if (response.status === 400) {
         const { insertedCount, failedCount, validUsers, failedFile } = result;
-
+        // console.log(result);
         // Convert base64 -> blob for download
         const byteChars = atob(failedFile);
         const byteNumbers = new Array(byteChars.length);
