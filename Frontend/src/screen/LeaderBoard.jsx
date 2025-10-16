@@ -8,6 +8,7 @@ import { useLocation } from "react-router-dom";
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import PlayerAnalysis from "../components/PlayerAnalysis";
+import { CiWarning } from "react-icons/ci";
 
 const LeaderBoard = React.memo(() => {
   const [leaderBoardData, setLeaderBoardData] = useState([]);
@@ -26,6 +27,7 @@ const LeaderBoard = React.memo(() => {
         toast.error(res.error);
         return;
       }
+      console.log(res.leaderboard);
       setLeaderBoardData(res.leaderboard || []);
     };
     getLeaderboard(contestId);
@@ -39,7 +41,6 @@ const LeaderBoard = React.memo(() => {
     const handleLeaderboardChange = ({ leaderboard }) => {
       setLeaderBoardData(leaderboard);
     };
-
     socket.on("leaderboard-changed", handleLeaderboardChange);
 
     return () => {
@@ -78,7 +79,9 @@ const LeaderBoard = React.memo(() => {
         .toString()
         .padStart(2, "0")} : ${Math.floor((l.totalTime % 3600) / 60)
           .toString()
-          .padStart(2, "0")} : ${Math.round((l.totalTime % 60), 2).toString().padStart(2, "0")}`
+          .padStart(2, "0")} : ${Math.round((l.totalTime % 60), 2).toString().padStart(2, "0")}`,
+      ["Full Screen Change"]: Math.floor(parseInt(l.fullScreenSwitch) / 2),
+      ["Tab Switch"]: Math.floor(parseInt(l.tabSwitch) / 2)
     }))
     const worksheet = XLSX.utils.json_to_sheet(downloadData);
     const workbook = XLSX.utils.book_new();
@@ -127,6 +130,7 @@ const LeaderBoard = React.memo(() => {
               <th className="px-4 py-3">Solved</th>
               <th className="px-4 py-3">Total Questions</th>
               <th className="px-4 py-3">Total Time</th>
+              <th className="px-4 py-3">Violations</th>
               <th className="px-4 py-3">Submissions</th>
             </tr>
           </thead>
@@ -164,6 +168,14 @@ const LeaderBoard = React.memo(() => {
                           )
                             .toString()
                             .padStart(2, "0")}`}
+                  </td>
+                  <td className="px-4 py-4 flex items-center gap-2 h-full">
+                    <span className="font-medium text-gray-700">
+                      {Math.floor(parseInt(player.fullScreenSwitch) / 2) + Math.floor(parseInt(player.tabSwitch) / 2)}
+                    </span>
+                    {Math.floor(parseInt(player.fullScreenSwitch) / 2) + Math.floor(parseInt(player.tabSwitch) / 2) > 5 && (
+                      <CiWarning className="text-red-500" size={20} title="Excessive violations" />
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <button

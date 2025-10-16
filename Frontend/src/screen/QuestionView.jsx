@@ -47,7 +47,7 @@ int main() {
     const [activeTab, setActiveTab] = useState("question");
     const [submissions, setSubmissions] = useState([]);
     const [showFullScreenPopup, setShowFullScreenPopup] = useState(false);
-    const violations = useContestActivityTracker();
+    // const violations = useContestActivityTracker();
 
     const [viewingCode, setViewingCode] = useState(null);
     const dispatch = useDispatch();
@@ -111,24 +111,24 @@ int main() {
     //     }
     // }, [violations.totalViolations]);
 
-    const [fullscreenchange, setfullscreenchange] = useState(0);
-    const [tabswitch, settabswitch] = useState(0);
+    // const [fullscreenchange, setfullscreenchange] = useState(0);
+    // const [tabswitch, settabswitch] = useState(0);
     // const [visibilitychange,setvisibilitychange]=useState(0);
 
-    useEffect(() => {
-        console.log("Full screnn change ", fullscreenchange);
-        console.log("Tab switch change ", tabswitch);
-    }, [fullscreenchange, tabswitch])
+    // useEffect(() => {
+    //     console.log("Full screnn change ", fullscreenchange);
+    //     console.log("Tab switch change ", tabswitch);
+    // }, [fullscreenchange, tabswitch])
 
     useEffect(() => {
 
         const handleFullScreenChange = () => {
-            setfullscreenchange((prev) => prev + 1);
+            // setfullscreenchange((prev) => prev + 1);
 
-            socket.emit("fullScreenChanage", { contestId,token })
+            socket.emit("fullScreenChange", { contestId,token })
         }
         const handleTabSwitch = () => {
-            settabswitch((prev) => prev + 1);
+            // settabswitch((prev) => prev + 1);
             socket.emit("tabSwitch", { contestId,token })
         }
         document.addEventListener("fullscreenchange", handleFullScreenChange);

@@ -22,14 +22,20 @@ const userRouter = require("./routes/userRoutes");
 const questionRouter = require("./routes/questionRoutes");
 const batchRouter = require("./routes/batchRoutes");
 const contestRouter = require("./routes/contestRoutes")(io);
+const {handleFullScreenChange,handleTabSwitch}=require("./utils/handleViolation")
+
+console.log("hi");
 
 io.on("connection", (socket) => {
   console.log(`📡 Client connected: ${socket.id}`);
-  socket.on("fullScreenChange",({contestId,token})=>{
+  socket.on("fullScreenChange",async ({contestId,token})=>{
     console.log("Full screen ",contestId,token);
+    await handleFullScreenChange(contestId,token);
+
   })
-  socket.on("tabSwitch",({contestId,token})=>{
+  socket.on("tabSwitch",async ({contestId,token})=>{
     console.log("Tab Switch ",contestId,token);
+    await handleTabSwitch(contestId,token);
   })
   socket.on("joinContestRoom",({id})=>{
     socket.join(`Contest_${id}`);
