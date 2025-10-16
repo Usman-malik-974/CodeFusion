@@ -15,12 +15,15 @@ import { markQuestionSolved } from "../app/slices/contestQuestionsSlice";
 import socket from "../shared/soket"
 import ContestHeader from "../components/ContestHeader";
 import { MdFullscreen } from "react-icons/md";
+import { toast } from 'react-toastify'
+import { useCallback } from "react";
+import useContestActivityTracker from "../hooks/useContestActivityTracker";
 
 
 const QuestionView = () => {
     // const { id } = useParams();
     const location = useLocation();
-
+    const token = localStorage.getItem("token");
     const question = location.state?.questionData;
     const contestId = location?.state.contestId;
     // console.log(question);
@@ -44,6 +47,7 @@ int main() {
     const [activeTab, setActiveTab] = useState("question");
     const [submissions, setSubmissions] = useState([]);
     const [showFullScreenPopup, setShowFullScreenPopup] = useState(false);
+    const violations = useContestActivityTracker();
 
     const [viewingCode, setViewingCode] = useState(null);
     const dispatch = useDispatch();
@@ -53,6 +57,12 @@ int main() {
     useEffect(() => {
         const prevData = JSON.parse(localStorage.getItem(question.id));
         if (prevData && prevData.code && language === prevData.language) {
+            if (contestId) {
+                if (prevData.contestId == contestId) {
+                    setCode(prevData.code);
+                }
+                return;
+            }
             setCode(prevData.code);
         }
     }, [language]);
@@ -92,11 +102,57 @@ int main() {
         sessionStorage.setItem("fullscreen", "true");
     };
 
+    // useEffect(() => {
+    //     console.log("tabSwitchCount ",violations.tabSwitchCount);
+    //     console.log("fullscreenExitCount ",violations.fullscreenExitCount);
+    //     console.log("blurCount ",violations.blurCount);
+    //     if (violations.totalViolations > 0) {
+    //         toast.warning(`⚠️ ${violations.totalViolations} suspicious actions detected.`);
+    //     }
+    // }, [violations.totalViolations]);
+
+    const [fullscreenchange, setfullscreenchange] = useState(0);
+    const [tabswitch, settabswitch] = useState(0);
+    // const [visibilitychange,setvisibilitychange]=useState(0);
+
+    useEffect(() => {
+        console.log("Full screnn change ", fullscreenchange);
+        console.log("Tab switch change ", tabswitch);
+    }, [fullscreenchange, tabswitch])
+
+    useEffect(() => {
+
+        const handleFullScreenChange = () => {
+            setfullscreenchange((prev) => prev + 1);
+
+            socket.emit("fullScreenChanage", { contestId,token })
+        }
+        const handleTabSwitch = () => {
+            settabswitch((prev) => prev + 1);
+            socket.emit("tabSwitch", { contestId,token })
+        }
+        document.addEventListener("fullscreenchange", handleFullScreenChange);
+        document.addEventListener("webkitfullscreenchange", handleFullScreenChange);
+        document.addEventListener("visibilitychange", handleTabSwitch);
+        window.addEventListener("blur", handleTabSwitch);
+
+        return () => {
+            document.removeEventListener("fullscreenchange", handleFullScreenChange);
+            document.removeEventListener("webkitfullscreenchange", handleFullScreenChange);
+            document.removeEventListener("visibilitychange", handleTabSwitch);
+            window.removeEventListener("blur", handleTabSwitch);
+        };
+    }, [])
+
     // 2️⃣ Detect when user exits fullscreen (e.g., presses ESC)
+
     useEffect(() => {
         const handleFullScreenChange = () => {
             if (!document.fullscreenElement) {
                 console.log("🚨 User exited fullscreen");
+                // toast.error("You exited fullscreen mode! Please return.");
+                // Optionally re-enter fullscreen or end contest
+                // document.documentElement.requestFullscreen().catch(() => { });
                 sessionStorage.removeItem("fullscreen");
                 setShowFullScreenPopup(true); // Show popup again if needed
             }
@@ -108,6 +164,11 @@ int main() {
             document.removeEventListener("fullscreenchange", handleFullScreenChange);
         };
     }, []);
+
+
+
+
+
 
     // 3️⃣ Show popup or go fullscreen on mount/contest start
     useEffect(() => {
@@ -225,7 +286,7 @@ int main() {
     const saveCodeToLocal = (newCode = code, newLang = language) => {
         localStorage.setItem(
             question.id,
-            JSON.stringify({ code: newCode, language: newLang })
+            JSON.stringify({ code: newCode, language: newLang, contestId: contestId ? contestId : null })
         );
     };
 
@@ -596,6 +657,14 @@ int main() {
                         <Editor
                             language={language}
                             value={code}
+                            onPaste={(e) => {
+                                if (!contestId) return
+                                const pastedText = e.clipboardData.getData("text/plain");
+                                if (!pastedText.includes("CONTEST_ALLOWED_COPY_TOKEN")) {
+                                    e.preventDefault();
+                                    alert("External paste is blocked!");
+                                }
+                            }}
                             onChange={(value) => {
                                 setCode(value);
                                 saveCodeToLocal(value);
