@@ -176,7 +176,9 @@ const getContestLeaderboard = async (contestId) => {
         totalMarks: 1,
         totalQuestions:1,
         solvedCount: 1,
-        totalTime: 1
+        totalTime: 1,
+        fullScreenSwitch:1,
+        tabSwitch:1
       }
     },
     { $sort: { obtainedMarks: -1, solvedCount: -1, totalTime: 1 } }

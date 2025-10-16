@@ -22,6 +22,14 @@ const contestParticipationSchema = new mongoose.Schema({
     enum: ["doing", "done"],
     default: "doing",
   },
+  fullScreenSwitch:{
+    type:Number,
+    default:0
+  },
+  tabSwitch:{
+    type:Number,
+    default:0
+  }
 });
 
 module.exports = mongoose.model("ContestParticipation", contestParticipationSchema);

@@ -92,6 +92,30 @@ const ContestQuestions = () => {
     }, [id]);
 
 
+    useEffect(() => {
+
+        const handleFullScreenChange = () => {
+            // setfullscreenchange((prev) => prev + 1);
+
+            socket.emit("fullScreenChange", { contestId, token })
+        }
+        const handleTabSwitch = () => {
+            // settabswitch((prev) => prev + 1);
+            socket.emit("tabSwitch", { contestId, token })
+        }
+        document.addEventListener("fullscreenchange", handleFullScreenChange);
+        document.addEventListener("webkitfullscreenchange", handleFullScreenChange);
+        document.addEventListener("visibilitychange", handleTabSwitch);
+        window.addEventListener("blur", handleTabSwitch);
+
+        return () => {
+            document.removeEventListener("fullscreenchange", handleFullScreenChange);
+            document.removeEventListener("webkitfullscreenchange", handleFullScreenChange);
+            document.removeEventListener("visibilitychange", handleTabSwitch);
+            window.removeEventListener("blur", handleTabSwitch);
+        };
+    }, [])
+
 
     useEffect(() => {
         if (!id) return;
