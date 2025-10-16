@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getContestLeaderboard } from "../shared/networking/api/contestApi/getContestLeaderBoard";
+import { getContestLeaderboard } from "../shared/networking/api/contestApi/getContestLeaderboard";
 import { toast } from "react-toastify";
 import socket from "../shared/soket";
 import { FaEye } from "react-icons/fa";
@@ -67,14 +67,14 @@ const LeaderBoard = React.memo(() => {
     const filename = prompt("Enter file name:", "leaderboard.xlsx");
     if (!filename) return;
     const downloadData = leaderBoardData.map((l) => ({
-      rank: l.rank,
-      name: l.name,
-      email: l.email,
-      solved: l.solvedCount,
-      total: l.totalQuestions,
-      marks: l.obtainedMarks,
-      totalMarks: l.totalMarks,
-      timeTaken: `${Math.floor(l.totalTime / 3600)
+      ["Rank"]: l.rank,
+      ["Name"]: l.name,
+      ["Email"]: l.email,
+      ["Solved Questions"]: l.solvedCount,
+      ["Total Questions"]: l.totalQuestions,
+      ["Obtained Marks"]: l.obtainedMarks,
+      ["Total Marks"]: l.totalMarks,
+      ["Time Taken"]: `${Math.floor(l.totalTime / 3600)
         .toString()
         .padStart(2, "0")} : ${Math.floor((l.totalTime % 3600) / 60)
           .toString()

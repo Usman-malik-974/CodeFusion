@@ -1,14 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { getAllQuestions } from "../shared/networking/api/questionApi/getAllQuestions";
-import CreateContestForm from "./createContestForm";
+import CreateContestForm from "./CreateContestForm";
 import { Clock, PlayCircle, History } from "lucide-react"; // Icons
 import { setQuestionsList } from '../app/slices/questionsSlice';
 import { getUpcomingContests } from '../shared/networking/api/contestApi/getUpcomingContests'
 import { getRecentContests } from '../shared/networking/api/contestApi/getRecentContests'
 import { getLiveContests } from '../shared/networking/api/contestApi/getLiveContests'
 import AdminContestCard from "./AdminContestCard";
-import UpdateContestForm from "./updateContestForm";
+import UpdateContestForm from "./UpdateContestForm";
 import { deleteContest } from "../shared/networking/api/contestApi/deleteContest";
 import { toast } from "react-toastify";
 import EditLiveContestForm from "./EditLiveContestForm";

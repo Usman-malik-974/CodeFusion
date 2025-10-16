@@ -2,7 +2,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useState } from "react";
 import { toast } from "react-toastify";
-import CustomDropdown from "./CustomDropDown";
+import CustomDropdown from "./CustomDropdown";
 import { createContest } from "../shared/networking/api/contestApi/createContest";
 import { useNavigate } from "react-router-dom";
 

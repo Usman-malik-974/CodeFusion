@@ -25,6 +25,12 @@ const contestRouter = require("./routes/contestRoutes")(io);
 
 io.on("connection", (socket) => {
   console.log(`📡 Client connected: ${socket.id}`);
+  socket.on("fullScreenChange",({contestId,token})=>{
+    console.log("Full screen ",contestId,token);
+  })
+  socket.on("tabSwitch",({contestId,token})=>{
+    console.log("Tab Switch ",contestId,token);
+  })
   socket.on("joinContestRoom",({id})=>{
     socket.join(`Contest_${id}`);
     console.log(`User ${socket.id} joined contest_${id}`);
