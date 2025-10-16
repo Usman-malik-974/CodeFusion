@@ -24,6 +24,8 @@ const batchRouter = require("./routes/batchRoutes");
 const contestRouter = require("./routes/contestRoutes")(io);
 const {handleFullScreenChange,handleTabSwitch}=require("./utils/handleViolation")
 
+console.log("hi");
+
 io.on("connection", (socket) => {
   console.log(`📡 Client connected: ${socket.id}`);
   socket.on("fullScreenChange",async ({contestId,token})=>{
