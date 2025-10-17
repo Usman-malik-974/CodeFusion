@@ -22,7 +22,7 @@ RUN npm install
 COPY . .
 
 # ✅ Expose backend server port
-EXPOSE 3000
+EXPOSE 5000
 
 # ✅ Start Docker daemon, Redis, runner containers, and server
 CMD sh -c "dockerd-entrypoint.sh & \
