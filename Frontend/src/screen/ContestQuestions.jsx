@@ -173,6 +173,9 @@ const ContestQuestions = () => {
 
     const handleSubmit = async () => {
         console.log("submitted", id);
+        if (!window.confirm("Are you sure?")) {
+            return;
+        }
         const res = await submitContest(id);
         if (res.error) {
             toast.error(res.error);

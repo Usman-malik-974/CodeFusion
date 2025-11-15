@@ -113,6 +113,7 @@ const PlayerAnalysis = ({ playerAnalysisData }) => {
                                                     {/* <div className="p-4 border rounded-lg bg-white shadow-sm"> */}
                                                     {/* <h4 className="font-semibold mb-2">Submissions Details:</h4> */}
                                                     {q.submissions.length > 0 ? (
+                                                        <div className='max-h-96 overflow-y-auto border rounded-md'>
                                                         <table className="w-full text-left border-collapse">
                                                             <thead className="bg-blue-100 text-blue-600 text-sm font-semibold">
                                                                 <tr>
@@ -179,6 +180,7 @@ const PlayerAnalysis = ({ playerAnalysisData }) => {
                                                             )}
 
                                                         </table>
+                                                        </div>
                                                     ) : (
                                                         <p className="text-gray-500 italic">No submissions</p>
                                                     )}
