@@ -9,7 +9,11 @@ const getContestLeaderboard = require('../utils/getContestLeaderBoard');
 const execAsync = util.promisify(exec);
 
 // const cppContainers = ['cpp-runner-1'];
-const cppContainers = ['cpp-runner-1', 'cpp-runner-2', 'cpp-runner-3'];
+const cppContainers = ['cpp-runner-1', 'cpp-runner-2', 'cpp-runner-3',
+  'cpp-runner-4', 'cpp-runner-5', 'cpp-runner-6',
+  'cpp-runner-7', 'cpp-runner-8', 'cpp-runner-9',
+  'cpp-runner-10'
+];
 let currentCpp = 0;
 
 function getCppContainer() {
@@ -21,8 +25,8 @@ function getCppContainer() {
 function runCommand(containerName, runCmd, input, timeout = 20000, maxOutputLength = 1000000) {
   return new Promise((resolve, reject) => {
     try {
-      const safeCmd = `timeout ${timeout / 1000}s sh -c '${runCmd}'`
-      const child = spawn('docker', ['exec', '-i', containerName, 'sh', '-c', safeCmd], {
+      // const safeCmd = `timeout ${timeout / 1000}s sh -c '${runCmd}'`
+      const child = spawn('docker', ['exec', '-i', containerName, 'sh', '-c', runCmd], {
         stdio: ['pipe', 'pipe', 'pipe'],
         encoding: 'utf-8'
       });
@@ -60,9 +64,15 @@ function runCommand(containerName, runCmd, input, timeout = 20000, maxOutputLeng
         // if (memoryExceeded) {
         //   return resolve({ output: stdout.trim(), error: '💾 Memory/Output Limit Exceeded' });
         // }
-        if (code === 124) {
+        if (code == 137) {
+          if (memoryExceeded) {
+            return resolve({ output: stdout.trim(), error: '💾 Memory/Output Limit Exceeded' });
+          }
           return resolve({ output: stdout.trim(), error: '⏱️ Time Limit Exceeded' });
         }
+        // if (code === 124) {
+        //   return resolve({ output: stdout.trim(), error: '⏱️ Time Limit Exceeded' });
+        // }
         if (code !== 0) {
           return resolve({ output: stdout.trim(), error: `❌ Runtime Error:\n${stderr.trim()}` });
         }
@@ -104,13 +114,15 @@ exports.runCode = async (req, res) => {
       break;
     case 'cpp':
       fileName = 'main.cpp';
-      containerName = 'cpp-runner';
+      // containerName = 'cpp-runner';
+      containerName = getCppContainer();
       compileCmd = `g++ /app/${jobId}/${fileName} -o /app/${jobId}/main`;
       runCmd = `/app/${jobId}/main`;
       break;
     case 'c':
       fileName = 'main.c';
-      containerName = 'cpp-runner';
+      // containerName = 'cpp-runner';
+      containerName = getCppContainer();
       compileCmd = `gcc /app/${jobId}/${fileName} -o /app/${jobId}/main`;
       runCmd = `/app/${jobId}/main`;
       break;
@@ -241,7 +253,8 @@ exports.runTestCases = async (req, res, io) => {
     // }
     case 'c':
       fileName = 'main.c';
-      containerName = 'cpp-runner';
+      // containerName = 'cpp-runner';
+      containerName = getCppContainer();
       compileCmd = `gcc /app/${jobId}/${fileName} -o /app/${jobId}/main`;
       runCmd = `/app/${jobId}/main`;
       break;
