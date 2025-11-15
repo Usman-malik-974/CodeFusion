@@ -96,7 +96,7 @@ const LeaderBoard = React.memo(() => {
       {/* Player Analysis Modal */}
       {showPlayerAnalysis && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50">
-          <div className="relative bg-white rounded-2xl shadow-xl w-[90%] max-w-4xl p-6">
+          <div className="relative bg-white rounded-2xl shadow-xl w-[90%] max-w-4xl p-6 max-h-[90vh] overflow-y-auto no-scrollbar">
             <button
               onClick={handleCloseAnalysis}
               className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-xl font-bold transition"
