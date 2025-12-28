@@ -99,9 +99,9 @@ const LeaderBoard = React.memo(() => {
           <div className="relative bg-white rounded-2xl shadow-xl w-[90%] max-w-4xl p-6 max-h-[90vh] overflow-y-auto no-scrollbar">
             <button
               onClick={handleCloseAnalysis}
-              className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-xl font-bold transition"
+              className="absolute top-3 right-3 hover:text-red-500 text-2xl font-bold transition"
             >
-              ✖
+               ✕
             </button>
             <PlayerAnalysis playerAnalysisData={playerAnalysisData} />
           </div>

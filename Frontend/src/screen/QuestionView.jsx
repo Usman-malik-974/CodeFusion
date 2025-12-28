@@ -125,11 +125,11 @@ int main() {
         const handleFullScreenChange = () => {
             // setfullscreenchange((prev) => prev + 1);
 
-            socket.emit("fullScreenChange", { contestId,token })
+            socket.emit("fullScreenChange", { contestId, token })
         }
         const handleTabSwitch = () => {
             // settabswitch((prev) => prev + 1);
-            socket.emit("tabSwitch", { contestId,token })
+            socket.emit("tabSwitch", { contestId, token })
         }
         document.addEventListener("fullscreenchange", handleFullScreenChange);
         document.addEventListener("webkitfullscreenchange", handleFullScreenChange);
@@ -329,12 +329,12 @@ int main() {
 
                     <ContestTimer id={contestId} />
                 </>
+
                 // <ContestHeader
                 //     contestId={contestId}
                 //     contestName="Live Coding Contest"
                 //     questionTitle={question?.title}
                 // />
-
             )}
 
 
@@ -346,6 +346,21 @@ int main() {
         ${isDark ? "bg-neutral-800 border-neutral-700" : "bg-white border-blue-200 "}`}
                 style={{ overflowY: "auto" }} // scroll only this if content overflows
             >
+
+                {/* {contestId && (
+                    <button
+                        onClick={() => navigate("/test/questions", { state: { id: contestId } })}
+                        className={`flex items-center gap-2 px-2 py-1 rounded-lg font-medium shadow-sm transition-colors duration-300
+        ${isDark
+                                ? "bg-neutral-700 hover:bg-neutral-600 text-gray-100 border border-neutral-600"
+                                : "bg-white hover:bg-blue-100 text-blue-500 border border-blue-300"
+                            }`}
+                    >
+                        ← Go Back
+                    </button>
+
+                )} */}
+
                 {!contestId && (
                     <div className="flex">
                         <button
@@ -378,23 +393,14 @@ int main() {
                     </div>
                 )}
 
-                {contestId && (
-                    <button
-                        onClick={() => navigate("/test/questions", { state: { id: contestId } })}
-                        className={`absolute top-0 left-0 flex items-center gap-2 px-3 py-2 rounded-lg font-medium shadow-md transition-colors duration-300
-      ${isDark
-                                ? "bg-neutral-800 hover:bg-neutral-700 text-gray-100 border border-neutral-600"
-                                : "bg-white hover:bg-blue-100 text-blue-700 border border-blue-300"}`}
-                    >
-                        ← Go Back
-                    </button>
-                )}
+
 
 
                 {activeTab === "question" ? (
-                    <div className="p-6">
+                    <div className='p-6'>
                         {/* Question Title */}
-                        <div className="flex items-center gap-3 mb-3">
+                        <div className="flex items-center justify-between gap-3 mb-3">
+
                             <h3
                                 className={`font-bold text-3xl ${isDark ? "text-blue-400" : "text-blue-500"} flex items-center gap-2`}
                             >
@@ -403,6 +409,19 @@ int main() {
                                     <SiTicktick className="text-green-500" />
                                 )}
                             </h3>
+                            {contestId && (
+                                <button
+                                    onClick={() => navigate("/test/questions", { state: { id: contestId } })}
+                                    className={`flex items-center gap-2 px-1.5 py-1 rounded-lg font-medium shadow-sm transition-colors duration-300
+        ${isDark
+                                            ? "bg-neutral-700 hover:bg-neutral-600 text-gray-100 border border-neutral-600"
+                                            : "bg-white hover:bg-blue-100 text-blue-500 border border-blue-300"
+                                        }`}
+                                >
+                                    ←Back
+                                </button>
+
+                            )}
                         </div>
 
                         {/* Difficulty & Tags */}

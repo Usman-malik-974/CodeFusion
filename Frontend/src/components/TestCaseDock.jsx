@@ -126,7 +126,7 @@ const TestCaseDock = ({
                             {errorMessage ? (
                                 <pre className="text-red-500">{errorMessage}</pre>
                             ) : customOutput ? (
-                                <pre className="text-green-400">{customOutput}</pre>
+                                <pre className="text-green-600">{customOutput}</pre>
                             ) : (
                                 "Console output will appear here..."
                             )}

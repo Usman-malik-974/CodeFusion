@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import AboutTeam from "../components/AboutTeam";
 import { motion } from "framer-motion"; // 👈 for scroll animations
@@ -11,6 +11,18 @@ const Home = () => {
     const scrollToAbout = () => {
         aboutRef.current?.scrollIntoView({ behavior: "smooth" });
     };
+
+    useEffect(() => {
+        const hero = document.getElementById("hero");
+        const img = new Image();
+        img.src = "/Home-bg.jpg"; // your actual heavy image
+
+        img.onload = () => {
+            hero.style.backgroundImage = `url(${img.src})`;
+            hero.classList.remove("opacity-0");
+            hero.classList.add("opacity-100");
+        };
+    }, []);
 
     return (
         <div className="w-full">
@@ -36,7 +48,14 @@ const Home = () => {
             </header>
 
             {/* Hero Section */}
-            <div className="bg-[url('/Home-bg.jpg')] bg-cover bg-center h-screen w-full relative">
+            {/* <React.lazy> */}
+
+            {/* <div className="bg-[url('/Home-bg.jpg')] bg-cover bg-center h-screen w-full relative"> */}
+            <div
+                id="hero"
+                className="bg-cover bg-center h-screen w-full relative opacity-0 transition-opacity duration-700"
+            >
+
                 <div className="absolute top-[20%] flex flex-col ml-[2%] mr-[2%] md:gap-1.5 lg:gap-3 xl:gap-5">
                     <h2 className="text-blue-500 font-bold text-2xl md:text-5xl lg:text-6xl xl:text-8xl break-words">
                         Shaping Your Success
@@ -56,6 +75,7 @@ const Home = () => {
                 </div>
             </div>
 
+            {/* </React.lazy> */}
             {/* About Section with Fade-in */}
             <motion.div
                 ref={aboutRef}
