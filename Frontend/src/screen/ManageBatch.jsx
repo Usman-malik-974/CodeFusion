@@ -23,7 +23,7 @@ const ManageBatch = () => {
     const [batch, setBatch] = useState({});
     const [activeTab, setActiveTab] = useState("users");
     const [searchInput, setSearchInput] = useState("");
-    const [searchBy, setSearchBy] = useState("name");
+    const [popUpsearchBy, setPopupSearchBy] = useState("name");
 
     const [popupVisible, setPopupVisible] = useState(false);
     const [popupType, setPopupType] = useState(""); // "users" or "questions"
@@ -34,6 +34,8 @@ const ManageBatch = () => {
     const [isAssigning, setIsAssigning] = useState(false);
     const [removingId, setRemovingId] = useState(null); // disables remove button
     const [isLoading, setIsLoading] = useState(false);
+    const [selectAllCheckbox, setSelectAllCheckbox] = useState(false);
+    // const [searchBy, setSearchBy] = useState("name");
 
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -117,6 +119,7 @@ const ManageBatch = () => {
         } finally {
             setSelectedItems([]);
             setPopupVisible(false);
+            setSelectAllCheckbox(false);
             setIsAssigning(false);
         }
     };
@@ -174,13 +177,13 @@ const ManageBatch = () => {
         if (!searchInput) return true;
         const val = searchInput.toLowerCase();
         if (activeTab === "users") {
+            console.log(item);
             return (
-                item.name.toLowerCase().includes(val) ||
+                item.name?.toLowerCase().includes(val) ||
                 item.rollno?.toLowerCase().includes(val) ||
                 item.email?.toLowerCase().includes(val) ||
                 item.course?.toLowerCase().includes(val) ||
-                item.session?.toLowerCase().includes(val) ||
-                item.role?.toLowerCase().includes(val)
+                item.session?.toLowerCase().includes(val)
             );
         } else {
             return (
@@ -207,6 +210,37 @@ const ManageBatch = () => {
     // Filtered lists
     const filteredUsers = batch.users?.filter(handleSearch) || [];
     const filteredQuestions = batch.questions?.filter(handleSearch) || [];
+
+
+    //for unassigned parts
+    const filteredItems = (popupType === "users" ? unAssignedUsers : unAssignedQuestions)
+        .filter(item => {
+            // console.log(item);
+            if (!popupSearch) return true;
+            const search = popupSearch.toLowerCase();
+
+            if (popupType === "users") {
+                if (popUpsearchBy === "name") return item.name.toLowerCase().includes(search);
+                if (popUpsearchBy === "email") return item.email.toLowerCase().includes(search);
+                if (popUpsearchBy === "rollno") return item.rollno?.toLowerCase().includes(search);
+                if (popUpsearchBy === "course") return item.course?.toLowerCase().includes(search);
+                if (popUpsearchBy === "session") return item.session?.toLowerCase().includes(search);
+                if (popUpsearchBy === "role") return item.role?.toLowerCase().includes(search);
+            } else {
+                if (popUpsearchBy === "title") return item.title.toLowerCase().includes(search);
+                if (popUpsearchBy === "difficulty") return item.difficulty.toLowerCase().includes(search);
+                if (popUpsearchBy === "tags") {
+                    return item.tags.some(tag =>
+                        tag.toLowerCase().includes(search)
+                    );
+                }
+
+            }
+
+            return true;
+        });
+
+
 
     return (
         <div className="p-6">
@@ -309,11 +343,11 @@ const ManageBatch = () => {
                                                 className="hover:bg-blue-50 transition"
                                             >
                                                 <td className="px-4 py-3 border-b border-gray-200">{idx + 1}</td>
-                                                <td className="px-4 py-3 border-b border-gray-200">{user.rollno}</td>
-                                                <td className="px-4 py-3 border-b border-gray-200">{user.name}</td>
-                                                <td className="px-4 py-3 border-b border-gray-200">{user.email}</td>
-                                                <td className="px-4 py-3 border-b border-gray-200">{user.course}</td>
-                                                <td className="px-4 py-3 border-b border-gray-200">{user.session}</td>
+                                                <td className="px-4 py-3 border-b border-gray-200">{user.rollno || "NA"}</td>
+                                                <td className="px-4 py-3 border-b border-gray-200">{user.name || "NA"}</td>
+                                                <td className="px-4 py-3 border-b border-gray-200">{user.email || "NA"}</td>
+                                                <td className="px-4 py-3 border-b border-gray-200">{user.course || "NA"}</td>
+                                                <td className="px-4 py-3 border-b border-gray-200">{user.session || "NA"}</td>
                                                 <td className="px-4 py-3 border-b border-gray-200">
                                                     <button
                                                         onClick={() => removeItem(user.id, "users")}
@@ -417,15 +451,75 @@ const ManageBatch = () => {
                     {/* Popup for adding users/questions */}
                     {popupVisible && (
                         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-                            <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6">
+                            <div className="bg-white rounded-lg shadow-lg w-full max-w-4xl p-6">
                                 <h2 className="text-lg font-semibold mb-4">{popupType === "users" ? "Add User" : "Add Question"}</h2>
-                                <input
-                                    type="text"
-                                    placeholder="Search..."
-                                    value={popupSearch}
-                                    onChange={(e) => setPopupSearch(e.target.value)}
-                                    className="w-full p-2 border border-gray-300 rounded-md mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                />
+                                <div className="flex w-full md:w-2/3 items-center gap-3 mb-2">
+                                    <input
+                                        type="text"
+                                        placeholder="Search..."
+                                        value={popupSearch}
+                                        onChange={(e) => setPopupSearch(e.target.value)}
+                                        className="flex-1 p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                    />
+
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-medium text-blue-500">Search By</span>
+
+                                        <select
+                                            className="p-2.5 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400 bg-gray-100 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors"
+                                            value={popUpsearchBy}
+                                            onChange={(e) => setPopupSearchBy(e.target.value)}
+                                        >
+                                            {popupType === 'users' ? (
+
+                                                <>
+                                                    <option value="name">Name</option>
+                                                    <option value="rollno">Roll No</option>
+                                                    <option value="course">Course</option>
+                                                    <option value="email">Email</option>
+                                                    <option value="session">Session</option>
+                                                    <option value="role">Role</option>
+                                                </>
+                                            ) :
+                                                <>
+                                                    <option value="title">Title</option>
+                                                    <option value="difficulty">Difficulty</option>
+                                                    <option value="tags">Tags</option>
+                                                    {/* <option value="email">Email</option>
+                                                    <option value="session">Session</option>
+                                                    <option value="role">Role</option> */}
+                                                </>
+                                            }
+
+                                        </select>
+                                    </div>
+
+                                    <label className="flex items-center gap-2 cursor-pointer select-none ml-auto">
+                                        <input
+                                            type="checkbox"
+                                            id="select"
+                                            name="select"
+                                            className="h-4 w-4 accent-blue-500 cursor-pointer"
+                                            onChange={() => {
+                                                const newValue = !selectAllCheckbox;
+                                                setSelectAllCheckbox(newValue);
+
+                                                if (newValue) {
+                                                    // SELECT ALL
+                                                    setSelectedItems(filteredItems.map(item => item.id));
+                                                } else {
+                                                    // UNSELECT ALL
+                                                    setSelectedItems([]);
+                                                }
+                                            }}
+
+                                            // state for managing checked
+                                            checked={selectAllCheckbox}
+                                        />
+                                        <span className="text-sm font-medium text-gray-700">{selectAllCheckbox ? "UnSelect All" : "Select All"}</span>
+                                    </label>
+                                </div>
+
                                 <div className="max-h-60 overflow-y-auto">
                                     <table className="w-full text-sm">
                                         <thead className="bg-gray-100">
@@ -449,15 +543,49 @@ const ManageBatch = () => {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {(popupType === "users" ? unAssignedUsers : unAssignedQuestions)
-                                                .filter((item) =>
-                                                    popupSearch
-                                                        ? popupType === "users"
-                                                            ? item.name.toLowerCase().includes(popupSearch.toLowerCase()) ||
-                                                            item.email.toLowerCase().includes(popupSearch.toLowerCase())
-                                                            : item.title.toLowerCase().includes(popupSearch.toLowerCase())
-                                                        : true
-                                                )
+                                            {filteredItems
+                                                // (popupType === "users" ? unAssignedUsers : unAssignedQuestions)
+                                                // .filter((item) =>
+                                                //     popupSearch
+                                                //         ? popupType === "users"
+                                                //             ? item.name.toLowerCase().includes(popupSearch.toLowerCase()) ||
+                                                //             item.email.toLowerCase().includes(popupSearch.toLowerCase())
+                                                //             : item.title.toLowerCase().includes(popupSearch.toLowerCase())
+                                                //         : true
+                                                // )
+                                                // .filter(item => {
+                                                //     if (!popupSearch) return true; // no search → return all
+                                                //     const search = popupSearch.toLowerCase();
+
+                                                //     if (popupType === "users") {
+                                                //         if (popUpsearchBy === "name") {
+                                                //             return item.name.toLowerCase().includes(search);
+                                                //         }
+                                                //         else if (popUpsearchBy === "email") {
+                                                //             return item.email.toLowerCase().includes(search);
+                                                //         }
+                                                //         else if (popUpsearchBy === "rollno") {
+                                                //             return item.rollno?.toLowerCase().includes(search);
+                                                //         }
+                                                //         else if (popUpsearchBy === "course") {
+                                                //             return item.course?.toLowerCase().includes(search);
+                                                //         }
+                                                //         else if (popUpsearchBy === "session") {
+                                                //             return item.session?.toLowerCase().includes(search);
+                                                //         }
+                                                //         else if (popUpsearchBy === "role") {
+                                                //             return item.role?.toLowerCase().includes(search);
+                                                //         }
+                                                //     } else {
+                                                //         // popupType === "other" → e.g., posts/papers etc.
+                                                //         if (popupSearchBy === "title") {
+                                                //             return item.title.toLowerCase().includes(search);
+                                                //         }
+                                                //     }
+
+                                                //     return true;
+                                                // })
+
                                                 .map((item) => {
                                                     const isSelected = selectedItems.includes(item.id);
                                                     return (
@@ -499,7 +627,10 @@ const ManageBatch = () => {
                                     </table>
                                 </div>
                                 <div className="mt-4 flex justify-end gap-2">
-                                    <button onClick={() => setPopupVisible(false)} className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400 cursor-pointer">Close</button>
+                                    <button onClick={() => {
+                                        setPopupVisible(false)
+                                        setSelectAllCheckbox(false);
+                                    }} className="px-4 py-2 bg-gray-300 rounded-md hover:bg-gray-400 cursor-pointer">Close</button>
                                     <button
                                         onClick={assignSelectedItems}
                                         disabled={selectedItems.length === 0 || isAssigning}

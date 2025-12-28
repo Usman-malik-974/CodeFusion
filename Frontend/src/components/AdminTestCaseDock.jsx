@@ -126,7 +126,7 @@ const AdminTestCaseDock = ({
                             {errorMessage ? (
                                 <pre className="text-red-500">Error: {errorMessage}</pre>
                             ) : customOutput ? (
-                                <pre className="text-green-400">{customOutput}</pre>
+                                <pre className="text-green-00">{customOutput}</pre>
                             ) : (
                                 "Console output will appear here..."
                             )}

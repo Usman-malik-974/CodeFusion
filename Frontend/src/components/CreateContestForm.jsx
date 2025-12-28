@@ -81,9 +81,10 @@ const CreateContestForm = ({ onClose, questions, onCreate }) => {
             {/* Close Button */}
             <button
                 onClick={onClose}
-                className="sticky right-0 top-0 float-right text-gray-500 hover:text-red-500 text-2xl font-bold"
+                // we can make it stick and add flloat right properlty to adjust this cross in right because sticky dont support right-x directly 
+                className="absolute right-0 top-0  text-gray-500 hover:text-red-500 text-2xl font-bold"
             >
-                ✖
+                ✕
             </button>
 
             <h2 className="text-3xl font-bold mb-6 text-center text-blue-500">

@@ -8,12 +8,12 @@ const isAdmin = require('../utils/isAdmin');
 const getContestLeaderboard = require('../utils/getContestLeaderBoard');
 const execAsync = util.promisify(exec);
 
-// const cppContainers = ['cpp-runner-1'];
-const cppContainers = ['cpp-runner-1', 'cpp-runner-2', 'cpp-runner-3',
-  'cpp-runner-4', 'cpp-runner-5', 'cpp-runner-6',
-  'cpp-runner-7', 'cpp-runner-8', 'cpp-runner-9',
-  'cpp-runner-10'
-];
+const cppContainers = ['cpp-runner-1'];
+// const cppContainers = ['cpp-runner-1', 'cpp-runner-2', 'cpp-runner-3',
+//   'cpp-runner-4', 'cpp-runner-5', 'cpp-runner-6',
+//   'cpp-runner-7', 'cpp-runner-8', 'cpp-runner-9',
+//   'cpp-runner-10'
+// ];
 let currentCpp = 0;
 
 function getCppContainer() {
