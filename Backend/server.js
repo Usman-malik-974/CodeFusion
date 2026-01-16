@@ -5,6 +5,8 @@ const { Server } = require("socket.io");
 const path = require("path");
 const cors = require("cors");
 const { conn } = require("./config/db");
+const { createClient } = require("redis");
+const {createAdapter}=require("@socket.io/redis-adapter");
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -22,26 +24,32 @@ const userRouter = require("./routes/userRoutes");
 const questionRouter = require("./routes/questionRoutes");
 const batchRouter = require("./routes/batchRoutes");
 const contestRouter = require("./routes/contestRoutes")(io);
-const {handleFullScreenChange,handleTabSwitch}=require("./utils/handleViolation")
+const { handleFullScreenChange, handleTabSwitch } = require("./utils/handleViolation")
 
-console.log("hi");
+const pubClient=createClient({url:process.env.REDIS_URL});
+const subClient=pubClient.duplicate();
+(async ()=>{
+  await Promise.all([pubClient.connect(),subClient.connect()])
+})();
+
+io.adapter(createAdapter(pubClient,subClient));
 
 io.on("connection", (socket) => {
   console.log(`📡 Client connected: ${socket.id}`);
-  socket.on("fullScreenChange",async ({contestId,token})=>{
-    console.log("Full screen ",contestId,token);
-    await handleFullScreenChange(contestId,token);
+  socket.on("fullScreenChange", async ({ contestId, token }) => {
+    console.log("Full screen ", contestId, token);
+    await handleFullScreenChange(contestId, token);
 
   })
-  socket.on("tabSwitch",async ({contestId,token})=>{
-    console.log("Tab Switch ",contestId,token);
-    await handleTabSwitch(contestId,token);
+  socket.on("tabSwitch", async ({ contestId, token }) => {
+    console.log("Tab Switch ", contestId, token);
+    await handleTabSwitch(contestId, token);
   })
-  socket.on("joinContestRoom",({id})=>{
+  socket.on("joinContestRoom", ({ id }) => {
     socket.join(`Contest_${id}`);
     console.log(`User ${socket.id} joined contest_${id}`);
   });
-    socket.on("leaveContestRoom",({id})=>{
+  socket.on("leaveContestRoom", ({ id }) => {
     socket.leave(`Contest_${id}`);
     console.log(`User ${socket.id} left contest_${id}`);
   });
@@ -54,7 +62,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/questions", questionRouter);
 app.use("/api/batches", batchRouter);
-app.use("/api/contests",contestRouter);
+app.use("/api/contests", contestRouter);
 
 server.listen(process.env.PORT, () => {
   console.log(`Server running at http://localhost:${process.env.PORT}`);

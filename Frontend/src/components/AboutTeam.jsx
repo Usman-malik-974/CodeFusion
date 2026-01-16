@@ -5,7 +5,7 @@ const AboutTeam = () => {
     {
       name: "Mohd Usman",
       role: "Fullstack Developer",
-      img: "https://media.licdn.com/dms/image/v2/D5603AQE9ZYx0cVatug/profile-displayphoto-crop_800_800/B56Zh_LTtoH0AQ-/0/1754480329553?e=1758758400&v=beta&t=iDqnJ_EgBbv4shBnQjuEJ_fEqnVjkoycOTsQlVfYr2w",
+      img: "Usman.jpeg",
       bio: "Passionate about crafting seamless web experiences, blending intuitive UI/UX with robust backend solutions. Always eager to learn, collaborate, and transform ideas into impactful digital products.",
       linkedin: "https://www.linkedin.com/in/mohdusman974",
       instagram: "https://www.instagram.com/usman_malik_974/",
@@ -14,7 +14,7 @@ const AboutTeam = () => {
     {
       name: "Gaurav Sahni",
       role: "Fullstack Developer",
-      img: "https://media.licdn.com/dms/image/v2/D4D03AQGIrA3qYsSrzw/profile-displayphoto-shrink_800_800/B4DZXd4CKDHYAg-/0/1743184209098?e=1758758400&v=beta&t=NNbbr-Nc_2qiepG485QldYtFFq1oKHfj3r1GrqdQwb4",
+      img: "Gaurav.jpeg",
       bio: "Loves solving complex challenges and building scalable applications. Focused on writing clean code, optimizing performance, and delivering solutions that scale seamlessly in real-world environments.",
       linkedin: "https://www.linkedin.com/in/gauravynr",
       instagram: "https://www.instagram.com/itz_gaurav017/",
@@ -23,7 +23,7 @@ const AboutTeam = () => {
     {
       name: "Firoj Khan",
       role: "Fullstack Developer",
-      img: "https://media.licdn.com/dms/image/v2/D5603AQGz-gP4YRTN4g/profile-displayphoto-shrink_800_800/B56ZZOQ7K4HsAc-/0/1745069813849?e=1758758400&v=beta&t=sEa1NZT7fwkOSSwn1PPxnM0SsJ2nGqKnHFBTdH0D4CM",
+      img: "Firoj.jpeg",
       bio: "Enjoys building end-to-end solutions using React, Node.js, and modern databases. Strong believer in teamwork and innovation, turning complex requirements into smooth digital experiences.",
       linkedin: "https://www.linkedin.com/in/firojynr",
       instagram: "https://www.instagram.com/firojynr",

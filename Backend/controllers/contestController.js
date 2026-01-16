@@ -536,6 +536,33 @@ const submitContest = async (req, res) => {
   }
 };
 
+const validateContestId = async (req, res) => {
+  try {
+      const { id } = req.params;
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+          return res.status(400).json({
+              err: "Invalid contest id"
+          });
+      }
+      const contest = await Contest.findById(id);
+      if (!contest) {
+          return res.status(404).json({
+              err: "Contest not found"
+          });
+      }
+      return res.status(200).json({
+          success: true,
+          contest
+      });
+
+  } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+          err: "Server error"
+      });
+  }
+};
+
 const endContest = async (req, res,io) => {
   try {
     if (!(await isAdmin(req.user.id))) {
@@ -648,4 +675,4 @@ const getUserPerformance=async(req,res)=>{
     return res.status(500).json({ error:"Internal Server Error" });
   }
 }
-module.exports = { createContest, getUpcomingContests, getLiveContests, getRecentContests, getContestQuestions,deleteContest,updateContest,joinContest,getContestTime,generateLeaderboard,submitContest,endContest,updateContestTime,getUserPerformance}
+module.exports = { createContest, getUpcomingContests, getLiveContests, getRecentContests, getContestQuestions,deleteContest,updateContest,joinContest,getContestTime,generateLeaderboard,submitContest,endContest,updateContestTime,getUserPerformance,validateContestId}

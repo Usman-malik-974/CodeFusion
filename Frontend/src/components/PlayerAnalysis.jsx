@@ -113,72 +113,83 @@ const PlayerAnalysis = ({ playerAnalysisData }) => {
                                                     {/* <div className="p-4 border rounded-lg bg-white shadow-sm"> */}
                                                     {/* <h4 className="font-semibold mb-2">Submissions Details:</h4> */}
                                                     {q.submissions.length > 0 ? (
-                                                        <table className="w-full text-left border-collapse">
-                                                            <thead className="bg-blue-100 text-blue-600 text-sm font-semibold">
-                                                                <tr>
-                                                                    <th className="px-4 py-2">Language</th>
-                                                                    <th className="px-4 py-2">Time</th>
-                                                                    <th className="px-4 py-2">Passed</th>
-                                                                    <th className="px-4 py-2">Obtained Marks</th>
-                                                                    <th className="px-4 py-2">Action</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                {q.submissions.map((sub, i) => {
-                                                                    const allPassed = sub.passed === sub.total;
-                                                                    return (
-                                                                        <tr
-                                                                            key={i}
-                                                                            className={`${i % 2 === 0 ? "bg-blue-50" : "bg-white"
-                                                                                } hover:bg-blue-100 transition`}
-                                                                        >
-                                                                            <td className="px-4 py-2">{sub.language}</td>
-                                                                            <td className="px-4 py-2">
-                                                                                {new Date(sub.submittedAt).toLocaleString()}
-                                                                            </td>
-                                                                            <td className={`px-4 py-2 text-center font-bold ${allPassed ? "text-green-600" : "text-red-600"}`}>
-                                                                                {sub.passed}/{sub.total}
-                                                                            </td>
-                                                                            <td className={`px-4 py-2 text-center font-bold text-green-600" `}>
-                                                                                {sub.obtainedMarks}
-                                                                            </td>
-                                                                            <td className="px-4 py-3 border-b border-gray-200">
-                                                                                <button
-                                                                                    className="bg-blue-500 text-white px-2 py-1 rounded"
-                                                                                    onClick={() => setViewingCode(sub.code)}
-                                                                                >
-                                                                                    View Code
-                                                                                </button>
-                                                                            </td>
-
-                                                                        </tr>
-                                                                    );
-                                                                })}
-                                                            </tbody>
-                                                            {viewingCode && (
-                                                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-                                                                    <div className="bg-white rounded-xl shadow-lg w-3/4 max-h-[80vh] overflow-auto relative">
-                                                                        {/* Header */}
-                                                                        <div className="flex justify-between items-center p-4 border-b border-gray-300">
-                                                                            <h2 className="text-lg font-bold">Submitted Code</h2>
-                                                                            <button
-                                                                                className="text-2xl font-bold hover:text-red-500"
-                                                                                onClick={() => setViewingCode(null)}
+                                                        <div className='max-h-96 overflow-y-auto border rounded-md'>
+                                                            <table className="w-full text-left border-collapse">
+                                                                <thead className="bg-blue-100 text-blue-600 text-sm font-semibold">
+                                                                    <tr>
+                                                                        <th className="px-4 py-2">Language</th>
+                                                                        <th className="px-4 py-2">Time</th>
+                                                                        <th className="px-4 py-2">Passed</th>
+                                                                        <th className="px-4 py-2">Obtained Marks</th>
+                                                                        <th className="px-4 py-2">Action</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {q.submissions.map((sub, i) => {
+                                                                        const allPassed = sub.passed === sub.total;
+                                                                        return (
+                                                                            <tr
+                                                                                key={i}
+                                                                                className={`${i % 2 === 0 ? "bg-blue-50" : "bg-white"
+                                                                                    } hover:bg-blue-100 transition`}
                                                                             >
-                                                                                ✕
-                                                                            </button>
-                                                                        </div>
-                                                                        {/* Code Body */}
-                                                                        <div className="p-4">
-                                                                            <pre className="whitespace-pre-wrap font-mono text-gray-800">
-                                                                                {viewingCode}
-                                                                            </pre>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            )}
+                                                                                <td className="px-4 py-2">{sub.language}</td>
+                                                                                <td className="px-4 py-2">
+                                                                                    {new Date(sub.submittedAt).toLocaleString()}
+                                                                                </td>
+                                                                                <td className={`px-4 py-2 text-center font-bold ${allPassed ? "text-green-600" : "text-red-600"}`}>
+                                                                                    {sub.passed}/{sub.total}
+                                                                                </td>
+                                                                                <td className={`px-4 py-2 text-center font-bold text-green-600" `}>
+                                                                                    {sub.obtainedMarks}
+                                                                                </td>
+                                                                                <td className="px-4 py-3 border-b border-gray-200">
+                                                                                    <button
+                                                                                        className="bg-blue-500 text-white px-2 py-1 rounded"
+                                                                                        onClick={() => setViewingCode(sub.code)}
+                                                                                    >
+                                                                                        View Code
+                                                                                    </button>
+                                                                                </td>
 
-                                                        </table>
+                                                                            </tr>
+                                                                        );
+                                                                    })}
+                                                                </tbody>
+                                                                {viewingCode && (
+                                                                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+
+                                                                        <div className="bg-white rounded-xl shadow-lg w-3/4 max-h-[80vh] flex flex-col">
+                                                                            {/* VERY IMPORTANT: flex flex-col so children stack vertically */}
+                                                                            {/* Also max-h ensures scroll stays inside */}
+
+                                                                            {/* Header */}
+                                                                            <div className="flex justify-between items-center p-4 border-b border-gray-300">
+                                                                                <h2 className="text-lg font-bold">Submitted Code</h2>
+                                                                                <button
+                                                                                    className="text-2xl font-bold hover:text-red-500"
+                                                                                    onClick={() => setViewingCode(null)}
+                                                                                >
+                                                                                    ✕
+                                                                                </button>
+                                                                            </div>
+
+                                                                            {/* Scrollable Code Body */}
+                                                                            <div className="p-4 overflow-auto flex-1">
+                                                                                <pre className="whitespace-pre-wrap font-mono text-gray-800">
+                                                                                    {viewingCode}
+                                                                                    
+                                                                                </pre>
+                                                                            </div>
+
+                                                                        </div>
+
+                                                                    </div>
+                                                                )}
+
+
+                                                            </table>
+                                                        </div>
                                                     ) : (
                                                         <p className="text-gray-500 italic">No submissions</p>
                                                     )}

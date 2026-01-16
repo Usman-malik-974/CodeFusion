@@ -101,7 +101,7 @@ const UpdateContestForm = React.memo(({ onClose, questions, onUpdate, prevData }
                 onClick={onClose}
                 className="absolute top-0 right-0 text-gray-500 hover:text-red-500 text-2xl font-bold"
             >
-                ✖
+                 ✕
             </button>
 
             <h2 className="text-3xl font-bold mb-6 text-center text-blue-500">
