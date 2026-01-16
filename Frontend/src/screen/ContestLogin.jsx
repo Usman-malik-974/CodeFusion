@@ -6,6 +6,7 @@ import { BeatLoader } from "react-spinners";
 import * as Yup from 'yup';
 import { toast } from 'react-toastify';
 import { joinContest } from "../shared/networking/api/contestApi/joinContest";
+import { validateContestId } from "../shared/networking/api/contestApi/validateContestId";
 
 const ContestLogin = () => {
     const [showPassword, setShowPassword] = useState(false);
@@ -50,6 +51,18 @@ const ContestLogin = () => {
         },
         validateOnChange: false
     });
+
+    useEffect(() => {
+        const checkContest = async () => {
+            const result = await validateContestId(id);
+            if (result.err) {
+                toast.error(result.err);
+                navigate('/notfound');
+            }
+        };
+        checkContest();
+    }, [id, navigate]);
+    
     return (
         <div className="bg-[url('/Contest.jpg')]  bg-cover bg-center h-screen w-full relative">
          <div className="shadow-xl shadow-black/40 bg-black/70 backdrop-blur-lg border border-white/10 px-8 py-6 rounded-2xl w-full max-w-sm absolute top-[10%] right-[20%]">
